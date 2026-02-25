@@ -23,18 +23,16 @@ window.GameUI = (() => {
     const st = S.get(), p = st.player;
     const dmg = p.baseDmg + p.dmgBonus;
 
-    // Только Здоровье и Рассудок
     $('#statusBars').innerHTML = `
       <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>
       <div>🧠 РАССУДОК ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill bg-ok' style='width:${clamp(p.mood / p.maxMood * 100, 0, 100)}%'></div></div></div>`;
 
-    // Интерактивные кнопки для употребляемых предметов
     $('#res').innerHTML = `
-      <button class='pill pill-btn' data-use='food' title='Восстанавливает HP и Рассудок'>🍖 ЕДА: ${st.resources.food}</button>
-      <button class='pill pill-btn' data-use='water' title='Восстанавливает HP и Рассудок'>💧 ВОДА: ${st.resources.water}</button>
-      <button class='pill pill-btn' data-use='medkits' title='Сильное лечение'>✚ АПТЕЧКИ: ${st.resources.medkits}</button>
-      <div class='pill'>⚙️ МАТЕРИАЛЫ: ${st.resources.materials}</div>
-      <div class='pill'>⚡ ПАТРОНЫ: ${st.resources.ammo}</div>
+      <button class='pill pill-btn' data-use='food'>🍖 ЕДА: ${st.resources.food}</button>
+      <button class='pill pill-btn' data-use='water'>💧 ВОДА: ${st.resources.water}</button>
+      <button class='pill pill-btn' data-use='medkits'>✚ АПТ: ${st.resources.medkits}</button>
+      <div class='pill'>⚙️ МАТ: ${st.resources.materials}</div>
+      <div class='pill'>⚡ ПАТР: ${st.resources.ammo}</div>
       <div class='pill'>⚔️ УРОН: ${dmg}</div>`;
   };
 
@@ -43,14 +41,11 @@ window.GameUI = (() => {
     if (!e) return;
     $('#battleTimer').textContent = `T-${c.time.toFixed(1)}s`;
 
-    // Статусы игрока в бою
     $('#pBars').innerHTML = `
-      <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>
-      <div>🧠 РАССУДОК ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill bg-ok' style='width:${clamp(p.mood / p.maxMood * 100, 0, 100)}%'></div></div></div>`;
+      <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>`;
 
-    $('#enemyName').textContent = `${e.icon} ${e.name} (${Math.max(0, Math.round(e.hp))}/${e.maxHp})`;
+    $('#enemyName').textContent = `${e.icon} ${e.name}`;
 
-    // Вывод картинки врага
     const imgEl = $('#enemyImg');
     if (e.img) { imgEl.src = e.img; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
 
@@ -58,18 +53,15 @@ window.GameUI = (() => {
     $('#telegraph').textContent = `[УГРОЗА] АТАКА ЧЕРЕЗ ${Math.max(0, c.enemyAtk).toFixed(1)}s`;
     $('#teleFill').style.width = `${clamp((1 - c.enemyAtk / e.atk) * 100, 0, 100)}%`;
 
-    $('#reload').disabled = c.cdReload > 0;
-    $('#volley').disabled = c.cdVolley > 0;
-    $('#dodge').disabled = c.cdDodge > 0; // Уклонение теперь по кулдауну
-    $('#reload').textContent = c.cdReload > 0 ? `ПЕРЕЗАРЯДКА [${c.cdReload.toFixed(0)}s]` : 'ПЕРЕЗАРЯДКА';
-    $('#volley').textContent = c.cdVolley > 0 ? `ЗАЛП [${c.cdVolley.toFixed(0)}s]` : 'ЗАЛП';
-    $('#dodge').textContent = c.cdDodge > 0 ? `УКЛОНЕНИЕ [${c.cdDodge.toFixed(0)}s]` : 'УКЛОНЕНИЕ';
+    // Кнопка уклонения с кулдауном
+    $('#dodge').disabled = c.cdDodge > 0;
+    $('#dodge').textContent = c.cdDodge > 0 ? `КД [${c.cdDodge.toFixed(1)}s]` : 'УКЛОНЕНИЕ';
   };
 
   const setEncounterCard = ({ icon, title, desc }) => $('#encounterText').innerHTML = `<div class='pill'>${icon} ${title}</div><div style='margin-top:0.6rem;'>${desc}</div>`;
   const show = (id, on) => { $(id).classList.toggle('show', on); };
   const triggerDamage = () => { document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); const modal = $('#battleModal .card'); if (modal) { modal.classList.remove('flash-red'); void modal.offsetWidth; modal.classList.add('flash-red'); } };
-  const triggerEnemyHit = () => { const el = $('.enemy'); if (!el) return; el.style.transform = 'translate(4px, 2px)'; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--line)'; el.style.color = 'var(--bg)'; setTimeout(() => { el.style.transform = ''; el.style.borderColor = ''; el.style.background = ''; el.style.color = ''; }, 80); };
+  const triggerEnemyHit = () => { const el = $('.enemy'); if (!el) return; el.style.transform = 'translate(4px, 2px)'; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--line)'; setTimeout(() => { el.style.transform = ''; el.style.borderColor = ''; el.style.background = ''; }, 80); };
 
   return { $, toast, clamp, renderTop, renderMain, renderBattle, setEncounterCard, show, triggerDamage, triggerEnemyHit };
 })();

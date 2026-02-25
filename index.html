@@ -13,14 +13,14 @@
     <div class="hud-top">
       <div class="titleBlock">
         <h1>[КОМПЛЕКС ИЕРИХОН]</h1>
-        <div class="sub" id="storyChapter">SYS_LOG_01: ПРОБУЖДЕНИЕ</div>
+        <div class="sub highlight-text" id="storyChapter">SYS_LOG_01: ПРОБУЖДЕНИЕ</div>
       </div>
       <div class="capsTop" id="capsTop">[КРЕДИТЫ]: 0</div>
     </div>
     <div class="row">
       <div class="pill" id="day">ЦИКЛ 1</div>
       <div class="pill" id="phase">СТАТУС: ИССЛЕДОВАНИЕ</div>
-      <div class="pill" id="weaponPill">ОРУЖИЕ: АРМАТУРА</div>
+      <div class="pill" id="weaponPill">ОРУЖИЕ: КУЛАКИ</div>
     </div>
   </header>
 
@@ -33,7 +33,7 @@
       <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
       <div class="statusBars" id="statusBars"></div>
 
-      <!-- Сюда будут генерироваться кнопки-ресурсы -->
+      <!-- Сюда генерируются кнопки ресурсов -->
       <div class="res" id="res"></div>
 
       <div class="actionsRow">
@@ -68,8 +68,10 @@
         <div class="pill" id="battleTimer">00.0s</div>
       </div>
       <div class="statusBars" id="pBars"></div>
+
       <div class="enemy">
-        <div id="enemyName">—</div><img id="enemyImg" src="" alt="Враг" onerror="this.style.display='none'" />
+        <div id="enemyName">—</div>
+        <img id="enemyImg" src="" alt="Враг" onerror="this.style.display='none'" />
         <div class="bar">
           <div class="fill bg-bad" id="eHp"></div>
         </div>
@@ -78,10 +80,14 @@
           <div class="fill bg-warn" id="teleFill"></div>
         </div>
       </div>
-      <div class="actions"><button class="btn" id="atk">АТАКА</button><button class="btn"
-          id="dodge">УКЛОНЕНИЕ</button><button class="btn" id="med">ЛЕЧЕНИЕ</button><button class="btn alt"
-          id="reload">ПЕРЕЗАРЯДКА</button><button class="btn alt" id="volley">ЗАЛП</button><button class="btn bad"
-          id="retreat">ОТСТУПИТЬ</button></div>
+
+      <!-- Кнопок стало меньше -->
+      <div class="actions">
+        <button class="btn" id="atk">АТАКА</button>
+        <button class="btn" id="dodge">УКЛОНЕНИЕ</button>
+        <button class="btn" id="med">ЛЕЧЕНИЕ</button>
+        <button class="btn bad" id="retreat" style="grid-column: span 3;">ОТСТУПИТЬ</button>
+      </div>
     </div>
   </div>
 
