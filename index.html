@@ -7,14 +7,16 @@
   <title>Форпост: Дневной путь</title>
   <style>
     :root {
-      --panel: #1a222e;
-      --line: #3a4a61;
-      --txt: #e8eef7;
-      --muted: #9fb0c6;
-      --ok: #58c587;
-      --bad: #ff7f8d;
-      --warn: #e4b855;
-      --info: #7fb8ff
+      --panel: #11160f;
+      --panel-soft: #171f15;
+      --line: #315133;
+      --txt: #b5ff9e;
+      --muted: #7eaa78;
+      --ok: #6cff81;
+      --bad: #ff7b7b;
+      --warn: #ffd16b;
+      --info: #7ecbff;
+      --glow: #6aff88
     }
 
     * {
@@ -23,9 +25,22 @@
 
     body {
       margin: 0;
-      background: linear-gradient(180deg, #0d1218, #111925);
+      background: radial-gradient(circle at top, #1f2d1f 0%, #0a0f0a 65%);
       font: 15px/1.35 system-ui;
-      color: var(--txt)
+      color: var(--txt);
+      text-shadow: 0 0 6px #09120acc;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(180deg, transparent 0 2px, #0d160d66 2px 4px);
+      mix-blend-mode: soft-light;
+      opacity: .4
     }
 
     .app {
@@ -58,7 +73,7 @@
       padding: 4px 8px;
       border: 1px solid var(--line);
       border-radius: 999px;
-      background: #202b38;
+      background: #1b2919;
       font-size: 12px
     }
 
@@ -76,23 +91,50 @@
     }
 
     #charBtn {
-      width: 190px;
-      height: 190px;
-      border-radius: 50%;
-      border: 2px solid #6e8fc0;
-      background: radial-gradient(circle at 35% 30%, #3e5675, #1d2a3a 70%);
+      width: min(100%, 420px);
+      height: 300px;
+      border-radius: 14px;
+      border: 2px solid #4f8052;
+      background:
+        linear-gradient(180deg, #6f846f 0 28%, #425443 35%, #252f25 58%, #1a211a 100%);
       cursor: pointer;
       overflow: hidden;
       padding: 0;
-      display: grid;
-      place-items: center
+      position: relative;
+      display: block
+    }
+
+    #charBtn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 78% 20%, #dcbe6d88, transparent 30%),
+        linear-gradient(180deg, #0000, #0009);
+      pointer-events: none
+    }
+
+    #charBtn::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 36%;
+      background: linear-gradient(180deg, #2d332d 0%, #1d231d 100%);
+      border-top: 1px solid #78927855
     }
 
     #charBtn img {
-      width: 78%;
-      height: 78%;
+      position: absolute;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      width: min(66%, 250px);
+      height: auto;
       object-fit: contain;
-      filter: drop-shadow(0 0 8px #87b8ff66)
+      filter: drop-shadow(0 8px 10px #000) drop-shadow(0 0 8px #9effad66);
+      z-index: 2
     }
 
     #charBtn:active {
@@ -131,7 +173,7 @@
     }
 
     .btn {
-      background: #253244;
+      background: #1d2d1c;
       color: var(--txt);
       border: 1px solid var(--line);
       border-radius: 10px;
@@ -235,6 +277,9 @@
 
         <div class="statusBars" id="statusBars"></div>
         <div class="res" id="res"></div>
+        <div class="merchantDock">
+          <button class="btn alt" id="merchantBtn">Торговец пустоши</button>
+        </div>
       </div>
     </div>
   </div>
@@ -242,7 +287,7 @@
   <div class="overlay" id="encounterModal">
     <div class="card battle">
       <h2 style="margin:0 0 8px">Событие в пустоши</h2>
-      <div id="encounterText"></div>
+      <div class="encounterCard" id="encounterText"></div>
       <div class="row" style="margin-top:10px">
         <button class="btn good" id="encounterYes">Взаимодействовать</button>
         <button class="btn alt" id="encounterNo">Пройти мимо</button>
@@ -286,6 +331,18 @@
     </div>
   </div>
 
+  <div class="overlay" id="merchantModal">
+    <div class="card battle">
+      <div class="row">
+        <h2 style="margin:0">Торговец</h2>
+        <div class="pill" id="merchantCaps">Крышки: 0</div>
+      </div>
+      <div class="sub" style="margin-top:8px">Обменяйте крышки на припасы.</div>
+      <div id="merchantStock"></div>
+      <button class="btn" id="merchantClose" style="margin-top:10px">Закрыть</button>
+    </div>
+  </div>
+
   <div class="overlay" id="defeatModal">
     <div class="card battle">
       <h2 style="margin:0 0 8px">Поражение</h2>
@@ -313,11 +370,19 @@
         { name: 'Штурмовой бот', hp: 120, dmg: 18, atk: 4.0, armor: 0.35, icon: '🦾' }
       ];
       const LOCATIONS = [
-        { name: 'Заброшенный склад', icon: '🏚️', reward: { food: 3, water: 2, materials: 7 }, danger: 0.33, elite: 0.45 },
-        { name: 'Старая заправка', icon: '⛽', reward: { water: 4, materials: 4, ammo: 3 }, danger: 0.29, elite: 0.36 },
-        { name: 'Военный блокпост', icon: '🪖', reward: { ammo: 6, materials: 5, medkits: 1 }, danger: 0.45, elite: 0.62 }
+        { name: 'Музей технологии', icon: '🏛️', desc: 'Пыльные витрины и закрытый арсенал.', reward: { food: 2, water: 1, materials: 9, ammo: 3, caps: 5 }, danger: 0.36, elite: 0.45 },
+        { name: 'Рынок караванов', icon: '🏪', desc: 'Остатки лавок и складов с припасами.', reward: { water: 4, materials: 5, ammo: 2, caps: 8 }, danger: 0.28, elite: 0.33 },
+        { name: 'Военный блокпост', icon: '🪖', desc: 'Брошенный рубеж с тяжёлым снаряжением.', reward: { ammo: 7, materials: 6, medkits: 1, caps: 6 }, danger: 0.45, elite: 0.62 },
+        { name: 'Логово мутантов', icon: '☢️', desc: 'Опасно, но награда может быть очень высокой.', reward: { food: 4, water: 3, materials: 8, caps: 11 }, danger: 0.52, elite: 0.68 }
       ];
-      return { SAVE_KEY, SAVE_VER, ENEMIES, ELITE_ENEMIES, LOCATIONS };
+      const SHOP_ITEMS = [
+        { key: 'food', label: '🍖 Еда x6', amount: 6, price: 8 },
+        { key: 'water', label: '💧 Вода x6', amount: 6, price: 8 },
+        { key: 'ammo', label: '🔸 Патроны x14', amount: 14, price: 10 },
+        { key: 'medkits', label: '🩹 Аптечка x1', amount: 1, price: 12 },
+        { key: 'materials', label: '🧱 Материалы x10', amount: 10, price: 11 }
+      ];
+      return { SAVE_KEY, SAVE_VER, ENEMIES, ELITE_ENEMIES, LOCATIONS, SHOP_ITEMS };
     })();
   </script>
 
@@ -329,7 +394,7 @@
         day: 1,
         phase: 'Исследование',
         dead: false,
-        resources: { food: 20, water: 20, materials: 25, ammo: 40, medkits: 3 },
+        resources: { food: 20, water: 20, materials: 25, ammo: 40, medkits: 3, caps: 20 },
         player: { maxHp: 100, hp: 100, maxMood: 100, mood: 80, maxStab: 100, stability: 100, impulse: 0, dmg: 10 },
         encounter: null,
         combat: { active: false, time: 0, enemy: null, enemyAtk: 0, dodge: 0, cdReload: 0, cdVolley: 0, reward: null }
@@ -338,6 +403,7 @@
       let state = fresh();
       const normalize = () => {
         state.resources = state.resources || fresh().resources;
+        state.resources.caps = typeof state.resources.caps === 'number' ? state.resources.caps : 0;
         state.player = state.player || fresh().player;
         if (typeof state.player.mood !== 'number') {
           const oldStress = typeof state.player.stress === 'number' ? state.player.stress : 20;
@@ -388,7 +454,8 @@
           `💧 Вода: ${st.resources.water}`,
           `🧱 Материалы: ${st.resources.materials}`,
           `🔸 Патроны: ${st.resources.ammo}`,
-          `🩹 Аптечки: ${st.resources.medkits}`
+          `🩹 Аптечки: ${st.resources.medkits}`,
+          `🧢 Крышки: ${st.resources.caps}`
         ].map(x => `<div class='pill'>${x}</div>`).join('');
 
         const p = st.player;
@@ -426,8 +493,18 @@
         $('#volley').textContent = c.cdVolley > 0 ? `Залп ${c.cdVolley.toFixed(1)}с` : 'Залп';
       };
 
+      const setEncounterCard = ({ icon, title, desc }) => {
+        $('#encounterText').innerHTML = `
+          <div class='encounterIcon'>${icon}</div>
+          <div>
+            <div class='encounterTitle'>${title}</div>
+            <div class='encounterDesc'>${desc}</div>
+          </div>
+        `;
+      };
+
       const show = (id, on) => $(id).classList.toggle('show', on);
-      return { $, toast, clamp, renderTop, renderMain, renderBattle, show };
+      return { $, toast, clamp, renderTop, renderMain, renderBattle, setEncounterCard, show };
     })();
   </script>
 
@@ -491,6 +568,34 @@
         });
       };
 
+      const renderMerchant = () => {
+        const st = S.get();
+        UI.$('#merchantCaps').textContent = `Крышки: ${st.resources.caps}`;
+        UI.$('#merchantStock').innerHTML = D.SHOP_ITEMS.map((item, i) => `
+          <div class='shopItem'>
+            <div>${item.label} <span class='sub'>(цена: ${item.price} крышек)</span></div>
+            <button class='btn good' data-buy='${i}'>Купить</button>
+          </div>
+        `).join('');
+
+        UI.$('#merchantStock').querySelectorAll('[data-buy]').forEach(btn => {
+          btn.onclick = () => {
+            const product = D.SHOP_ITEMS[Number(btn.dataset.buy)];
+            if (!product) return;
+            if (st.resources.caps < product.price) {
+              UI.toast('Недостаточно крышек.');
+              return;
+            }
+            st.resources.caps -= product.price;
+            st.resources[product.key] = (st.resources[product.key] || 0) + product.amount;
+            UI.toast(`Куплено: ${product.label}`);
+            S.save();
+            UI.renderTop();
+            renderMerchant();
+          };
+        });
+      };
+
       const startDay = () => {
         const st = S.get();
         if (st.combat.active || st.dead) return;
@@ -502,21 +607,30 @@
         const event = encounterRoll();
         if (event.type === 'enemy') {
           st.encounter = event;
-          UI.$('#encounterText').textContent = `Замечен противник: ${event.enemy.icon} ${event.enemy.name}. Вступить в бой?`;
+          UI.setEncounterCard({
+            icon: event.enemy.icon,
+            title: `Контакт: ${event.enemy.name}`,
+            desc: 'Визор засёк враждебную цель. Вступить в бой или обойти?',
+          });
           UI.$('#encounterYes').textContent = 'Вступить в бой';
           UI.$('#encounterNo').textContent = 'Обойти стороной';
           st.phase = 'Контакт';
           UI.show('#encounterModal', true);
         } else if (event.type === 'location') {
           st.encounter = event;
-          UI.$('#encounterText').textContent = `${event.location.icon} Найдено место: ${event.location.name}. Исследовать и попробовать найти припасы?`;
+          UI.setEncounterCard({
+            icon: event.location.icon,
+            title: `Локация: ${event.location.name}`,
+            desc: event.location.desc || 'Есть шанс найти припасы, но может быть опасно.',
+          });
           UI.$('#encounterYes').textContent = 'Исследовать';
           UI.$('#encounterNo').textContent = 'Не рисковать';
           st.phase = 'Разведка';
           UI.show('#encounterModal', true);
         } else {
-          applyReward({ materials: 2 + Math.floor(rng() * 3), ammo: 1 + Math.floor(rng() * 2) });
-          UI.toast('Спокойный день: найдено немного ресурсов.');
+          const calmReward = { materials: 2 + Math.floor(rng() * 3), ammo: 1 + Math.floor(rng() * 2), caps: 1 + Math.floor(rng() * 3) };
+          applyReward(calmReward);
+          UI.toast(`Спокойный день: найдено немного ресурсов и ${calmReward.caps} крышек.`);
         }
 
         S.save();
@@ -568,10 +682,11 @@
         let txt = '';
 
         if (win) {
-          const reward = { materials: 6 + Math.floor(rng() * 6), ammo: 4 + Math.floor(rng() * 5), food: 1, water: 1 };
+          const gotMedkit = rng() < 0.24;
+          const reward = { materials: 6 + Math.floor(rng() * 6), ammo: 4 + Math.floor(rng() * 5), food: 1, water: 1, caps: 4 + Math.floor(rng() * 5) };
           applyReward(reward);
-          if (rng() < 0.24) st.resources.medkits++;
-          txt = `Победа! Получено: 🧱${reward.materials}, 🔸${reward.ammo}, 🍖${reward.food}, 💧${reward.water}${rng() < 0.24 ? ', 🩹1' : ''}`;
+          if (gotMedkit) st.resources.medkits++;
+          txt = `Победа! Получено: 🧱${reward.materials}, 🔸${reward.ammo}, 🍖${reward.food}, 💧${reward.water}, 🧢${reward.caps}${gotMedkit ? ', 🩹1' : ''}`;
         } else {
           st.player.mood = Math.max(0, st.player.mood - 9);
           txt = 'Вы отошли. Потерь больше не было, но настроение упало.';
@@ -690,6 +805,11 @@
       };
 
       UI.$('#charBtn').onclick = startDay;
+      UI.$('#merchantBtn').onclick = () => {
+        renderMerchant();
+        UI.show('#merchantModal', true);
+      };
+      UI.$('#merchantClose').onclick = () => UI.show('#merchantModal', false);
       UI.$('#encounterYes').onclick = () => {
         const st = S.get();
         const encounter = st.encounter;
@@ -756,6 +876,7 @@
       S.normalize();
       UI.renderTop();
       UI.renderMain();
+      renderMerchant();
       S.save();
     })();
   </script>
