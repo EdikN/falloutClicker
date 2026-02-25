@@ -6,17 +6,51 @@
 
   const weaponUnlock = id => {
     const st = S.get();
-    if (id === 'pipe' && !st.weapons.pipe) { st.weapons.pipe = true; st.player.dmgBonus += 3; st.player.weaponName = 'САМОПАЛ'; }
-    if (id === 'laser' && !st.weapons.laser) { st.weapons.laser = true; st.player.dmgBonus += 6; st.player.weaponName = 'ЛАЗЕРНЫЙ ПИСТОЛЕТ'; }
-    if (id === 'knife' && !st.weapons.knife) { st.weapons.knife = true; st.player.dmgBonus += 2; st.player.weaponName = 'САМОДЕЛЬНЫЙ НОЖ'; }
-    if (id === 'rifleMod' && !st.weapons.rifleMod) { st.weapons.rifleMod = true; st.player.dmgBonus += 4; st.player.weaponName = 'УСИЛЕННЫЙ КАРАБИН'; }
+    if (id === 'pipe' && !st.weapons.pipe) { st.weapons.pipe = true; st.player.dmgBonus += 3; st.player.weaponName = 'ШОКОВЫЙ ПИСТОЛЕТ'; }
+    if (id === 'laser' && !st.weapons.laser) { st.weapons.laser = true; st.player.dmgBonus += 6; st.player.weaponName = 'ПЛАЗМЕННЫЙ РЕЗАК'; }
+    if (id === 'knife' && !st.weapons.knife) { st.weapons.knife = true; st.player.dmgBonus += 2; st.player.weaponName = 'ВИБРО-КЛИНОК'; }
+    if (id === 'rifleMod' && !st.weapons.rifleMod) { st.weapons.rifleMod = true; st.player.dmgBonus += 4; st.player.weaponName = 'МАГНИТНЫЙ УСКОРИТЕЛЬ'; }
+  };
+
+  const defeat = () => {
+    const st = S.get();
+    st.dead = true;
+    st.combat.active = false;
+    UI.show('#battleModal', false);
+    UI.show('#encounterModal', false);
+    UI.renderMain();
+    UI.renderTop();
+    UI.show('#defeatModal', true);
+    S.save();
+  };
+
+  // ЭФФЕКТ ПЕЧАТАЮЩЕГОСЯ ТЕКСТА ДЛЯ СЮЖЕТА
+  const typeText = (el, text, speed = 25) => {
+    el.innerHTML = '';
+    let i = 0;
+    const btn = UI.$('#storyOk');
+    btn.disabled = true; // Блокируем кнопку, пока текст печатается
+
+    const typeWriter = () => {
+      if (i < text.length) {
+        el.innerHTML += text.charAt(i);
+        i++;
+        setTimeout(typeWriter, speed);
+      } else {
+        btn.disabled = false; // Разблокируем кнопку, когда допечаталось
+      }
+    };
+    typeWriter();
   };
 
   const maybeShowNote = () => {
     const st = S.get();
     if (st.day < st.nextNoteDay) return;
     const note = D.NOTES[st.noteIndex % D.NOTES.length];
-    UI.toast(note);
+
+    UI.show('#storyModal', true);
+    typeText(UI.$('#storyText'), note);
+
     st.noteIndex += 1;
     st.lastNoteDay = st.day;
     st.nextNoteDay = st.day + 5 + Math.floor(rng() * 6);
@@ -33,12 +67,11 @@
     const st = S.get(), p = st.player;
     st.resources.food = Math.max(0, st.resources.food - 2);
     st.resources.water = Math.max(0, st.resources.water - 2);
-    if (st.resources.food === 0) { p.hp -= 7; p.mood = Math.max(0, p.mood - 9); UI.toast('КРИТИЧЕСКИЙ ГОЛОД. ПОТЕРЯ HP.'); UI.triggerDamage(); }
-    if (st.resources.water === 0) { p.hp -= 10; p.mood = Math.max(0, p.mood - 12); UI.toast('ОБЕЗВОЖИВАНИЕ. ПОТЕРЯ HP.'); UI.triggerDamage(); }
+    if (st.resources.food === 0) { p.hp -= 7; p.mood = Math.max(0, p.mood - 9); UI.toast('КРИТИЧЕСКИЙ ГОЛОД. ПОТЕРЯ ЗДОРОВЬЯ.'); UI.triggerDamage(); }
+    if (st.resources.water === 0) { p.hp -= 10; p.mood = Math.max(0, p.mood - 12); UI.toast('ОБЕЗВОЖИВАНИЕ. ПОТЕРЯ ЗДОРОВЬЯ.'); UI.triggerDamage(); }
     p.mood = Math.max(0, p.mood - 1.2);
     p.stability = Math.min(p.maxStab, p.stability + 5);
     if (p.mood < 25) { p.hp -= 2; UI.triggerDamage(); }
-    if (p.hp <= 0) defeat();
   };
 
   const encounterRoll = () => {
@@ -55,10 +88,10 @@
 
   const renderMerchant = () => {
     const st = S.get();
-    UI.$('#merchantStock').innerHTML = D.SHOP_ITEMS.map((item, i) => `<div class='shopItem'><div>${item.label} <span class='sub'>(ЦЕНА ${item.price} [К])</span></div><button class='btn good' data-buy='${i}'>КУПИТЬ</button></div>`).join('');
+    UI.$('#merchantStock').innerHTML = D.SHOP_ITEMS.map((item, i) => `<div class='shopItem'><div>${item.label} <span class='sub'>(ЦЕНА ${item.price} КРЕДИТОВ)</span></div><button class='btn good' data-buy='${i}'>КУПИТЬ</button></div>`).join('');
     UI.$('#merchantStock').querySelectorAll('[data-buy]').forEach(btn => btn.onclick = () => {
       const product = D.SHOP_ITEMS[Number(btn.dataset.buy)];
-      if (!product || st.resources.caps < product.price) return UI.toast('ОШИБКА: НЕДОСТАТОЧНО КРЫШЕК.');
+      if (!product || st.resources.caps < product.price) return UI.toast('ОШИБКА: НЕДОСТАТОЧНО КРЕДИТОВ.');
       st.resources.caps -= product.price;
       if (product.type === 'weapon') weaponUnlock(product.weaponId); else st.resources[product.key] = (st.resources[product.key] || 0) + product.amount;
       UI.toast(`ТРАНЗАКЦИЯ УСПЕШНА: ${product.label}`);
@@ -68,7 +101,7 @@
 
   const renderCraft = () => {
     const st = S.get();
-    UI.$('#craftStock').innerHTML = D.CRAFT_ITEMS.map((item, i) => `<div class='shopItem'><div>${item.label}<div class='sub'>ТРЕБУЕТСЯ: [M]${item.materials}, [A]${item.ammo}</div></div><button class='btn good' data-craft='${i}'>СОЗДАТЬ</button></div>`).join('');
+    UI.$('#craftStock').innerHTML = D.CRAFT_ITEMS.map((item, i) => `<div class='shopItem'><div>${item.label}<div class='sub'>ТРЕБУЕТСЯ: МАТЕРИАЛЫ x${item.materials}, ПАТРОНЫ x${item.ammo}</div></div><button class='btn good' data-craft='${i}'>СОЗДАТЬ</button></div>`).join('');
     UI.$('#craftStock').querySelectorAll('[data-craft]').forEach(btn => btn.onclick = () => {
       const rec = D.CRAFT_ITEMS[Number(btn.dataset.craft)];
       if (!rec) return;
@@ -87,17 +120,27 @@
     if (st.combat.active || st.dead) return;
     st.day++;
     st.phase = 'ИССЛЕДОВАНИЕ';
-    upkeep();
-    if (st.dead) return;
 
-    if (st.day <= 5) UI.toast(D.STORY[st.day - 1]);
-    maybeShowNote();
+    upkeep();
+
+    if (st.player.hp <= 0) {
+      defeat();
+      return;
+    }
+
+    // Если это сюжетный день, выводим с печатью
+    if (st.day <= 5) {
+      UI.show('#storyModal', true);
+      typeText(UI.$('#storyText'), D.STORY[st.day - 1]);
+    } else {
+      maybeShowNote();
+    }
 
     const event = encounterRoll();
     if (event.type === 'enemy') {
       st.encounter = event;
       UI.setEncounterCard({ icon: event.enemy.icon, title: `КОНТАКТ: ${event.enemy.name}`, desc: 'СКАНЕР ОТМЕТИЛ УГРОЗУ. ВСТУПИТЬ В БОЙ?' });
-      UI.$('#encounterYes').textContent = 'В БОЙ'; UI.$('#encounterNo').textContent = 'УЙТИ'; st.phase = 'КОНТАКТ'; UI.show('#encounterModal', true);
+      UI.$('#encounterYes').textContent = 'В БОЙ'; UI.$('#encounterNo').textContent = 'ОТСТУПИТЬ'; st.phase = 'КОНТАКТ'; UI.show('#encounterModal', true);
     } else if (event.type === 'location') {
       st.encounter = event;
       UI.setEncounterCard({ icon: event.location.icon, title: `ЛОКАЦИЯ: ${event.location.name}`, desc: event.location.desc });
@@ -143,17 +186,13 @@
     if (win) {
       const reward = { materials: 5 + Math.floor(rng() * 5), ammo: 4 + Math.floor(rng() * 5), food: 1, water: 1, caps: 3 + Math.floor(rng() * 4) };
       applyReward(reward);
-      txt = `УГРОЗА ЛИКВИДИРОВАНА. ИЗВЛЕЧЕНО: [M]${reward.materials}, [A]${reward.ammo}, [F]1, [W]1, [К]${reward.caps}`;
+      txt = `УГРОЗА ЛИКВИДИРОВАНА. ИЗВЛЕЧЕНО: МАТЕРИАЛЫ x${reward.materials}, ПАТРОНЫ x${reward.ammo}, ЕДА x1, ВОДА x1, КРЕДИТЫ x${reward.caps}`;
     } else {
       st.player.mood = Math.max(0, st.player.mood - 8);
-      txt = 'ТАКТИЧЕСКОЕ ОТСТУПЛЕНИЕ. ПОТЕРЯ БОЕВОГО ДУХА.';
+      txt = 'ТАКТИЧЕСКОЕ ОТСТУПЛЕНИЕ. ПОТЕРЯ РАССУДКА.';
     }
     c.reward = txt; UI.$('#rewardText').textContent = txt; UI.show('#rewardModal', true);
     S.save(); UI.renderTop(); UI.renderMain();
-  };
-
-  const defeat = () => {
-    const st = S.get(); st.dead = true; st.combat.active = false; UI.show('#battleModal', false); UI.show('#defeatModal', true); S.save();
   };
 
   const tick = ts => {
@@ -172,7 +211,10 @@
         let dmg = e.mark ? Math.round(e.dmg * 1.15) : e.dmg;
         p.hp -= dmg; p.mood = Math.max(0, p.mood - 2);
         UI.triggerDamage();
-        if (p.hp <= 0) return defeat();
+        if (p.hp <= 0) {
+          defeat();
+          return;
+        }
       }
       c.enemyAtk = e.atk;
     }
@@ -203,7 +245,7 @@
 
   const actMed = () => {
     const st = S.get();
-    if (st.resources.medkits < 1) return UI.toast('СТИМПАКИ ОТСУТСТВУЮТ.');
+    if (st.resources.medkits < 1) return UI.toast('АПТЕЧКИ ОТСУТСТВУЮТ.');
     st.resources.medkits--; st.player.hp = Math.min(st.player.maxHp, st.player.hp + 24); st.player.mood = Math.min(st.player.maxMood, st.player.mood + 6);
     UI.renderTop(); UI.renderBattle();
   };
@@ -229,6 +271,8 @@
   UI.$('#craftBtn').onclick = () => { renderCraft(); UI.show('#craftModal', true); };
   UI.$('#craftClose').onclick = () => UI.show('#craftModal', false);
 
+  UI.$('#storyOk').onclick = () => { UI.show('#storyModal', false); };
+
   UI.$('#encounterYes').onclick = () => {
     const st = S.get(), encounter = st.encounter;
     if (!encounter) return;
@@ -246,7 +290,16 @@
   UI.$('#volley').onclick = actVolley;
   UI.$('#retreat').onclick = () => finishFight(false);
   UI.$('#rewardOk').onclick = () => { UI.show('#rewardModal', false); const st = S.get(); st.combat.enemy = null; S.save(); UI.renderMain(); };
-  UI.$('#newRun').onclick = () => { S.set(S.fresh()); UI.show('#defeatModal', false); UI.renderTop(); UI.renderMain(); S.save(); };
+
+  // Добавлен сброс сохраненных дней для корректного перечитывания сюжета
+  UI.$('#newRun').onclick = () => {
+    S.set(S.fresh());
+    UI.show('#defeatModal', false);
+    UI.renderTop();
+    UI.renderMain();
+    S.save();
+  };
+
   UI.$('#loadRun').onclick = () => { if (S.load()) { UI.show('#defeatModal', false); UI.toast('ДАННЫЕ ВОССТАНОВЛЕНЫ'); UI.renderTop(); UI.renderMain(); } };
 
   if (!S.load()) S.set(S.fresh());

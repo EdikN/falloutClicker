@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>ROBCO OS: Дневной путь</title>
+  <title>СИСТЕМА: ИЕРИХОН</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 
@@ -12,35 +12,43 @@
   <header class="hud card">
     <div class="hud-top">
       <div class="titleBlock">
-        <h1>[СИСТЕМА ФОРПОСТ]</h1>
+        <h1>[КОМПЛЕКС ИЕРИХОН]</h1>
         <div class="sub" id="storyChapter">SYS_LOG_01: ПРОБУЖДЕНИЕ</div>
       </div>
-      <div class="capsTop" id="capsTop">[КРЫШКИ]: 0</div>
+      <div class="capsTop" id="capsTop">[КРЕДИТЫ]: 0</div>
     </div>
     <div class="row">
-      <div class="pill" id="day">ДЕНЬ 1</div>
+      <div class="pill" id="day">ЦИКЛ 1</div>
       <div class="pill" id="phase">СТАТУС: ИССЛЕДОВАНИЕ</div>
-      <div class="pill" id="weaponPill">ОРУЖИЕ: САМОПАЛ</div>
+      <div class="pill" id="weaponPill">ОРУЖИЕ: АРМАТУРА</div>
     </div>
   </header>
 
   <main class="app">
     <section class="card center">
-      <button id="charBtn" title="СЛЕДУЮЩИЙ ДЕНЬ">
+      <button id="charBtn" title="СЛЕДУЮЩИЙ ЦИКЛ">
         <img src="img/person.png" alt="ВЫЖИВШИЙ" onerror="this.style.display='none'" />
       </button>
-      <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ДЕНЬ</b></div>
-      <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ...</div>
+      <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ЦИКЛ</b></div>
+      <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
       <div class="statusBars" id="statusBars"></div>
       <div class="res" id="res"></div>
       <div class="actionsRow">
-        <button class="btn alt" id="merchantBtn">СЕТЬ: ТОРГОВЕЦ</button>
-        <button class="btn" id="craftBtn">ВЕРСТАК</button>
+        <button class="btn alt" id="merchantBtn">СЕТЬ ТОРГОВЛИ</button>
+        <button class="btn" id="craftBtn">СИНТЕЗАТОР</button>
       </div>
     </section>
   </main>
 
   <!-- Модальные окна -->
+  <div class="overlay" id="storyModal">
+    <div class="card modal">
+      <h2>ПЕРЕХВАТ ДАННЫХ</h2>
+      <div id="storyText" class="scrollable" style="font-size: 1.2em; line-height: 1.5; margin: 1rem 0;"></div><button
+        class="btn good" id="storyOk">ПРОЧИТАНО [ЗАКРЫТЬ]</button>
+    </div>
+  </div>
+
   <div class="overlay" id="encounterModal">
     <div class="card modal">
       <h2>ВНИМАНИЕ: СОБЫТИЕ</h2>
@@ -68,8 +76,8 @@
         </div>
       </div>
       <div class="actions"><button class="btn" id="atk">АТАКА</button><button class="btn"
-          id="dodge">УКЛОНЕНИЕ</button><button class="btn" id="med">СТИМПАК</button><button class="btn alt"
-          id="reload">ПЕРЕЗАРЯД.</button><button class="btn alt" id="volley">ЗАЛП</button><button class="btn bad"
+          id="dodge">УКЛОНЕНИЕ</button><button class="btn" id="med">ЛЕЧЕНИЕ</button><button class="btn alt"
+          id="reload">ПЕРЕЗАРЯДКА</button><button class="btn alt" id="volley">ЗАЛП</button><button class="btn bad"
           id="retreat">ОТСТУПИТЬ</button></div>
     </div>
   </div>
@@ -84,7 +92,7 @@
   <div class="overlay" id="merchantModal">
     <div class="card modal">
       <h2>ТОРГОВАЯ СЕТЬ</h2>
-      <div class="sub">ОБМЕН КРЫШЕК НА РЕСУРСЫ.</div>
+      <div class="sub">ОБМЕН КРЕДИТОВ НА РЕСУРСЫ.</div>
       <div id="merchantStock" class="scrollable"></div><button class="btn" id="merchantClose">ЗАКРЫТЬ
         СОЕДИНЕНИЕ</button>
     </div>
@@ -92,7 +100,7 @@
 
   <div class="overlay" id="craftModal">
     <div class="card modal">
-      <h2>ВЕРСТАК</h2>
+      <h2>СИНТЕЗАТОР</h2>
       <div class="sub">СИНТЕЗ И МОДЕРНИЗАЦИЯ.</div>
       <div id="craftStock" class="scrollable"></div><button class="btn" id="craftClose">ОТКЛЮЧИТЬСЯ</button>
     </div>
@@ -101,7 +109,7 @@
   <div class="overlay" id="defeatModal">
     <div class="card modal">
       <h2>КРИТИЧЕСКАЯ ОШИБКА</h2>
-      <div>ЖИЗНЕННЫЕ ПОКАЗАТЕЛИ НА НУЛЕ. СУБЪЕКТ МЕРТВ.</div>
+      <div style="font-size:1.2em; color:var(--bad)">ЖИЗНЕННЫЕ ПОКАЗАТЕЛИ НА НУЛЕ.<br>СИНХРОНИЗАЦИЯ РАЗОРВАНА.</div>
       <div class="row"><button class="btn" id="newRun">ПЕРЕЗАГРУЗКА ЦИКЛА</button><button class="btn alt"
           id="loadRun">ВОССТАНОВИТЬ ДАННЫЕ</button></div>
     </div>
