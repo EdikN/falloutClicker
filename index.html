@@ -1,52 +1,111 @@
 <!doctype html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Форпост: Дневной путь</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>ROBCO OS: Дневной путь</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body>
+
+<body class="crt">
   <header class="hud card">
-    <div class="titleBlock">
-      <h1>Форпост: Дневной путь</h1>
-      <div class="sub" id="storyChapter">Глава 1: Пробуждение без памяти</div>
+    <div class="hud-top">
+      <div class="titleBlock">
+        <h1>[СИСТЕМА ФОРПОСТ]</h1>
+        <div class="sub" id="storyChapter">SYS_LOG_01: ПРОБУЖДЕНИЕ</div>
+      </div>
+      <div class="capsTop" id="capsTop">[КРЫШКИ]: 0</div>
     </div>
-    <div class="capsTop" id="capsTop">🧢 Крышки: 0</div>
     <div class="row">
-      <div class="pill" id="day">День 1</div>
-      <div class="pill" id="phase">Исследование</div>
-      <div class="pill" id="weaponPill">Оружие: Ржавый пистолет</div>
+      <div class="pill" id="day">ДЕНЬ 1</div>
+      <div class="pill" id="phase">СТАТУС: ИССЛЕДОВАНИЕ</div>
+      <div class="pill" id="weaponPill">ОРУЖИЕ: САМОПАЛ</div>
     </div>
   </header>
 
   <main class="app">
     <section class="card center">
-      <button id="charBtn" title="Прожить день">
-        <img src="img/person.png" alt="Персонаж" />
+      <button id="charBtn" title="СЛЕДУЮЩИЙ ДЕНЬ">
+        <img src="img/person.png" alt="ВЫЖИВШИЙ" onerror="this.style.display='none'" />
       </button>
-      <div class="hint"><b>Клик по персонажу = новый день</b></div>
-      <div class="sub" id="statusText">Вы просыпаетесь в холодном убежище, не помня даже своё имя.</div>
+      <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ДЕНЬ</b></div>
+      <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ...</div>
       <div class="statusBars" id="statusBars"></div>
       <div class="res" id="res"></div>
       <div class="actionsRow">
-        <button class="btn alt" id="merchantBtn">Торговец пустоши</button>
-        <button class="btn" id="craftBtn">Крафт</button>
+        <button class="btn alt" id="merchantBtn">СЕТЬ: ТОРГОВЕЦ</button>
+        <button class="btn" id="craftBtn">ВЕРСТАК</button>
       </div>
     </section>
   </main>
 
-  <div class="overlay" id="encounterModal"><div class="card modal"><h2>Событие</h2><div id="encounterText"></div><div class="row"><button class="btn good" id="encounterYes">Да</button><button class="btn alt" id="encounterNo">Нет</button></div></div></div>
+  <!-- Модальные окна -->
+  <div class="overlay" id="encounterModal">
+    <div class="card modal">
+      <h2>ВНИМАНИЕ: СОБЫТИЕ</h2>
+      <div id="encounterText" class="scrollable"></div>
+      <div class="row" style="justify-content:center;"><button class="btn good"
+          id="encounterYes">ПОДТВЕРДИТЬ</button><button class="btn alt" id="encounterNo">ОТМЕНА</button></div>
+    </div>
+  </div>
 
-  <div class="overlay" id="battleModal"><div class="card modal"><div class="row"><h2>Бой</h2><div class="pill" id="battleTimer">00.0с</div></div><div class="bars" id="pBars"></div><div class="enemy"><div id="enemyName">—</div><div class="bar"><div class="fill" id="eHp"></div></div><div class="sub" id="telegraph">АТАКА ЧЕРЕЗ 0.0с</div><div class="bar"><div class="fill" id="teleFill"></div></div></div><div class="actions"><button class="btn" id="atk">Атака</button><button class="btn" id="dodge">Уклон</button><button class="btn" id="med">Аптечка</button><button class="btn alt" id="reload">Перезарядка</button><button class="btn alt" id="volley">Залп</button><button class="btn bad" id="retreat">Отступить</button></div></div></div>
+  <div class="overlay" id="battleModal">
+    <div class="card modal">
+      <div class="hud-top" style="margin-bottom:0;">
+        <h2>РЕЖИМ БОЯ</h2>
+        <div class="pill" id="battleTimer">00.0s</div>
+      </div>
+      <div class="statusBars" id="pBars"></div>
+      <div class="enemy">
+        <div id="enemyName">—</div>
+        <div class="bar">
+          <div class="fill bg-bad" id="eHp"></div>
+        </div>
+        <div class="sub" id="telegraph">[ОЖИДАНИЕ АТАКИ]</div>
+        <div class="bar">
+          <div class="fill bg-warn" id="teleFill"></div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" id="atk">АТАКА</button><button class="btn"
+          id="dodge">УКЛОНЕНИЕ</button><button class="btn" id="med">СТИМПАК</button><button class="btn alt"
+          id="reload">ПЕРЕЗАРЯД.</button><button class="btn alt" id="volley">ЗАЛП</button><button class="btn bad"
+          id="retreat">ОТСТУПИТЬ</button></div>
+    </div>
+  </div>
 
-  <div class="overlay" id="rewardModal"><div class="card modal"><h2>Результат</h2><div id="rewardText"></div><button class="btn good" id="rewardOk">Продолжить</button></div></div>
+  <div class="overlay" id="rewardModal">
+    <div class="card modal">
+      <h2>СИСТЕМНОЕ СООБЩЕНИЕ</h2>
+      <div id="rewardText" class="scrollable"></div><button class="btn good" id="rewardOk">ПРИНЯТЬ</button>
+    </div>
+  </div>
 
-  <div class="overlay" id="merchantModal"><div class="card modal"><h2>Торговец</h2><div class="sub">Покупайте ресурсы и оружие.</div><div id="merchantStock"></div><button class="btn" id="merchantClose">Закрыть</button></div></div>
+  <div class="overlay" id="merchantModal">
+    <div class="card modal">
+      <h2>ТОРГОВАЯ СЕТЬ</h2>
+      <div class="sub">ОБМЕН КРЫШЕК НА РЕСУРСЫ.</div>
+      <div id="merchantStock" class="scrollable"></div><button class="btn" id="merchantClose">ЗАКРЫТЬ
+        СОЕДИНЕНИЕ</button>
+    </div>
+  </div>
 
-  <div class="overlay" id="craftModal"><div class="card modal"><h2>Крафт</h2><div class="sub">Соберите улучшения и оружие из материалов.</div><div id="craftStock"></div><button class="btn" id="craftClose">Закрыть</button></div></div>
+  <div class="overlay" id="craftModal">
+    <div class="card modal">
+      <h2>ВЕРСТАК</h2>
+      <div class="sub">СИНТЕЗ И МОДЕРНИЗАЦИЯ.</div>
+      <div id="craftStock" class="scrollable"></div><button class="btn" id="craftClose">ОТКЛЮЧИТЬСЯ</button>
+    </div>
+  </div>
 
-  <div class="overlay" id="defeatModal"><div class="card modal"><h2>Поражение</h2><div>Персонаж не пережил вылазку.</div><div class="row"><button class="btn" id="newRun">Новая попытка</button><button class="btn alt" id="loadRun">Загрузить</button></div></div></div>
+  <div class="overlay" id="defeatModal">
+    <div class="card modal">
+      <h2>КРИТИЧЕСКАЯ ОШИБКА</h2>
+      <div>ЖИЗНЕННЫЕ ПОКАЗАТЕЛИ НА НУЛЕ. СУБЪЕКТ МЕРТВ.</div>
+      <div class="row"><button class="btn" id="newRun">ПЕРЕЗАГРУЗКА ЦИКЛА</button><button class="btn alt"
+          id="loadRun">ВОССТАНОВИТЬ ДАННЫЕ</button></div>
+    </div>
+  </div>
 
   <div class="toastWrap" id="toasts" aria-live="polite"></div>
 
@@ -55,4 +114,5 @@
   <script src="js/ui.js"></script>
   <script src="js/game.js"></script>
 </body>
+
 </html>
