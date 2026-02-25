@@ -17,7 +17,9 @@
       --info: #7fb8ff
     }
 
-    * { box-sizing: border-box }
+    * {
+      box-sizing: border-box
+    }
 
     body {
       margin: 0;
@@ -26,10 +28,31 @@
       color: var(--txt)
     }
 
-    .app { max-width: 560px; margin: 0 auto; padding: 10px 10px 120px }
-    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px }
-    .top { position: sticky; top: 0; z-index: 5 }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
+    .app {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 10px 10px 120px
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px
+    }
+
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 5
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center
+    }
 
     .pill {
       padding: 4px 8px;
@@ -39,7 +62,10 @@
       font-size: 12px
     }
 
-    h1 { font-size: 20px; margin: 0 }
+    h1 {
+      font-size: 20px;
+      margin: 0
+    }
 
     .center {
       margin-top: 10px;
@@ -69,14 +95,40 @@
       filter: drop-shadow(0 0 8px #87b8ff66)
     }
 
-    #charBtn:active { transform: scale(.98) }
-    .sub { color: var(--muted); font-size: 13px }
+    #charBtn:active {
+      transform: scale(.98)
+    }
 
-    .statusBars { margin-top: 12px; display: grid; gap: 8px; text-align: left }
-    .bar { height: 12px; background: #0f151d; border: 1px solid var(--line); border-radius: 999px; overflow: hidden }
-    .fill { height: 100% }
+    .sub {
+      color: var(--muted);
+      font-size: 13px
+    }
 
-    .res { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 10px }
+    .statusBars {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+      text-align: left
+    }
+
+    .bar {
+      height: 12px;
+      background: #0f151d;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden
+    }
+
+    .fill {
+      height: 100%
+    }
+
+    .res {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 10px
+    }
 
     .btn {
       background: #253244;
@@ -87,10 +139,24 @@
       cursor: pointer
     }
 
-    .btn.alt { background: #33465f }
-    .btn.good { background: #234836; border-color: #3f8d67 }
-    .btn.bad { background: #53303a; border-color: #8f5562 }
-    .btn:disabled { opacity: .5; cursor: not-allowed }
+    .btn.alt {
+      background: #33465f
+    }
+
+    .btn.good {
+      background: #234836;
+      border-color: #3f8d67
+    }
+
+    .btn.bad {
+      background: #53303a;
+      border-color: #8f5562
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
 
     .overlay {
       position: fixed;
@@ -102,9 +168,19 @@
       padding: 12px
     }
 
-    .overlay.show { display: grid }
-    .battle { max-width: 560px; width: 100% }
-    .bars { display: grid; gap: 6px }
+    .overlay.show {
+      display: grid
+    }
+
+    .battle {
+      max-width: 560px;
+      width: 100%
+    }
+
+    .bars {
+      display: grid;
+      gap: 6px
+    }
 
     .enemy {
       margin-top: 8px;
@@ -114,9 +190,28 @@
       padding: 8px
     }
 
-    .actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px }
-    .toastWrap { position: fixed; top: 70px; right: 8px; display: grid; gap: 7px; z-index: 9 }
-    .toast { background: #1f2935; border: 1px solid #576d8c; border-radius: 8px; padding: 8px 10px }
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px
+    }
+
+    .toastWrap {
+      position: fixed;
+      top: 70px;
+      right: 8px;
+      display: grid;
+      gap: 7px;
+      z-index: 9
+    }
+
+    .toast {
+      background: #1f2935;
+      border: 1px solid #576d8c;
+      border-radius: 8px;
+      padding: 8px 10px
+    }
   </style>
 </head>
 
@@ -164,9 +259,13 @@
       <div class="bars" id="pBars" style="margin-top:8px"></div>
       <div class="enemy">
         <div id="enemyName">—</div>
-        <div class="bar" style="margin-top:5px"><div class="fill" id="eHp" style="background:var(--bad);width:0%"></div></div>
+        <div class="bar" style="margin-top:5px">
+          <div class="fill" id="eHp" style="background:var(--bad);width:0%"></div>
+        </div>
         <div class="sub" id="telegraph">АТАКА ЧЕРЕЗ 0.0с</div>
-        <div class="bar"><div class="fill" id="teleFill" style="background:#ff9d9d;width:0%"></div></div>
+        <div class="bar">
+          <div class="fill" id="teleFill" style="background:#ff9d9d;width:0%"></div>
+        </div>
       </div>
       <div class="actions">
         <button class="btn" id="atk">Атака</button>
@@ -191,7 +290,8 @@
     <div class="card battle">
       <h2 style="margin:0 0 8px">Поражение</h2>
       <div>Персонаж не пережил вылазку.</div>
-      <div class="row" style="margin-top:10px"><button class="btn" id="newRun">Новая попытка</button><button class="btn alt" id="loadRun">Загрузить</button></div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="newRun">Новая попытка</button><button
+          class="btn alt" id="loadRun">Загрузить</button></div>
     </div>
   </div>
 
