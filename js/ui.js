@@ -8,10 +8,7 @@ window.GameUI = (() => {
     el.className = 'toast';
     el.textContent = `> ${msg}`;
     $('#toasts').prepend(el);
-    setTimeout(() => {
-      el.style.animation = 'slideLeft 0.3s reverse forwards';
-      setTimeout(() => el.remove(), 300);
-    }, 2500);
+    setTimeout(() => { el.style.animation = 'slideLeft 0.3s reverse forwards'; setTimeout(() => el.remove(), 300); }, 2500);
   };
 
   const renderTop = () => {
@@ -20,29 +17,25 @@ window.GameUI = (() => {
     $('#phase').textContent = `СТАТУС: ${st.phase.toUpperCase()}`;
     $('#capsTop').textContent = `КРЕДИТЫ: ${st.resources.caps}`;
     $('#weaponPill').textContent = `ОРУЖИЕ: ${st.player.weaponName.toUpperCase()}`;
-    $('#storyChapter').textContent = 'SYS_LOG_01: ПРОБУЖДЕНИЕ';
   };
 
   const renderMain = () => {
-    const st = S.get();
-    const p = st.player;
+    const st = S.get(), p = st.player;
     const dmg = p.baseDmg + p.dmgBonus;
-    $('#statusText').textContent = '> Сканирование окружения... Поиск безопасного маршрута.';
 
-    // Исправлено "БЕЗУМИЕ (ИМПУЛЬС)" на "БЕЗУМИЕ"
+    // Только Здоровье и Рассудок
     $('#statusBars').innerHTML = `
-      <div>ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>
-      <div>РАССУДОК ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill bg-ok' style='width:${clamp(p.mood / p.maxMood * 100, 0, 100)}%'></div></div></div>
-      <div>СТАБИЛЬНОСТЬ ${Math.round(p.stability)}/${p.maxStab}<div class='bar'><div class='fill bg-info' style='width:${clamp(p.stability / p.maxStab * 100, 0, 100)}%'></div></div></div>
-      <div>БЕЗУМИЕ ${Math.round(p.impulse)}/100<div class='bar'><div class='fill bg-warn' style='width:${clamp(p.impulse, 0, 100)}%'></div></div></div>`;
+      <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>
+      <div>🧠 РАССУДОК ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill bg-ok' style='width:${clamp(p.mood / p.maxMood * 100, 0, 100)}%'></div></div></div>`;
 
+    // Интерактивные кнопки для употребляемых предметов
     $('#res').innerHTML = `
-      <div class='pill'>ЕДА: ${st.resources.food}</div>
-      <div class='pill'>ВОДА: ${st.resources.water}</div>
-      <div class='pill'>МАТЕРИАЛЫ: ${st.resources.materials}</div>
-      <div class='pill'>ПАТРОНЫ: ${st.resources.ammo}</div>
-      <div class='pill'>АПТЕЧКИ: ${st.resources.medkits}</div>
-      <div class='pill'>УРОН: ${dmg}</div>`;
+      <button class='pill pill-btn' data-use='food' title='Восстанавливает HP и Рассудок'>🍖 ЕДА: ${st.resources.food}</button>
+      <button class='pill pill-btn' data-use='water' title='Восстанавливает HP и Рассудок'>💧 ВОДА: ${st.resources.water}</button>
+      <button class='pill pill-btn' data-use='medkits' title='Сильное лечение'>✚ АПТЕЧКИ: ${st.resources.medkits}</button>
+      <div class='pill'>⚙️ МАТЕРИАЛЫ: ${st.resources.materials}</div>
+      <div class='pill'>⚡ ПАТРОНЫ: ${st.resources.ammo}</div>
+      <div class='pill'>⚔️ УРОН: ${dmg}</div>`;
   };
 
   const renderBattle = () => {
@@ -50,53 +43,33 @@ window.GameUI = (() => {
     if (!e) return;
     $('#battleTimer').textContent = `T-${c.time.toFixed(1)}s`;
 
+    // Статусы игрока в бою
     $('#pBars').innerHTML = `
-      <div>ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>
-      <div>БЕЗУМИЕ ${Math.round(p.impulse)}/100<div class='bar'><div class='fill bg-warn' style='width:${clamp(p.impulse, 0, 100)}%'></div></div></div>`;
+      <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>
+      <div>🧠 РАССУДОК ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill bg-ok' style='width:${clamp(p.mood / p.maxMood * 100, 0, 100)}%'></div></div></div>`;
 
     $('#enemyName').textContent = `${e.icon} ${e.name} (${Math.max(0, Math.round(e.hp))}/${e.maxHp})`;
+
+    // Вывод картинки врага
+    const imgEl = $('#enemyImg');
+    if (e.img) { imgEl.src = e.img; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
+
     $('#eHp').style.width = `${clamp(e.hp / e.maxHp * 100, 0, 100)}%`;
     $('#telegraph').textContent = `[УГРОЗА] АТАКА ЧЕРЕЗ ${Math.max(0, c.enemyAtk).toFixed(1)}s`;
     $('#teleFill').style.width = `${clamp((1 - c.enemyAtk / e.atk) * 100, 0, 100)}%`;
 
     $('#reload').disabled = c.cdReload > 0;
     $('#volley').disabled = c.cdVolley > 0;
+    $('#dodge').disabled = c.cdDodge > 0; // Уклонение теперь по кулдауну
     $('#reload').textContent = c.cdReload > 0 ? `ПЕРЕЗАРЯДКА [${c.cdReload.toFixed(0)}s]` : 'ПЕРЕЗАРЯДКА';
     $('#volley').textContent = c.cdVolley > 0 ? `ЗАЛП [${c.cdVolley.toFixed(0)}s]` : 'ЗАЛП';
+    $('#dodge').textContent = c.cdDodge > 0 ? `УКЛОНЕНИЕ [${c.cdDodge.toFixed(0)}s]` : 'УКЛОНЕНИЕ';
   };
 
   const setEncounterCard = ({ icon, title, desc }) => $('#encounterText').innerHTML = `<div class='pill'>${icon} ${title}</div><div style='margin-top:0.6rem;'>${desc}</div>`;
-
-  const show = (id, on) => {
-    $(id).classList.toggle('show', on);
-  };
-
-  const triggerDamage = () => {
-    document.body.classList.remove('shake');
-    void document.body.offsetWidth;
-    document.body.classList.add('shake');
-    const modal = $('#battleModal .card');
-    if (modal) {
-      modal.classList.remove('flash-red');
-      void modal.offsetWidth;
-      modal.classList.add('flash-red');
-    }
-  };
-
-  const triggerEnemyHit = () => {
-    const el = $('.enemy');
-    if (!el) return;
-    el.style.transform = 'translate(4px, 2px)';
-    el.style.borderColor = 'var(--line)';
-    el.style.background = 'var(--line)';
-    el.style.color = 'var(--bg)';
-    setTimeout(() => {
-      el.style.transform = '';
-      el.style.borderColor = '';
-      el.style.background = '';
-      el.style.color = '';
-    }, 80);
-  };
+  const show = (id, on) => { $(id).classList.toggle('show', on); };
+  const triggerDamage = () => { document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); const modal = $('#battleModal .card'); if (modal) { modal.classList.remove('flash-red'); void modal.offsetWidth; modal.classList.add('flash-red'); } };
+  const triggerEnemyHit = () => { const el = $('.enemy'); if (!el) return; el.style.transform = 'translate(4px, 2px)'; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--line)'; el.style.color = 'var(--bg)'; setTimeout(() => { el.style.transform = ''; el.style.borderColor = ''; el.style.background = ''; el.style.color = ''; }, 80); };
 
   return { $, toast, clamp, renderTop, renderMain, renderBattle, setEncounterCard, show, triggerDamage, triggerEnemyHit };
 })();

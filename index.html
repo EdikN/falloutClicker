@@ -32,7 +32,10 @@
       <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ЦИКЛ</b></div>
       <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
       <div class="statusBars" id="statusBars"></div>
+
+      <!-- Сюда будут генерироваться кнопки-ресурсы -->
       <div class="res" id="res"></div>
+
       <div class="actionsRow">
         <button class="btn alt" id="merchantBtn">СЕТЬ ТОРГОВЛИ</button>
         <button class="btn" id="craftBtn">СИНТЕЗАТОР</button>
@@ -66,7 +69,7 @@
       </div>
       <div class="statusBars" id="pBars"></div>
       <div class="enemy">
-        <div id="enemyName">—</div>
+        <div id="enemyName">—</div><img id="enemyImg" src="" alt="Враг" onerror="this.style.display='none'" />
         <div class="bar">
           <div class="fill bg-bad" id="eHp"></div>
         </div>
