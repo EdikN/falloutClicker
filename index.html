@@ -1,412 +1,417 @@
 <!doctype html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Форпост: Портрет Пустоши</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Форпост: Дневной путь</title>
   <style>
-    :root{
-      --bg:#10141a;--panel:#1a212b;--panel2:#212b38;--line:#344255;--text:#e8eef8;--muted:#9eb0c8;
-      --ok:#53c485;--warn:#e6bb56;--bad:#ff7988;--rare:#60bbff;--epic:#b58bff;
+    :root {
+      --bg: #0f141b;
+      --panel: #1a222e;
+      --line: #3a4a61;
+      --txt: #e8eef7;
+      --muted: #9fb0c6;
+      --ok: #58c587;
+      --bad: #ff7f8d;
+      --warn: #e4b855
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#0e1318,#131a23,#0f141b);color:var(--text);font:15px/1.4 system-ui,Segoe UI,Roboto,sans-serif}
-    .app{max-width:520px;margin:0 auto;padding:8px 8px 160px}
-    .top{position:sticky;top:0;z-index:6;background:#121822eb;border:1px solid var(--line);border-radius:14px;padding:8px}
-    .title{font-size:18px;font-weight:700}
-    .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-    .pill{padding:4px 8px;border:1px solid var(--line);border-radius:999px;background:#202938;font-size:12px}
-    .res{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:7px}
-    .sub{color:var(--muted);font-size:12px}
 
-    .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
-    .btn{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 10px;cursor:pointer}
-    .btn.active{outline:2px solid #6488bf}
-    .btn:disabled{opacity:.45;cursor:not-allowed}
+    * {
+      box-sizing: border-box
+    }
 
-    .panel{display:none;border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:9px}
-    .panel.active{display:block}
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #0d1218, #111925);
+      font: 15px/1.35 system-ui;
+      color: var(--txt)
+    }
 
-    .list{display:grid;gap:6px;max-height:300px;overflow:auto;padding-right:2px}
-    .item{border:1px solid var(--line);background:#1a222d;border-radius:10px;padding:7px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+    .app {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: 10px 10px 120px
+    }
 
-    .battle{display:grid;gap:8px}
-    .actor{border:1px solid var(--line);border-radius:10px;background:#18202a;padding:8px}
-    .bar{height:10px;border:1px solid #3a4658;background:#10151c;border-radius:999px;overflow:hidden}
-    .fill{height:100%}
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px
+    }
 
-    .enemy{border:1px solid var(--line);padding:6px;border-radius:9px;background:#171f29}
-    .enemy.target{outline:2px solid #eac76b}
-    .prog{height:5px;background:#10151c;border:1px solid #334154;border-radius:999px;overflow:hidden}
-    .prog i{display:block;height:100%;background:#ff7b7b}
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 5
+    }
 
-    .day-actions{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:8px}
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center
+    }
 
-    .bottom{position:fixed;left:0;right:0;bottom:0;background:#0f141b;border-top:1px solid var(--line);padding:8px;z-index:7}
-    .bottom-wrap{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
-    .bottom .btn{min-height:48px;font-size:16px}
-    .bottom .small{font-size:13px;min-height:42px}
+    .pill {
+      padding: 4px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #202b38;
+      font-size: 12px
+    }
 
-    .log{display:grid;gap:5px;max-height:240px;overflow:auto}
-    .log div{background:#18212c;border-left:2px solid #5c708b;border-radius:6px;padding:5px;font-size:12px}
+    .res {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px
+    }
 
-    .tier-common{border-color:#4f5d6d}.tier-rare{border-color:var(--rare)}.tier-epic{border-color:var(--epic)}
-    .toasts{position:fixed;top:74px;right:8px;display:grid;gap:7px;z-index:9}
-    .toast{background:#202a36;border:1px solid #546783;border-radius:9px;padding:8px 10px;max-width:280px}
+    .res .pill {
+      display: flex;
+      justify-content: space-between
+    }
 
-    .overlay{position:fixed;inset:0;background:#06080ccc;display:none;place-items:center;z-index:10;padding:12px}
-    .overlay.show{display:grid}
+    h1 {
+      font-size: 20px;
+      margin: 0
+    }
 
-    @media (min-width:900px){
-      .app{max-width:980px;padding-bottom:110px}
-      .top,.bottom-wrap{max-width:980px}
-      .content{display:grid;grid-template-columns:1.3fr 1fr;gap:8px}
-      .bottom-wrap{grid-template-columns:repeat(6,1fr)}
+    .center {
+      margin-top: 10px;
+      min-height: 55vh;
+      display: grid;
+      place-items: center;
+      text-align: center
+    }
+
+    #charBtn {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 2px solid #6e8fc0;
+      background: radial-gradient(circle at 35% 30%, #3e5675, #1d2a3a 70%);
+      color: #fff;
+      font-size: 72px;
+      cursor: pointer
+    }
+
+    #charBtn:active {
+      transform: scale(.98)
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 13px
+    }
+
+    .log {
+      display: grid;
+      gap: 6px;
+      max-height: 200px;
+      overflow: auto
+    }
+
+    .log div {
+      background: #151d27;
+      border-left: 2px solid #60789b;
+      padding: 5px;
+      border-radius: 6px;
+      font-size: 12px
+    }
+
+    .btn {
+      background: #253244;
+      color: var(--txt);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 12px;
+      cursor: pointer
+    }
+
+    .btn.alt {
+      background: #33465f
+    }
+
+    .btn.good {
+      background: #234836;
+      border-color: #3f8d67
+    }
+
+    .btn.bad {
+      background: #53303a;
+      border-color: #8f5562
+    }
+
+    .btn:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: #05080ccf;
+      display: none;
+      place-items: center;
+      z-index: 8;
+      padding: 12px
+    }
+
+    .overlay.show {
+      display: grid
+    }
+
+    .battle {
+      max-width: 560px;
+      width: 100%
+    }
+
+    .bars {
+      display: grid;
+      gap: 6px
+    }
+
+    .bar {
+      height: 10px;
+      background: #0f151d;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      overflow: hidden
+    }
+
+    .fill {
+      height: 100%
+    }
+
+    .enemy {
+      margin-top: 8px;
+      background: #141c27;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px
+    }
+
+    .toastWrap {
+      position: fixed;
+      top: 70px;
+      right: 8px;
+      display: grid;
+      gap: 7px;
+      z-index: 9
+    }
+
+    .toast {
+      background: #1f2935;
+      border: 1px solid #576d8c;
+      border-radius: 8px;
+      padding: 8px 10px
     }
   </style>
 </head>
+
 <body>
   <div class="app">
-    <header class="top">
+    <div class="card top">
       <div class="row">
-        <div class="title">Форпост: Портрет Пустоши</div>
-        <div class="pill" id="dayLabel">День 1</div>
-        <div class="pill" id="phaseLabel">Ожидание</div>
+        <h1>Форпост: Дневной путь</h1>
+        <div class="pill" id="day">День 1</div>
+        <div class="pill" id="phase">Исследование</div>
       </div>
-      <div class="res" id="resBar"></div>
-    </header>
+      <div class="res" id="res"></div>
+    </div>
 
-    <nav class="tabs" id="tabs"></nav>
+    <div class="card center">
+      <div>
+        <button id="charBtn" title="Прожить день">🧭</button>
+        <div style="margin-top:8px"><b>Клик по персонажу = новый день</b></div>
+        <div class="sub" id="statusText">Двигайтесь по пустоши и ищите возможности.</div>
+      </div>
+    </div>
 
-    <div class="content">
-      <section class="panel active" data-panel="бой">
-        <div class="day-actions" id="dayActions"></div>
-        <div class="sub" id="hint">Выберите один план на день.</div>
-        <div class="battle" style="margin-top:7px">
-          <article class="actor">
-            <div class="row"><div style="font-size:26px">🧭</div><div><b>Команда</b><div class="sub" id="weaponLabel"></div></div></div>
-            <div id="playerBars" style="display:grid;gap:6px;margin-top:6px"></div>
-          </article>
-          <article class="actor">
-            <div class="row"><b>Волна</b><span id="waveLabel">—</span></div>
-            <div id="enemyList" style="display:grid;gap:6px;margin-top:6px"></div>
-          </article>
+    <div class="card" style="margin-top:10px">
+      <b>Лента событий</b>
+      <div class="log" id="log" style="margin-top:7px"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="encounterModal">
+    <div class="card battle">
+      <h2 style="margin:0 0 8px">Контакт в пустоши</h2>
+      <div id="encounterText"></div>
+      <div class="row" style="margin-top:10px"><button class="btn good" id="fightYes">Вступить в бой</button><button
+          class="btn alt" id="fightNo">Обойти стороной</button></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="battleModal">
+    <div class="card battle">
+      <div class="row">
+        <h2 style="margin:0">Бой</h2>
+        <div class="pill" id="battleTimer">00.0с</div>
+      </div>
+      <div class="bars" id="pBars" style="margin-top:8px"></div>
+      <div class="enemy">
+        <div id="enemyName">—</div>
+        <div class="bar" style="margin-top:5px">
+          <div class="fill" id="eHp" style="background:var(--bad);width:0%"></div>
         </div>
-      </section>
-
-      <section class="panel" data-panel="узел">
-        <b>Узел</b><div class="sub">Улучшайте модули и поддерживайте ресурсы.</div>
-        <div id="baseList" class="list" style="margin-top:7px"></div>
-        <hr style="border-color:var(--line)">
-        <b>Обмен</b>
-        <div id="shopList" class="list" style="margin-top:7px"></div>
-      </section>
-
-      <section class="panel" data-panel="инвентарь">
-        <b>Оружие</b><div id="weaponList" class="list" style="margin-top:7px"></div>
-        <hr style="border-color:var(--line)">
-        <b>Моды</b><div id="modList" class="list" style="margin-top:7px"></div>
-        <hr style="border-color:var(--line)">
-        <b>Лут</b><div id="lootList" class="list" style="margin-top:7px"></div>
-      </section>
-
-      <section class="panel" data-panel="журнал">
-        <b>События</b>
-        <div id="locList" class="list" style="margin-top:7px"></div>
-        <hr style="border-color:var(--line)">
-        <div class="log" id="log"></div>
-      </section>
+        <div class="sub" id="telegraph">АТАКА ЧЕРЕЗ 0.0с</div>
+        <div class="bar">
+          <div class="fill" id="teleFill" style="background:#ff9d9d;width:0%"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="atk">Атака</button>
+        <button class="btn" id="dodge">Уклон</button>
+        <button class="btn" id="med">Аптечка</button>
+        <button class="btn alt" id="reload">Перезарядка</button>
+        <button class="btn alt" id="volley">Залп</button>
+        <button class="btn bad" id="retreat">Отступить</button>
+      </div>
     </div>
   </div>
 
-  <footer class="bottom">
-    <div class="bottom-wrap">
-      <button class="btn" id="btnAttack">Атака</button>
-      <button class="btn" id="btnDodge">Уклон</button>
-      <button class="btn" id="btnInterrupt">Срыв</button>
-      <button class="btn" id="btnMed">Аптечка</button>
-      <button class="btn small" id="skillReload">Перезарядка</button>
-      <button class="btn small" id="skillVolley">Залп</button>
-      <button class="btn" id="btnWander" style="grid-column:1/-1;display:none">Бродить по зоне</button>
+  <div class="overlay" id="rewardModal">
+    <div class="card battle">
+      <h2 style="margin:0 0 8px">Итоги боя</h2>
+      <div id="rewardText"></div>
+      <button class="btn good" id="rewardOk" style="margin-top:10px">Продолжить путь</button>
     </div>
-  </footer>
+  </div>
 
-  <div id="toasts" class="toasts" aria-live="polite"></div>
-  <div id="defeat" class="overlay">
-    <div class="panel active" style="max-width:420px">
+  <div class="overlay" id="defeatModal">
+    <div class="card battle">
       <h2 style="margin:0 0 8px">Поражение</h2>
-      <p style="margin:0 0 8px">Форпост можно восстановить и попробовать новый путь развития.</p>
-      <div class="row"><button class="btn" id="newRun">Новая попытка</button><button class="btn" id="loadRun">Загрузить</button></div>
+      <div>Команда не смогла пережить вылазку.</div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="newRun">Новая попытка</button><button
+          class="btn alt" id="loadRun">Загрузить</button></div>
     </div>
   </div>
+
+  <div class="toastWrap" id="toasts" aria-live="polite"></div>
 
   <script>
     // data
     window.GameData = (() => {
-      const SAVE_KEY='waste_portrait_v3', SAVE_VER=3;
-      const TABS=['бой','узел','инвентарь','журнал'];
-      const RES_KEYS=['food','water','energy','materials','ammo','medkits'];
-      const WEAPONS={
-        pipe:{name:'Трубный карабин',dmg:8,impulse:4,ammo:1,crit:0.05,unlock:1},
-        shotgun:{name:'Дробовик каравана',dmg:14,impulse:5,ammo:2,crit:0.08,unlock:5},
-        rifle:{name:'Сервисная винтовка',dmg:20,impulse:6,ammo:2,crit:0.12,unlock:9},
-        coil:{name:'Катушка «Буря»',dmg:28,impulse:8,ammo:3,crit:0.16,unlock:14}
-      };
-      const MODS={
-        scope:{name:'Оптика',desc:'+12% шанс крита',apply:s=>s.player.critMul=1.12},
-        grip:{name:'Усиленная рукоять',desc:'+2 к урону',apply:s=>s.player.flatDmg+=2},
-        spring:{name:'Пружинный блок',desc:'-1с кд умений',apply:s=>s.player.cdBoost+=1},
-        brace:{name:'Каркас',desc:'+15 макс. стабильности',apply:s=>s.player.maxStab+=15},
-        chamber:{name:'Новая камора',desc:'+1 импульс за атаку',apply:s=>s.player.impulseGain+=1},
-        mesh:{name:'Сетчатый жилет',desc:'-8% входящего урона',apply:s=>s.player.dmgReduction+=0.08}
-      };
-      const BASE={
-        generator:{name:'Генератор',bonus:['+3 энергии','+6','+10']},
-        workshop:{name:'Мастерская',bonus:['Крафт дешевле','ещё дешевле','лучшие скидки']},
-        medbay:{name:'Медпункт',bonus:['+4 HP/день','+8','+14']},
-        storage:{name:'Склад',bonus:['+лимиты', '+больше лимита', '+макс лимит']},
-        radio:{name:'Радио',bonus:['+5% к луту', '+10%', '+15%']}
-      };
-      const LOC=[
-        {id:'ruins',name:'Руины',diff:1,unlock:1,loot:1},
-        {id:'scrap',name:'Свалка',diff:2,unlock:6,loot:1.25},
-        {id:'highway',name:'Трасса',diff:3,unlock:11,loot:1.45},
-        {id:'canyon',name:'Каньон',diff:4,unlock:16,loot:1.75}
+      const SAVE_KEY = 'forpost_dayclick_v1', SAVE_VER = 1;
+      const ENEMIES = [
+        { name: 'Рейдер-рашер', hp: 36, dmg: 8, atk: 3.0, icon: '🏃' },
+        { name: 'Щитоносец', hp: 55, dmg: 6, atk: 4.5, armor: 0.25, icon: '🛡️' },
+        { name: 'Снайпер', hp: 28, dmg: 14, atk: 5.1, mark: true, icon: '🎯' },
+        { name: 'Гончая', hp: 25, dmg: 7, atk: 2.5, icon: '🐕' },
+        { name: 'Робот-охранник', hp: 64, dmg: 11, atk: 4.7, armor: 0.2, icon: '🤖' }
       ];
-      const ENEMIES={
-        raiderAssault:{name:'Рейдер-штурмовик',hp:38,dmg:8,atk:4.5,trait:'броня',armor:0.1,icon:'🧍'},
-        raiderRusher:{name:'Рейдер-рашер',hp:30,dmg:7,atk:2.8,trait:'рывок',dash:true,icon:'🏃'},
-        sniper:{name:'Снайпер',hp:28,dmg:14,atk:5.2,trait:'метка',mark:true,icon:'🎯'},
-        shield:{name:'Щитоносец',hp:52,dmg:6,atk:4.8,trait:'щит',armor:0.25,icon:'🛡️'},
-        hound:{name:'Гончая',hp:24,dmg:6,atk:2.4,trait:'кровотечение',bleed:true,icon:'🐕'},
-        boar:{name:'Кабан',hp:46,dmg:10,atk:3.8,trait:'тяжёлый удар',heavy:true,icon:'🐗'},
-        feral:{name:'Одичавший',hp:34,dmg:8,atk:3.2,trait:'ярость',icon:'🧟'},
-        brute:{name:'Одичавший громила',hp:58,dmg:12,atk:4.3,trait:'сбой',heavy:true,icon:'👹'},
-        guardBot:{name:'Робот-охранник',hp:62,dmg:11,atk:4.6,trait:'броня',armor:0.2,icon:'🤖'},
-        drone:{name:'Дрон-страж',hp:26,dmg:9,atk:2.6,trait:'точечный залп',mark:true,icon:'🛸'},
-        eliteCaptain:{name:'Капитан рейдеров',hp:95,dmg:14,atk:3.7,trait:'мини-элита',icon:'🪖'},
-        alphaHound:{name:'Альфа-гончая',hp:88,dmg:16,atk:3.2,trait:'мини-элита',icon:'🐺'}
-      };
-      const BOSSES={
-        ironWarden:{name:'Железный Смотритель',phases:[{hp:120,dmg:14,atk:4.1},{hp:90,dmg:18,atk:3.3}],icon:'🦾'},
-        canyonKing:{name:'Король Каньона',phases:[{hp:140,dmg:16,atk:3.9},{hp:120,dmg:20,atk:3.2}],icon:'👑'}
-      };
-      const LOOT=[
-        {name:'Катушка провода',tier:'common',w:40},{name:'Узел механизмов',tier:'common',w:34},
-        {name:'Энергоячейка',tier:'rare',w:18},{name:'Линза прицела',tier:'rare',w:12},{name:'Реликт бункера',tier:'epic',w:6}
-      ];
-      return {SAVE_KEY,SAVE_VER,TABS,RES_KEYS,WEAPONS,MODS,BASE,LOC,ENEMIES,BOSSES,LOOT};
+      return { SAVE_KEY, SAVE_VER, ENEMIES };
     })();
   </script>
 
   <script>
     // state + persistence
     window.GameState = (() => {
-      const D=window.GameData;
+      const D = window.GameData;
       const fresh = () => ({
-        v:D.SAVE_VER, seed:73117, day:1, phase:'Ожидание', tab:'бой', location:'ruins', dead:false,
-        resources:{food:24,water:24,energy:15,materials:30,ammo:45,medkits:4},
-        player:{maxHp:100,hp:100,maxStab:100,stability:100,impulse:0,stress:6,weapon:'pipe',ownedWeapons:['pipe'],modsOwned:[],modsEquipped:[],critMul:1,flatDmg:0,cdBoost:0,impulseGain:0,dmgReduction:0},
-        base:{generator:1,workshop:1,medbay:1,storage:1,radio:1},
-        lootBag:[],log:[],
-        combat:{active:false,action:null,wave:0,waves:[],enemies:[],target:0,prep:0,timeLeft:0,lastTs:0,dodgeUntil:0,marked:0,bleedUntil:0,skillCd:{reload:0,volley:0},boss:null}
+        v: D.SAVE_VER, day: 1, phase: 'Исследование', dead: false,
+        resources: { food: 20, water: 20, materials: 25, ammo: 40, medkits: 3 },
+        player: { maxHp: 100, hp: 100, maxStab: 100, stability: 100, impulse: 0, stress: 5, dmg: 10 },
+        log: [],
+        combat: { active: false, time: 0, enemy: null, enemyAtk: 0, dodge: 0, cdReload: 0, cdVolley: 0, reward: null }
       });
-      let state=fresh();
-      const migrate = s => {
-        if(!s||typeof s!=='object') return fresh();
-        if(!s.v||s.v<D.SAVE_VER){
-          s={...fresh(),...s,v:D.SAVE_VER,resources:{...fresh().resources,...(s.resources||{})},player:{...fresh().player,...(s.player||{})},base:{...fresh().base,...(s.base||{})},combat:{...fresh().combat,...(s.combat||{})}};
-        }
-        return s;
-      };
-      const save = () => localStorage.setItem(D.SAVE_KEY,JSON.stringify(state));
-      const load = () => { try{ const raw=localStorage.getItem(D.SAVE_KEY); if(!raw) return false; state=migrate(JSON.parse(raw)); return true;}catch{return false;} };
-      return {fresh,get:()=>state,set:s=>state=s,save,load,migrate};
+      let state = fresh();
+      const save = () => localStorage.setItem(D.SAVE_KEY, JSON.stringify(state));
+      const load = () => { try { const r = localStorage.getItem(D.SAVE_KEY); if (!r) return false; state = JSON.parse(r); return true; } catch { return false } };
+      return { fresh, get: () => state, set: s => state = s, save, load };
     })();
   </script>
 
   <script>
     // ui
     window.GameUI = (() => {
-      const D=window.GameData,S=window.GameState;
-      const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-      const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-      const toast=t=>{const d=document.createElement('div');d.className='toast';d.textContent=t;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),2800)};
-      const log=t=>{const st=S.get();st.log.unshift(`[Д${st.day}] ${t}`);st.log=st.log.slice(0,120);renderLog();};
-      const renderTop=()=>{
-        const st=S.get(); $('#dayLabel').textContent=`День ${st.day}`; $('#phaseLabel').textContent=st.phase;
-        const names={food:'🍖 Еда',water:'💧 Вода',energy:'⚡ Энергия',materials:'🧱 Материалы',ammo:'🔸 Патроны',medkits:'🩹 Аптечки'};
-        $('#resBar').innerHTML=D.RES_KEYS.map(k=>`<div class='pill'>${names[k]}: <b>${Math.floor(st.resources[k])}</b></div>`).join('');
+      const S = window.GameState; const $ = s => document.querySelector(s); const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const log = t => { const st = S.get(); st.log.unshift(`[Д${st.day}] ${t}`); st.log = st.log.slice(0, 120); renderLog(); };
+      const toast = t => { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; $('#toasts').appendChild(d); setTimeout(() => d.remove(), 2600) };
+      const renderTop = () => { const st = S.get(); $('#day').textContent = `День ${st.day}`; $('#phase').textContent = st.phase; $('#res').innerHTML = `<div class='pill'>🍖 ${st.resources.food}</div><div class='pill'>💧 ${st.resources.water}</div><div class='pill'>🧱 ${st.resources.materials}</div><div class='pill'>🔸 ${st.resources.ammo}</div><div class='pill'>🩹 ${st.resources.medkits}</div><div class='pill'>🙂 ${Math.round(st.player.stress)}</div>` };
+      const renderLog = () => { $('#log').innerHTML = S.get().log.map(x => `<div>${x}</div>`).join('') };
+      const renderMain = () => { const st = S.get(); $('#statusText').textContent = st.combat.active ? 'Сейчас идёт бой.' : 'Путь продолжается. Нажмите на персонажа, чтобы прожить день.'; $('#charBtn').disabled = st.combat.active || st.dead; };
+      const renderBattle = () => {
+        const st = S.get(), p = st.player, c = st.combat, e = c.enemy; if (!e) return; $('#battleTimer').textContent = `${c.time.toFixed(1)}с`; $('#pBars').innerHTML = `<div>❤️ HP ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%;background:var(--bad)'></div></div></div><div>🛡 Стабильность ${Math.round(p.stability)}/${p.maxStab}<div class='bar'><div class='fill
+
+' style='width:${clamp(p.stability / p.maxStab * 100, 0, 100)}%;background:#7fb8ff'></div></div></div><div>⚡ Импульс ${Math.round(p.impulse)}/100<div class='bar'><div class='fill' style='width:${clamp(p.impulse, 0, 100)}%;background:var(--warn)'></div></div></div>`;
+        $('#enemyName').textContent = `${e.icon} ${e.name} (${Math.max(0, Math.round(e.hp))}/${e.maxHp})`;
+        $('#eHp').style.width = `${clamp(e.hp / e.maxHp * 100, 0, 100)}%`;
+        $('#telegraph').textContent = `АТАКА ЧЕРЕЗ ${Math.max(0, c.enemyAtk).toFixed(1)}с`;
+        $('#teleFill').style.width = `${clamp((1 - c.enemyAtk / e.atk) * 100, 0, 100)}%`;
+        $('#reload').disabled = c.cdReload > 0; $('#volley').disabled = c.cdVolley > 0;
+        $('#reload').textContent = c.cdReload > 0 ? `Перезарядка ${c.cdReload.toFixed(1)}с` : 'Перезарядка';
+        $('#volley').textContent = c.cdVolley > 0 ? `Залп ${c.cdVolley.toFixed(1)}с` : 'Залп';
       };
-      const renderTabs=()=>{const st=S.get();$('#tabs').innerHTML=D.TABS.map(t=>`<button class='btn ${st.tab===t?'active':''}' data-tab='${t}'>${t[0].toUpperCase()+t.slice(1)}</button>`).join('');$$('.panel').forEach(p=>p.classList.toggle('active',p.dataset.panel===st.tab));};
-      const renderBars=()=>{const st=S.get(),p=st.player;$('#weaponLabel').textContent=`${D.WEAPONS[p.weapon].name} • стресс ${Math.round(p.stress)}`;const items=[['❤️ HP',p.hp,p.maxHp,'var(--bad)'],['🛡 Стабильность',p.stability,p.maxStab,'#75b9ff'],['⚡ Импульс',p.impulse,100,'var(--warn)']];$('#playerBars').innerHTML=items.map(i=>`<div>${i[0]} ${Math.round(i[1])}/${Math.round(i[2])}<div class='bar'><div class='fill' style='width:${clamp(i[1]/i[2]*100,0,100)}%;background:${i[3]}'></div></div></div>`).join('');};
-      const renderDayActions=()=>{
-        const st=S.get();const dis=st.combat.active?'disabled':'';
-        $('#dayActions').innerHTML=[['raid','Рейд','1–3 волны, больше лута'],['def','Оборона узла','1–2 волны, безопаснее'],['rest','Восстановление','лечение и снижение стресса']].map(a=>`<button class='btn' data-act='${a[0]}' ${dis}><b>${a[1]}</b><div class='sub'>${a[2]}</div></button>`).join('');
-      };
-      const renderEnemies=()=>{
-        const st=S.get(),c=st.combat; $('#waveLabel').textContent=c.active?`${c.wave}/${c.waves.length}`:'—';
-        $('#enemyList').innerHTML=c.enemies.filter(e=>e.hp>0).map((e,i)=>`<div class='enemy ${i===c.target?'target':''}'><div>${e.icon} <b>${e.name}</b> <span class='sub'>${e.trait}</span></div><div class='bar'><div class='fill' style='width:${clamp(e.hp/e.maxHp*100,0,100)}%;background:#ff8080'></div></div><div class='sub'>АТАКА ЧЕРЕЗ ${Math.max(0,e.nextAtk).toFixed(1)}с</div><div class='prog'><i style='width:${clamp((1-e.nextAtk/e.atk)*100,0,100)}%'></i></div></div>`).join('') || `<div class='sub'>Противников нет.</div>`;
-      };
-      const renderNode=()=>{
-        const st=S.get();
-        $('#baseList').innerHTML=Object.entries(D.BASE).map(([id,b])=>{const lv=st.base[id],cost=12*lv+10;return `<div class='item'><div><b>${b.name}</b> ур.${lv}/3<div class='sub'>${b.bonus[lv-1]||'максимум'}</div></div>${lv<3?`<button class='btn' data-up='${id}'>Улучшить ${cost} мат</button>`:'<span class="sub">макс</span>'}</div>`;}).join('');
-        const shop=[{name:'Патроны x18',cost:{materials:10},gain:{ammo:18}},{name:'Аптечка x1',cost:{materials:12,water:3},gain:{medkits:1}},{name:'Провизия',cost:{materials:8},gain:{food:8,water:8}}];
-        $('#shopList').innerHTML=shop.map((s,i)=>`<div class='item'><div>${s.name}</div><button class='btn' data-shop='${i}'>Обмен</button></div>`).join('');
-      };
-      const renderInv=()=>{
-        const st=S.get(),p=st.player;
-        $('#weaponList').innerHTML=Object.entries(D.WEAPONS).map(([id,w])=>{const own=p.ownedWeapons.includes(id),eq=p.weapon===id;const btn=!own?`<button class='btn' data-buyw='${id}'>Купить ${w.unlock*12} мат</button>`:eq?`<span class='sub'>оснащено</span>`:`<button class='btn' data-eqw='${id}'>Оснастить</button>`;return `<div class='item'><div><b>${w.name}</b><div class='sub'>урон ${w.dmg}, расход ${w.ammo}</div></div>${btn}</div>`}).join('');
-        $('#modList').innerHTML=Object.entries(D.MODS).map(([id,m])=>{const own=p.modsOwned.includes(id),eq=p.modsEquipped.includes(id);const btn=!own?`<button class='btn' data-buym='${id}'>Крафт 18 мат</button>`:eq?`<button class='btn' data-uneq='${id}'>Снять</button>`:`<button class='btn' data-eqm='${id}'>Установить</button>`;return `<div class='item'><div><b>${m.name}</b><div class='sub'>${m.desc}</div></div>${btn}</div>`}).join('');
-        $('#lootList').innerHTML=(st.lootBag.slice(0,20).map(l=>`<div class='item tier-${l.tier}'><span>${l.name}</span><span class='sub'>${l.tier}</span></div>`).join('')||"<div class='sub'>Лут пока отсутствует.</div>");
-      };
-      const renderJournal=()=>{
-        const st=S.get();
-        $('#locList').innerHTML=D.LOC.map(l=>{const open=st.day>=l.unlock;return `<div class='item ${st.location===l.id?'tier-rare':''}'><div><b>${l.name}</b><div class='sub'>Сложность ${l.diff}, лут x${l.loot}</div></div>${open?`<button class='btn' data-loc='${l.id}'>${st.location===l.id?'Выбрано':'Выбрать'}</button>`:`<span class='sub'>День ${l.unlock}</span>`}</div>`}).join('');
-        renderLog();
-      };
-      const renderLog=()=>{const st=S.get();$('#log').innerHTML=st.log.slice(0,80).map(x=>`<div>${x}</div>`).join('');};
-      const renderBottom=()=>{
-        const st=S.get(); const alive=st.combat.enemies.filter(e=>e.hp>0).length>0;
-        const combatOn=st.combat.active;
-        $('#btnWander').style.display = combatOn && !alive ? 'block' : 'none';
-        ['btnAttack','btnDodge','btnInterrupt','btnMed','skillReload','skillVolley'].forEach(id=>$('#'+id).disabled = !combatOn || !alive);
-        const c=st.combat.skillCd||{reload:0,volley:0};
-        $('#skillReload').textContent=c.reload>0?`Перезарядка ${c.reload.toFixed(1)}с`:'Перезарядка';
-        $('#skillVolley').textContent=c.volley>0?`Залп ${c.volley.toFixed(1)}с`:'Залп';
-      };
-      const rerender=()=>{renderTop();renderTabs();renderDayActions();renderBars();renderEnemies();renderNode();renderInv();renderJournal();renderBottom();};
-      return {$,$$,clamp,toast,log,rerender,renderLog};
+      const show = (id, on) => $(id).classList.toggle('show', on);
+      return { $, log, toast, renderTop, renderLog, renderMain, renderBattle, show };
     })();
   </script>
 
   <script>
-    // combat + core gameplay
-    window.GameCore = (() => {
-      const D=window.GameData,S=window.GameState,UI=window.GameUI;
-      const rngFrom=s=>{let x=s|0;return()=>((x=(x*1664525+1013904223)|0)>>>0)/4294967296};
-      const dayRng=o=>rngFrom(S.get().seed + S.get().day*131 + (o||0)*977);
-      const clamp=UI.clamp;
-
-      const applyDerived=()=>{
-        const st=S.get(),p=st.player;p.critMul=1;p.flatDmg=0;p.cdBoost=0;p.impulseGain=0;p.dmgReduction=0;p.maxStab=100+(st.base.storage-1)*5;
-        p.modsEquipped=p.modsEquipped.filter(x=>p.modsOwned.includes(x)); p.modsEquipped.forEach(id=>D.MODS[id].apply(st)); p.stability=clamp(p.stability,0,p.maxStab);
-      };
-      const spend=cost=>{const st=S.get();for(const k in cost) if((st.resources[k]||0)<cost[k]) return false; for(const k in cost) st.resources[k]-=cost[k]; return true;};
-      const gain=obj=>{const st=S.get(); for(const k in obj) st.resources[k]=(st.resources[k]||0)+obj[k];};
-      const currentLoc=()=>D.LOC.find(l=>l.id===S.get().location)||D.LOC[0];
-      const alive=()=>S.get().combat.enemies.filter(e=>e.hp>0);
-      const target=()=>{const c=S.get().combat;if(!c.enemies[c.target]||c.enemies[c.target].hp<=0)c.target=c.enemies.findIndex(e=>e.hp>0);return c.enemies[c.target];};
-      const damage=(m=1)=>{const st=S.get(),p=st.player,w=D.WEAPONS[p.weapon];let d=(w.dmg+p.flatDmg)*m;const r=dayRng(3+Math.floor((st.combat.timeLeft||1)*11));if(r()<w.crit*p.critMul)d*=1.6;return Math.round(d)};
-      const makeEnemy=(id,scale)=>{const e=D.ENEMIES[id];return {...e,id,maxHp:Math.round(e.hp*scale),hp:Math.round(e.hp*scale),dmg:Math.round(e.dmg*scale),nextAtk:1+Math.random()*2};};
-      const rollWaves=action=>{
-        const st=S.get(),r=dayRng(action==='raid'?11:22),loc=currentLoc();
-        const base=['raiderAssault','raiderRusher','sniper','shield','hound','boar','feral','brute','guardBot','drone'];
-        const count=action==='raid'?(r()<0.35?3:2):(r()<0.6?1:2),waves=[];
-        for(let i=0;i<count;i++){
-          const n=2+Math.floor(r()*3)-(action==='def'?1:0),ids=[];
-          for(let k=0;k<n;k++) ids.push(base[Math.floor(r()*base.length)]);
-          if(r()<0.28+loc.diff*0.07||i===count-1&&st.day>7) ids.push(r()<0.5?'eliteCaptain':'alphaHound');
-          if((st.day>=12&&st.day%7===0&&i===count-1)||(loc.id==='canyon'&&i===count-1&&r()<0.4)) ids.push(st.day<20?'BOSS_ironWarden':'BOSS_canyonKing');
-          waves.push(ids);
-        }
-        return waves;
-      };
-      const spawnWave=()=>{
-        const st=S.get(),c=st.combat,loc=currentLoc(); c.wave++;
-        if(c.wave>c.waves.length){finishCombat(true);return;}
-        const scale=1+loc.diff*0.15+Math.min(0.55,st.day*0.02);
-        c.enemies=c.waves[c.wave-1].flatMap(id=>{
-          if(id.startsWith('BOSS_')){const bid=id.split('_')[1],b=D.BOSSES[bid],ph=b.phases[0];c.boss={id:bid,...b};return [{id,name:b.name,icon:b.icon,trait:'босс фаза 1',boss:true,phase:1,maxHp:ph.hp*Math.max(1,scale-0.2),hp:ph.hp*Math.max(1,scale-0.2),dmg:ph.dmg,atk:ph.atk,nextAtk:2}]}
-          return [makeEnemy(id,scale)]
-        });
-        c.target=0;c.prep=2+Math.random()*2;c.timeLeft=16+Math.random()*9;UI.toast(`Волна ${c.wave}: ${c.enemies.length} целей`);
-      };
-
-      const defeat=()=>{const st=S.get();st.dead=true;st.combat.active=false;document.querySelector('#defeat').classList.add('show');S.save();};
-      const upkeep=()=>{
-        const st=S.get(),p=st.player,b=st.base;const need={food:3,water:3,energy:2};
-        for(const k in need){st.resources[k]-=need[k]; if(st.resources[k]<0){p.hp+=st.resources[k]*2;p.stress+=3;st.resources[k]=0;UI.toast(`Нехватка: ${k}`)}}
-        st.resources.energy += (b.generator===1?3:b.generator===2?6:10);
-        p.hp=clamp(p.hp+(b.medbay===1?4:b.medbay===2?8:14)-p.stress*0.03,0,p.maxHp);
-        p.stability=clamp(p.stability+8,0,p.maxStab); p.stress=clamp(p.stress+0.9,0,100);
-        if(p.hp<=0) defeat();
-      };
-      const endDay=()=>{const st=S.get();st.phase='Ожидание';if(st.day===6)UI.toast('Открыта Свалка');if(st.day===11)UI.toast('Открыта Трасса');if(st.day===16)UI.toast('Открыт Каньон');if(st.player.hp<=0) return defeat();S.save();UI.rerender();};
-      const recoveryDay=()=>{const st=S.get(),p=st.player;st.phase='Восстановление';const heal=18+st.base.medbay*6,rep=20+st.base.workshop*4,calm=14;p.hp=clamp(p.hp+heal,0,p.maxHp);p.stability=clamp(p.stability+rep,0,p.maxStab);p.stress=clamp(p.stress-calm,0,100);gain({food:2,water:2});UI.log(`Восстановление: +${heal} HP, +${rep} стабильности.`);UI.toast('Команда отдохнула.');endDay();};
-      const startCombat=action=>{const st=S.get();st.combat={...st.combat,active:true,action,wave:0,waves:rollWaves(action),enemies:[],target:0,prep:0,timeLeft:0,lastTs:performance.now(),dodgeUntil:0,marked:0,bleedUntil:0,skillCd:{reload:0,volley:0},boss:null};st.phase='Бой';spawnWave();UI.log(`Выход: ${action==='raid'?'рейд':'оборона'}`);requestAnimationFrame(loop);};
-      const startDay=action=>{const st=S.get();if(st.dead||st.combat.active)return;st.day++;st.phase='Начало дня';upkeep();if(st.dead)return;if(action==='rest')return recoveryDay();startCombat(action);UI.rerender();};
-
-      const enemyHit=e=>{const st=S.get(),p=st.player;let d=e.dmg;if(e.mark||st.combat.marked>0){d=Math.round(d*1.2);st.combat.marked=4;}if(e.dash)d=Math.round(d*1.15);if(st.combat.dodgeUntil>0){st.combat.dodgeUntil=0;UI.log(`Уклон: ${e.name} промахнулся`);return;}if(e.heavy){p.stability=clamp(p.stability-12,0,p.maxStab);if(p.stability<20)d+=5;}if(e.bleed)st.combat.bleedUntil=3;d=Math.round(d*(1-p.dmgReduction));p.hp-=d;p.stress=clamp(p.stress+1.8,0,100);UI.log(`${e.name} наносит ${d} урона.`);if(p.hp<=0) defeat();};
-      const lootDrop=diff=>{const st=S.get(),r=dayRng(77),rolls=1+(diff>2?1:0)+(st.base.radio===3?1:0);for(let i=0;i<rolls;i++){const bonus=(diff-1)*0.06+(st.base.radio-1)*0.04;let total=0,arr=D.LOOT.map(x=>({...x,w:x.w*(x.tier==='epic'?1+bonus*2:x.tier==='rare'?1+bonus:1)}));arr.forEach(x=>total+=x.w);let p=r()*total,c=arr[0];for(const x of arr){p-=x.w;if(p<=0){c=x;break;}}st.lootBag.unshift(c);if(st.lootBag.length>80)st.lootBag.pop();if(c.tier==='rare')gain({materials:6});if(c.tier==='epic')gain({materials:14,medkits:1});UI.toast(`Трофей: ${c.name}`);}};
-      const finishCombat=win=>{const st=S.get(),loc=currentLoc();st.combat.active=false;st.phase=win?'Возвращение':'Отступление';if(win){const loot={materials:Math.round((st.combat.action==='raid'?12:8)*loc.loot),ammo:Math.round((st.combat.action==='raid'?10:7)*loc.loot),food:2,water:2};gain(loot);lootDrop(loc.diff);UI.log(`Успех: +${loot.materials} материалов`);UI.toast('Операция завершена успешно.');}else{st.player.stress=clamp(st.player.stress+8,0,100);st.player.hp=clamp(st.player.hp-8,0,st.player.maxHp);UI.log('Отступление: команда измотана');UI.toast('Пришлось отойти.');}endDay();};
-
-      const loop=ts=>{
-        const st=S.get(),c=st.combat;if(!c.active||st.dead)return;const dt=Math.min(0.08,(ts-c.lastTs)/1000||0.016);c.lastTs=ts;
-        if(c.prep>0){c.prep-=dt;UI.rerender();return requestAnimationFrame(loop)}
-        c.timeLeft-=dt;if(c.timeLeft<=0&&alive().length>0)return finishCombat(false);
-        if(c.dodgeUntil>0)c.dodgeUntil-=dt;if(c.marked>0)c.marked-=dt;if(c.bleedUntil>0){c.bleedUntil-=dt;st.player.hp-=dt*1.8;}
-        for(const k in c.skillCd)c.skillCd[k]=Math.max(0,c.skillCd[k]-dt);
-        c.enemies.forEach(e=>{if(e.hp<=0)return;e.nextAtk-=dt;if(e.nextAtk<=0){enemyHit(e);e.nextAtk=e.atk;}});
-        const boss=c.enemies.find(e=>e.boss&&e.hp>0);
-        if(boss&&c.boss&&boss.phase===1&&boss.hp<boss.maxHp*0.45){const p2=c.boss.phases[1];boss.phase=2;boss.maxHp=p2.hp;boss.hp+=p2.hp*0.55;boss.dmg=p2.dmg;boss.atk=p2.atk;boss.trait='босс фаза 2';UI.toast('Фаза босса изменилась!');}
-        if(alive().length===0){if(c.wave>=c.waves.length)finishCombat(true);else spawnWave();}
-        UI.rerender();if(!st.dead)requestAnimationFrame(loop);
-      };
-
-      const actions={
-        attack:()=>{const st=S.get();if(!st.combat.active)return;const t=target();if(!t)return;const w=D.WEAPONS[st.player.weapon];if(st.resources.ammo<w.ammo)return UI.toast('Недостаточно патронов');st.resources.ammo-=w.ammo;const d=Math.max(1,Math.round(damage()*(1-(t.armor||0))));t.hp-=d;st.player.impulse=clamp(st.player.impulse+w.impulse+st.player.impulseGain,0,100);UI.log(`Атака по ${t.name}: -${d} HP`);if(t.hp<=0){UI.log(`${t.name} выведен из строя`);st.player.stress=clamp(st.player.stress-1,0,100);}UI.rerender();},
-        dodge:()=>{const st=S.get();if(st.player.impulse<18)return UI.toast('Нужно 18 импульса');st.player.impulse-=18;st.combat.dodgeUntil=1.1;UI.log('Подготовлен уклон');UI.rerender();},
-        interrupt:()=>{const st=S.get(),t=target();if(!t)return;if(st.player.impulse<24)return UI.toast('Нужно 24 импульса');if(t.nextAtk>1.2)return UI.toast('Слишком рано для срыва');st.player.impulse-=24;t.nextAtk=t.atk*0.9;t.hp-=Math.round(damage(.35));UI.log(`Срыв у ${t.name}`);UI.rerender();},
-        med:()=>{const st=S.get();if(st.resources.medkits<1)return UI.toast('Аптечек нет');st.resources.medkits--;st.player.hp=clamp(st.player.hp+22,0,st.player.maxHp);st.player.stress=clamp(st.player.stress-6,0,100);UI.log('Использована аптечка');UI.rerender();},
-        reload:()=>{const st=S.get();if(st.combat.skillCd.reload>0)return;st.combat.skillCd.reload=Math.max(5,12-st.player.cdBoost);gain({ammo:8});st.player.impulse=clamp(st.player.impulse+12,0,100);UI.log('Перезарядка: +8 патронов');UI.rerender();},
-        volley:()=>{const st=S.get();if(st.combat.skillCd.volley>0)return;if(st.resources.ammo<6)return UI.toast('Для залпа нужно 6 патронов');st.combat.skillCd.volley=Math.max(8,18-st.player.cdBoost);st.resources.ammo-=6;st.combat.enemies.forEach(e=>{if(e.hp>0)e.hp-=Math.round(damage(.72)*(1-(e.armor||0)));});st.player.impulse=clamp(st.player.impulse+8,0,100);UI.log('Залп по группе');UI.rerender();},
-        wander:()=>{const st=S.get();if(!st.combat.active||alive().length>0)return;const r=dayRng(201)();const mats=2+Math.floor(r*4),ammo=1+Math.floor(r*3);gain({materials:mats,ammo});st.player.stress=clamp(st.player.stress-1.5,0,100);st.combat.prep=Math.max(0.2,st.combat.prep-1.2);UI.log(`Бродить: найдено ${mats} мат. и ${ammo} патронов`);UI.toast('Разведка между волнами выполнена.');UI.rerender();}
-      };
-
-      return {applyDerived,spend,gain,startDay,actions,endDay};
-    })();
-  </script>
-
-  <script>
-    // bootstrap + events
+    // core combat + day click
     (() => {
-      const D=window.GameData,S=window.GameState,UI=window.GameUI,G=window.GameCore;
+      const D = window.GameData, S = window.GameState, UI = window.GameUI;
+      const clamp = UI.clamp || ((v, a, b) => Math.max(a, Math.min(b, v)));
+      const rng = () => Math.random();
+      const upkeep = () => { const st = S.get(), p = st.player; st.resources.food = Math.max(0, st.resources.food - 2); st.resources.water = Math.max(0, st.resources.water - 2); if (st.resources.food === 0 || st.resources.water === 0) { p.hp -= 6; p.stress += 4; UI.toast('Нехватка припасов'); } p.stress = Math.min(100, p.stress + 0.7); p.stability = Math.min(p.maxStab, p.stability + 6); if (p.hp <= 0) defeat(); };
+      const enemyRoll = () => { const st = S.get(); const chance = Math.min(.75, .22 + st.day * 0.02); return rng() < chance };
+      const newEnemy = () => { const st = S.get(); const base = D.ENEMIES[Math.floor(rng() * D.ENEMIES.length)]; const scale = 1 + Math.min(.7, st.day * 0.03); return { ...base, maxHp: Math.round(base.hp * scale), hp: Math.round(base.hp * scale), dmg: Math.round(base.dmg * scale) }; };
+      const startDay = () => { const st = S.get(); if (st.combat.active || st.dead) return; st.day++; st.phase = 'Исследование'; upkeep(); if (st.dead) return; UI.log('Вы прошли ещё один день пути.'); if (enemyRoll()) { const e = newEnemy(); st.combat.enemy = e; UI.$('#encounterText').textContent = `Замечен противник: ${e.icon} ${e.name}. Вступить в бой или обойти?`; UI.show('#encounterModal', true); st.phase = 'Контакт'; } else { st.resources.materials += 2 + Math.floor(rng() * 3); st.resources.ammo += 1 + Math.floor(rng() * 2); UI.toast('Спокойный день: найдено немного ресурсов.'); } S.save(); UI.renderTop(); UI.renderMain(); };
 
-      if(!S.load()) S.set(S.fresh());
-      G.applyDerived();
+      const beginFight = () => { const st = S.get(), c = st.combat, e = c.enemy; if (!e) return; UI.show('#encounterModal', false); c.active = true; c.time = 0; c.enemyAtk = 1.5; c.dodge = 0; c.cdReload = 0; c.cdVolley = 0; st.phase = 'Бой'; UI.show('#battleModal', true); tick(performance.now()); };
+      const finishFight = (win) => {
+        const st = S.get(), c = st.combat; c.active = false; UI.show('#battleModal', false); st.phase = 'Исследование'; let txt = '';
+        if (win) { const reward = { materials: 6 + Math.floor(rng() * 6), ammo: 4 + Math.floor(rng() * 5), food: 1, water: 1 }; for (const k in reward) st.resources[k] = (st.resources[k] || 0) + reward[k]; if (rng() < 0.24) st.resources.medkits++; txt = `Победа! Получено: 🧱${reward.materials}, 🔸${reward.ammo}, 🍖${reward.food}, 💧${reward.water}${rng() < 0.24 ? ', 🩹1' : ''}`; UI.log('Бой завершён победой.'); }
+        else { st.player.stress = Math.min(100, st.player.stress + 8); txt = 'Вы отошли. Потерь больше не было, но стресс вырос.'; UI.log('Бой не принят или отступление.'); }
+        c.reward = txt; UI.$('#rewardText').textContent = txt; UI.show('#rewardModal', true); S.save(); UI.renderTop(); UI.renderMain();
+      };
+      const defeat = () => { const st = S.get(); st.dead = true; st.combat.active = false; UI.show('#battleModal', false); UI.show('#defeatModal', true); S.save(); };
 
-      document.body.addEventListener('click',e=>{
-        const t=e.target.closest('button'); if(!t) return;
-        const st=S.get();
-        if(t.dataset.tab){st.tab=t.dataset.tab;UI.rerender();}
-        if(t.dataset.act) G.startDay(t.dataset.act);
-        if(t.dataset.lot){}
-        if(t.dataset.loc){st.location=t.dataset.loc;UI.rerender();}
-        if(t.dataset.up){const id=t.dataset.up,lv=st.base[id],cost=12*lv+10;if(lv<3&&G.spend({materials:cost})){st.base[id]++;G.applyDerived();UI.toast(`Улучшено: ${D.BASE[id].name}`);UI.rerender();}}
-        if(t.dataset.shop){const i=+t.dataset.shop,items=[{cost:{materials:10},gain:{ammo:18}},{cost:{materials:12,water:3},gain:{medkits:1}},{cost:{materials:8},gain:{food:8,water:8}}],it=items[i];if(G.spend(it.cost)){G.gain(it.gain);UI.toast('Обмен выполнен');UI.rerender();}}
-        if(t.dataset.buyw){const w=D.WEAPONS[t.dataset.buyw],cost=w.unlock*12;if(G.spend({materials:cost})){st.player.ownedWeapons.push(t.dataset.buyw);UI.toast(`Получено: ${w.name}`);UI.rerender();}}
-        if(t.dataset.eqw){st.player.weapon=t.dataset.eqw;UI.toast('Оружие оснащено');UI.rerender();}
-        if(t.dataset.buym){if(G.spend({materials:18})){st.player.modsOwned.push(t.dataset.buym);UI.toast('Мод создан');UI.rerender();}}
-        if(t.dataset.eqm){if(st.player.modsEquipped.length>=3)return UI.toast('Макс. 3 мода');st.player.modsEquipped.push(t.dataset.eqm);G.applyDerived();UI.rerender();}
-        if(t.dataset.uneq){st.player.modsEquipped=st.player.modsEquipped.filter(x=>x!==t.dataset.uneq);G.applyDerived();UI.rerender();}
-      });
+      const tick = (ts) => {
+        const st = S.get(), c = st.combat, p = st.player, e = c.enemy; if (!c.active || !e || st.dead) return; const last = c.lastTs || ts; const dt = Math.min(.08, (ts - last) / 1000 || .016); c.lastTs = ts; c.time += dt;
+        c.enemyAtk -= dt; if (c.dodge > 0) c.dodge -= dt; if (c.cdReload > 0) c.cdReload -= dt; if (c.cdVolley > 0) c.cdVolley -= dt;
+        if (c.enemyAtk <= 0) {
+          if (c.dodge >
 
-      UI.$('#btnAttack').onclick=G.actions.attack;
-      UI.$('#btnDodge').onclick=G.actions.dodge;
-      UI.$('#btnInterrupt').onclick=G.actions.interrupt;
-      UI.$('#btnMed').onclick=G.actions.med;
-      UI.$('#skillReload').onclick=G.actions.reload;
-      UI.$('#skillVolley').onclick=G.actions.volley;
-      UI.$('#btnWander').onclick=G.actions.wander;
+            0) { UI.log('Уклон сработал.'); c.dodge = 0; } else { let dmg = e.dmg; if (e.mark) dmg = Math.round(dmg * 1.15); p.hp -= dmg; if (e.atk > 4.5) p.stability = Math.max(0, p.stability - 8); p.stress = Math.min(100, p.stress + 1.4); UI.log(`${e.name} наносит ${dmg} урона.`); if (p.hp <= 0) { defeat(); return; } } c.enemyAtk = e.atk;
+        }
+        if (e.hp <= 0) { finishFight(true); return; }
+        UI.renderBattle();
+        requestAnimationFrame(tick);
+      };
 
-      UI.$('#newRun').onclick=()=>{S.set(S.fresh());G.applyDerived();S.save();UI.$('#defeat').classList.remove('show');UI.rerender();};
-      UI.$('#loadRun').onclick=()=>{if(S.load()){G.applyDerived();UI.$('#defeat').classList.remove('show');UI.toast('Сохранение загружено');UI.rerender();}};
+      const actAttack = () => { const st = S.get(), p = st.player, c = st.combat, e = c.enemy; if (!c.active || !e) return; if (st.resources.ammo < 1) return UI.toast('Патроны закончились'); st.resources.ammo--; let dmg = p.dmg + Math.floor(rng() * 5); if (rng() < 0.12) dmg = Math.round(dmg * 1.6); if (e.armor) dmg = Math.round(dmg * (1 - e.armor)); e.hp -= Math.max(1, dmg); p.impulse = Math.min(100, p.impulse + 8); UI.log(`Атака: -${Math.max(1, dmg)} HP`); UI.renderTop(); UI.renderBattle(); };
+      const actDodge = () => { const st = S.get(); if (st.player.impulse < 20) return UI.toast('Нужно 20 импульса'); st.player.impulse -= 20; st.combat.dodge = 1.2; UI.log('Подготовлен уклон'); UI.renderBattle(); };
+      const actMed = () => { const st = S.get(); if (st.resources.medkits < 1) return UI.toast('Аптечек нет'); st.resources.medkits--; st.player.hp = Math.min(st.player.maxHp, st.player.hp + 24); st.player.stress = Math.max(0, st.player.stress - 5); UI.log('Использована аптечка'); UI.renderTop(); UI.renderBattle(); };
+      const actReload = () => { const st = S.get(), c = st.combat; if (c.cdReload > 0) return; st.resources.ammo += 8; st.player.impulse = Math.min(100, st.player.impulse + 10); c.cdReload = 11; UI.log('Перезарядка: +8 патронов'); UI.renderTop(); UI.renderBattle(); };
+      const actVolley = () => { const st = S.get(), c = st.combat, e = c.enemy; if (c.cdVolley > 0 || !e) return; if (st.resources.ammo < 6) return UI.toast('Для залпа нужно 6 патронов'); st.resources.ammo -= 6; e.hp -= Math.round((st.player.dmg + 6) * 1.5); c.cdVolley = 16; UI.log('Залп наносит тяжёлый урон'); UI.renderTop(); UI.renderBattle(); };
 
-      UI.log('Форпост готов. Портретный интерфейс активен.');
-      UI.rerender();
-      S.save();
+      UI.$('#charBtn').onclick = startDay;
+      UI.$('#fightYes').onclick = beginFight;
+      UI.$('#fightNo').onclick = () => { UI.show('#encounterModal', false); finishFight(false) };
+      UI.$('#atk').onclick = actAttack; UI.$('#dodge').onclick = actDodge; UI.$('#med').onclick = actMed; UI.$('#reload').onclick = actReload; UI.$('#volley').onclick = actVolley;
+      UI.$('#retreat').onclick = () => finishFight(false);
+      UI.$('#rewardOk').onclick = () => { UI.show('#rewardModal', false); const st = S.get(); st.combat.enemy = null; S.save(); UI.renderMain(); };
+      UI.$('#newRun').onclick = () => { S.set(S.fresh()); UI.show('#defeatModal', false); UI.log('Новая попытка началась.'); UI.renderTop(); UI.renderMain(); S.save(); };
+      UI.$('#loadRun').onclick = () => { if (S.load()) { UI.show('#defeatModal', false); UI.toast('Сохранение загружено'); UI.renderTop(); UI.renderMain(); UI.renderLog(); } };
+
+      if (!S.load()) S.set(S.fresh());
+      UI.log('Клик по персонажу запускает каждый новый день.');
+      UI.renderTop(); UI.renderMain(); UI.renderLog(); S.save();
     })();
   </script>
 </body>
+
 </html>
