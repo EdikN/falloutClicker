@@ -106,7 +106,7 @@
     } else if (event.isCombat) {
       handleStoryCombat(event);
     } else {
-      UI.showDialogue({ speaker: event.speaker, text: event.text, img: event.img });
+      UI.showDialogue({ speaker: event.speaker, text: event.text, img: event.img, choices: event.choices });
     }
     return true;
   };
@@ -377,6 +377,7 @@
     else { window.SoundManager.play('punch'); }
 
     let dmg = totalDmg() + Math.floor(rng() * 4);
+    const e = c.enemy;
     if (rng() < 0.1) { dmg = Math.round(dmg * 1.5); UI.toast('КРИТ!'); }
     if (e.armor) dmg = Math.round(dmg * (1 - e.armor));
     e.hp -= Math.max(1, dmg);

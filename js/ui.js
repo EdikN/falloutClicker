@@ -94,6 +94,7 @@ window.GameUI = (() => {
 
     const choicesCont = $('#storyChoices');
     choicesCont.innerHTML = '';
+    choicesCont.style.display = choices.length ? 'grid' : 'none';
 
     show('#storyModal', true);
     typeText($('#storyText'), text, 15, () => {

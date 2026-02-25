@@ -4,18 +4,18 @@ window.GameData = (() => {
 
   // ХАРАКТЕРИСТИКИ ОРУЖИЯ (dmg - урон, cd - откат в секундах, isGun - требует патроны)
   const WEAPON_STATS = {
-    fists: { dmg: 3, cd: 0.6, name: 'КУЛАКИ', isGun: false },
-    knife: { dmg: 6, cd: 0.8, name: 'ЗАТОЧКА', isGun: false },
-    wrench: { dmg: 10, cd: 1.2, name: 'ГАЕЧНЫЙ КЛЮЧ', isGun: false },
-    pickaxe: { dmg: 18, cd: 1.5, name: 'КИРКА-КЛИНОК', isGun: false },
-    shockrod: { dmg: 28, cd: 1.8, name: 'ШОКОВЫЙ ЖЕЗЛ', isGun: false },
-    vibrofist: { dmg: 40, cd: 2.2, name: 'ВИБРО-КУЛАК', isGun: false },
-    pistol: { dmg: 14, cd: 1.0, name: '10ММ ПИСТОЛЕТ', isGun: true },
-    shotgun: { dmg: 25, cd: 2.0, name: 'ДРОБОВИК', isGun: true },
-    rifle: { dmg: 35, cd: 1.4, name: 'ШТУРМ. ВИНТОВКА', isGun: true },
-    plasma: { dmg: 55, cd: 2.5, name: 'ПЛАЗМОГАН', isGun: true },
-    launcher: { dmg: 80, cd: 4.0, name: 'ГРАНАТОМЕТ', isGun: true },
-    laserc: { dmg: 100, cd: 3.0, name: 'ЛАЗЕРНАЯ ПУШКА', isGun: true }
+    fists: { dmg: 4, cd: 0.2, name: 'КУЛАКИ', isGun: false },
+    knife: { dmg: 8, cd: 0.25, name: 'ЗАТОЧКА', isGun: false },
+    wrench: { dmg: 14, cd: 0.4, name: 'ГАЕЧНЫЙ КЛЮЧ', isGun: false },
+    pickaxe: { dmg: 24, cd: 0.5, name: 'КИРКА-КЛИНОК', isGun: false },
+    shockrod: { dmg: 35, cd: 0.6, name: 'ШОКОВЫЙ ЖЕЗЛ', isGun: false },
+    vibrofist: { dmg: 55, cd: 0.7, name: 'ВИБРО-КУЛАК', isGun: false },
+    pistol: { dmg: 18, cd: 0.3, name: '10ММ ПИСТОЛЕТ', isGun: true },
+    shotgun: { dmg: 35, cd: 0.7, name: 'ДРОБОВИК', isGun: true },
+    rifle: { dmg: 50, cd: 0.45, name: 'ШТУРМ. ВИНТОВКА', isGun: true },
+    plasma: { dmg: 80, cd: 0.8, name: 'ПЛАЗМОГАН', isGun: true },
+    launcher: { dmg: 120, cd: 1.3, name: 'ГРАНАТОМЕТ', isGun: true },
+    laserc: { dmg: 150, cd: 1.0, name: 'ЛАЗЕРНАЯ ПУШКА', isGun: true }
   };
 
   const ARMOR_STATS = {
