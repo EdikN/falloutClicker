@@ -32,10 +32,7 @@
       <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ЦИКЛ</b></div>
       <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
       <div class="statusBars" id="statusBars"></div>
-
-      <!-- Сюда генерируются кнопки ресурсов -->
       <div class="res" id="res"></div>
-
       <div class="actionsRow">
         <button class="btn alt" id="merchantBtn">СЕТЬ ТОРГОВЛИ</button>
         <button class="btn" id="craftBtn">СИНТЕЗАТОР</button>
@@ -43,7 +40,7 @@
     </section>
   </main>
 
-  <!-- Модальные окна -->
+  <!-- МОДАЛЬНЫЕ ОКНА -->
   <div class="overlay" id="storyModal">
     <div class="card modal">
       <h2>ПЕРЕХВАТ ДАННЫХ</h2>
@@ -68,7 +65,6 @@
         <div class="pill" id="battleTimer">00.0s</div>
       </div>
       <div class="statusBars" id="pBars"></div>
-
       <div class="enemy">
         <div id="enemyName">—</div>
         <img id="enemyImg" src="" alt="Враг" onerror="this.style.display='none'" />
@@ -80,8 +76,6 @@
           <div class="fill bg-warn" id="teleFill"></div>
         </div>
       </div>
-
-      <!-- Кнопок стало меньше -->
       <div class="actions">
         <button class="btn" id="atk">АТАКА</button>
         <button class="btn" id="dodge">УКЛОНЕНИЕ</button>
@@ -97,7 +91,6 @@
       <div id="rewardText" class="scrollable"></div><button class="btn good" id="rewardOk">ПРИНЯТЬ</button>
     </div>
   </div>
-
   <div class="overlay" id="merchantModal">
     <div class="card modal">
       <h2>ТОРГОВАЯ СЕТЬ</h2>
@@ -106,7 +99,6 @@
         СОЕДИНЕНИЕ</button>
     </div>
   </div>
-
   <div class="overlay" id="craftModal">
     <div class="card modal">
       <h2>СИНТЕЗАТОР</h2>
@@ -115,12 +107,18 @@
     </div>
   </div>
 
-  <div class="overlay" id="defeatModal">
-    <div class="card modal">
-      <h2>КРИТИЧЕСКАЯ ОШИБКА</h2>
-      <div style="font-size:1.2em; color:var(--bad)">ЖИЗНЕННЫЕ ПОКАЗАТЕЛИ НА НУЛЕ.<br>СИНХРОНИЗАЦИЯ РАЗОРВАНА.</div>
-      <div class="row"><button class="btn" id="newRun">ПЕРЕЗАГРУЗКА ЦИКЛА</button><button class="btn alt"
-          id="loadRun">ВОССТАНОВИТЬ ДАННЫЕ</button></div>
+  <!-- НОВЫЙ ЭКРАН СМЕРТИ -->
+  <div class="overlay defeat-overlay" id="defeatModal">
+    <div class="card modal defeat-card">
+      <h2 class="glitch-text" data-text="КРИТИЧЕСКИЙ СБОЙ">КРИТИЧЕСКИЙ СБОЙ</h2>
+      <div style="font-size: 5rem; text-align: center; margin: 1rem 0;">☠️</div>
+      <div class="defeat-stats">
+        <div>СТАТУС ОБЪЕКТА: <span style="color:var(--bad)">ЛИКВИДИРОВАН</span></div>
+        <div id="defeatReason" style="color:#aaa; font-size: 0.9em;">ПРИЧИНА: НЕИЗВЕСТНО</div>
+        <div id="defeatDays" style="font-size: 1.2em; margin-top: 0.5rem; color:var(--warn)">ПРОЖИТО ЦИКЛОВ: 0</div>
+      </div>
+      <div class="defeat-msg" id="defeatMsg">"СИСТЕМА ОЧИЩЕНА. ЗАГРУЗКА НОВОГО КЛОНА..."</div>
+      <button class="btn bad" id="newRun" style="margin-top: 1rem; padding: 1rem;">ИНИЦИАЛИЗАЦИЯ НОВОГО ЦИКЛА</button>
     </div>
   </div>
 

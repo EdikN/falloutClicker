@@ -106,21 +106,17 @@ h2 {
   margin-bottom: 0.2rem;
 }
 
-/* ОБЫЧНЫЙ .sub — например под картинкой персонажа */
+/* ТЕКСТ И ЗАГОЛОВКИ */
 .sub {
   color: #7eff9a;
-  /* Светлее чем --muted, чтобы видеть на любом фоне */
   font-size: 0.95em;
   text-shadow: 0 0 4px #000, 0 0 8px rgba(0, 0, 0, 0.8);
-  /* Чёрная тень — ключ к читаемости */
   background: rgba(0, 8, 0, 0.5);
-  /* Лёгкий тёмный фон */
   padding: 1px 4px;
   border-radius: 2px;
   display: inline-block;
 }
 
-/* .sub внутри модальных окон — особый случай */
 .modal .sub {
   color: #a8ffbe;
   font-size: 1em;
@@ -133,7 +129,6 @@ h2 {
   margin-bottom: 4px;
 }
 
-/* .sub внутри .shopItem (описание под названием крафта) */
 .shopItem .sub {
   color: #7eff9a;
   font-size: 0.9em;
@@ -145,7 +140,6 @@ h2 {
   margin-top: 2px;
 }
 
-/* УЛУЧШЕННАЯ ВИДИМОСТЬ ДЛЯ СИСТЕМНЫХ НАДПИСЕЙ */
 .highlight-text {
   color: #fff;
   background: rgba(0, 20, 0, 0.7);
@@ -252,7 +246,6 @@ h2 {
   filter: sepia(1) hue-rotate(70deg) saturate(3) brightness(0.9) drop-shadow(0 0 10px var(--line));
 }
 
-/* ПОЛОСЫ СОСТОЯНИЯ */
 .statusBars {
   flex: 0 0 auto;
   width: 100%;
@@ -295,7 +288,6 @@ h2 {
   color: var(--warn);
 }
 
-/* РЕСУРСЫ */
 .res {
   flex: 0 0 auto;
   width: 100%;
@@ -441,14 +433,13 @@ h2 {
   border-radius: 2px;
 }
 
-/* ЭЛЕМЕНТ МАГАЗИНА / КРАФТА */
+/* МАГАЗИН И КРАФТ */
 .shopItem {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
   background: rgba(0, 12, 0, 0.6);
-  /* Тёмный фон для контраста */
   margin-bottom: 4px;
   padding: 6px 8px;
   border-radius: 3px;
@@ -598,6 +589,118 @@ h2 {
   100% {
     box-shadow: 0 0 8px rgba(29, 242, 58, 0.2), inset 0 0 8px rgba(29, 242, 58, 0.1);
     border-color: var(--line);
+  }
+}
+
+/* ========================================= */
+/* --- ЭКРАН СМЕРТИ (DEFEAT SCREEN) --- */
+/* ========================================= */
+.defeat-overlay {
+  background: rgba(20, 0, 0, 0.85) !important;
+  backdrop-filter: blur(8px) grayscale(100%);
+  z-index: 100;
+}
+
+.defeat-card {
+  border-color: var(--bad);
+  box-shadow: 0 0 20px rgba(255, 0, 0, 0.4), inset 0 0 20px rgba(255, 0, 0, 0.2);
+  background: rgba(10, 0, 0, 0.9);
+  text-align: center;
+}
+
+.defeat-stats {
+  border-top: 1px dashed var(--bad);
+  border-bottom: 1px dashed var(--bad);
+  padding: 1rem 0;
+  margin: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.defeat-msg {
+  font-style: italic;
+  color: #fff;
+  opacity: 0.7;
+  margin-top: 0.5rem;
+}
+
+.glitch-text {
+  color: var(--bad);
+  font-size: 2em;
+  font-weight: bold;
+  position: relative;
+  animation: glitch 1s infinite;
+}
+
+.glitch-text::before,
+.glitch-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 0, 0, 0.9);
+}
+
+.glitch-text::before {
+  left: 2px;
+  text-shadow: -1px 0 red;
+  clip: rect(24px, 550px, 90px, 0);
+  animation: glitch-anim-2 2.5s infinite linear alternate-reverse;
+}
+
+.glitch-text::after {
+  left: -2px;
+  text-shadow: -1px 0 blue;
+  clip: rect(85px, 550px, 140px, 0);
+  animation: glitch-anim 2s infinite linear alternate-reverse;
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0)
+  }
+
+  20% {
+    transform: translate(-2px, 2px)
+  }
+
+  40% {
+    transform: translate(-2px, -2px)
+  }
+
+  60% {
+    transform: translate(2px, 2px)
+  }
+
+  80% {
+    transform: translate(2px, -2px)
+  }
+
+  100% {
+    transform: translate(0)
+  }
+}
+
+@keyframes glitch-anim {
+  0% {
+    clip: rect(36px, 9999px, 9px, 0)
+  }
+
+  100% {
+    clip: rect(13px, 9999px, 86px, 0)
+  }
+}
+
+@keyframes glitch-anim-2 {
+  0% {
+    clip: rect(65px, 9999px, 100px, 0)
+  }
+
+  100% {
+    clip: rect(26px, 9999px, 3px, 0)
   }
 }
 

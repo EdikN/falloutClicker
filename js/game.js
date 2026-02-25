@@ -4,7 +4,7 @@
   const pick = arr => arr[Math.floor(rng() * arr.length)];
   const totalDmg = () => S.get().player.baseDmg + S.get().player.dmgBonus;
 
-  // Таблица оружия — id → {dmg, name, isGun}
+  // База характеристик оружия
   const WEAPON_STATS = {
     knife: { dmg: 3, name: 'ЗАТОЧКА', isGun: false },
     wrench: { dmg: 4, name: 'ГАЕЧНЫЙ КЛЮЧ', isGun: false },
@@ -27,10 +27,40 @@
     if (w) { p.dmgBonus = w.dmg; p.weaponName = w.name; p.isGun = w.isGun; }
   };
 
-  const defeat = () => {
-    const st = S.get(); st.dead = true; st.combat.active = false;
-    UI.show('#battleModal', false); UI.show('#encounterModal', false);
-    UI.renderMain(); UI.renderTop(); UI.show('#defeatModal', true); S.save();
+  // --- НОВАЯ СИСТЕМА СМЕРТИ ---
+  const defeat = (reason = "ПОТЕРЯ ЖИЗНЕННЫХ ПОКАЗАТЕЛЕЙ") => {
+    const st = S.get();
+    st.dead = true;
+    st.combat.active = false;
+
+    // Скрываем все игровые окна
+    UI.show('#battleModal', false);
+    UI.show('#encounterModal', false);
+    UI.show('#storyModal', false);
+
+    // Обновляем статистику экрана поражения
+    const defeatDaysEl = UI.$('#defeatDays');
+    const defeatReasonEl = UI.$('#defeatReason');
+    const defeatMsgEl = UI.$('#defeatMsg');
+
+    if (defeatDaysEl) defeatDaysEl.textContent = `ПРОЖИТО ЦИКЛОВ: ${st.day}`;
+    if (defeatReasonEl) defeatReasonEl.textContent = `ПРИЧИНА СМЕРТИ: ${reason}`;
+
+    const msgs = [
+      "ОБЪЕКТ СПИСАН. ЗАГРУЗКА СЛЕДУЮЩЕГО.",
+      "БИОМАТЕРИАЛ НЕПРИГОДЕН. УТИЛИЗАЦИЯ.",
+      "ПОПЫТКА ПРОВАЛЕНА. ДАННЫЕ СОХРАНЕНЫ В АРХИВ.",
+      "ВЫ БЫЛИ ТАК БЛИЗКО... ИЛИ НЕТ?",
+      "СИСТЕМА: «СЛАБАЯ ОСОБЬ. ОЧИСТИТЬ СЕКТОР»."
+    ];
+    if (defeatMsgEl) defeatMsgEl.textContent = `"${pick(msgs)}"`;
+
+    UI.renderMain();
+    UI.renderTop();
+    UI.show('#defeatModal', true);
+
+    // ПЕРМАСМЕРТЬ: удаляем сохранение
+    localStorage.removeItem(D.SAVE_KEY);
   };
 
   const typeText = (el, text, speed = 22) => {
@@ -69,10 +99,22 @@
     const st = S.get(), p = st.player;
     st.resources.food = Math.max(0, st.resources.food - 2);
     st.resources.water = Math.max(0, st.resources.water - 2);
-    if (st.resources.food === 0) { p.hp -= 5; p.mood -= 5; UI.toast('ГОЛОД: -5 HP'); UI.triggerDamage(); }
-    if (st.resources.water === 0) { p.hp -= 8; p.mood -= 8; UI.toast('ЖАЖДА: -8 HP'); UI.triggerDamage(); }
+
+    if (st.resources.food === 0) {
+      p.hp -= 5; p.mood -= 5; UI.toast('ГОЛОД: -5 HP'); UI.triggerDamage();
+      if (p.hp <= 0) { defeat("КРИТИЧЕСКОЕ ИСТОЩЕНИЕ"); return; }
+    }
+
+    if (st.resources.water === 0) {
+      p.hp -= 8; p.mood -= 8; UI.toast('ЖАЖДА: -8 HP'); UI.triggerDamage();
+      if (p.hp <= 0) { defeat("ОБЕЗВОЖИВАНИЕ"); return; }
+    }
+
     p.mood = Math.max(0, p.mood - 1);
-    if (p.mood < 20) { p.hp -= 2; UI.triggerDamage(); }
+    if (p.mood < 20) {
+      p.hp -= 2; UI.triggerDamage();
+      if (p.hp <= 0) { defeat("ОСТРЫЙ ПСИХОЗ"); return; }
+    }
   };
 
   const encounterRoll = () => {
@@ -85,7 +127,6 @@
 
   const applyReward = r => Object.entries(r).forEach(([k, v]) => S.get().resources[k] = (S.get().resources[k] || 0) + v);
 
-  /* ---------- ТОРГОВЕЦ ---------- */
   const renderMerchant = () => {
     const st = S.get();
     UI.$('#merchantStock').innerHTML = D.SHOP_ITEMS.map((item, i) =>
@@ -106,7 +147,6 @@
     });
   };
 
-  /* ---------- СИНТЕЗАТОР ---------- */
   const renderCraft = () => {
     const st = S.get();
     UI.$('#craftStock').innerHTML = D.CRAFT_ITEMS.map((item, i) => {
@@ -135,11 +175,11 @@
     });
   };
 
-  /* ---------- ДЕНЬ ---------- */
   const startDay = () => {
     const st = S.get(); if (st.combat.active || st.dead) return;
     st.day++; st.phase = 'ИССЛЕДОВАНИЕ'; upkeep();
-    if (st.player.hp <= 0) { defeat(); return; }
+    if (st.player.hp <= 0) return; // Убит при upkeep
+
     UI.renderTop(); UI.renderMain();
     checkStoryEvents();
 
@@ -187,7 +227,10 @@
 
     if (c.enemyAtk <= 0) {
       if (c.dodge > 0) { UI.toast('УКЛОНЕНИЕ!'); }
-      else { p.hp -= e.dmg; p.mood = Math.max(0, p.mood - 1); UI.triggerDamage(); if (p.hp <= 0) { defeat(); return; } }
+      else {
+        p.hp -= e.dmg; p.mood = Math.max(0, p.mood - 1); UI.triggerDamage();
+        if (p.hp <= 0) { defeat(`УБИТ: ${e.name.toUpperCase()}`); return; }
+      }
       c.enemyAtk = e.atk;
     }
     if (e.hp <= 0) return finishFight(true);
@@ -197,12 +240,15 @@
   const actAttack = () => {
     const st = S.get(), c = st.combat, e = c.enemy; if (!c.active || !e) return;
     const isGun = st.player.isGun;
+
     if (isGun && st.resources.ammo < 1) return UI.toast('НЕТ ПАТРОНОВ! СМЕНИТЕ ОРУЖИЕ.');
     if (isGun) st.resources.ammo--;
+
     let dmg = totalDmg() + Math.floor(rng() * 4);
     if (rng() < 0.1) { dmg = Math.round(dmg * 1.5); UI.toast('КРИТ!'); }
     if (e.armor) dmg = Math.round(dmg * (1 - e.armor));
     e.hp -= Math.max(1, dmg);
+
     UI.triggerEnemyHit(); UI.renderTop(); UI.renderBattle();
   };
 
@@ -215,7 +261,7 @@
     UI.toast(`+${st.player.healPower || 30} HP`); UI.renderTop(); UI.renderBattle();
   };
 
-  /* ---------- СОБЫТИЯ ---------- */
+  /* ---------- ПРИВЯЗКА СОБЫТИЙ ---------- */
   UI.$('#charBtn').onclick = startDay;
   UI.$('#merchantBtn').onclick = () => { renderMerchant(); UI.show('#merchantModal', true); };
   UI.$('#merchantClose').onclick = () => UI.show('#merchantModal', false);
@@ -228,15 +274,26 @@
     if (enc.type === 'enemy') { st.combat.enemy = enc.enemy; st.encounter = null; beginFight(); }
     else { applyReward(enc.location.reward); UI.toast(`ПОЛУЧЕНО: ${enc.location.name}`); st.encounter = null; UI.show('#encounterModal', false); S.save(); UI.renderTop(); UI.renderMain(); }
   };
-  UI.$('#encounterNo').onclick = () => { const st = S.get(); st.player.mood = Math.max(0, st.player.mood - 5); st.encounter = null; UI.show('#encounterModal', false); S.save(); UI.renderTop(); UI.renderMain(); };
+
+  UI.$('#encounterNo').onclick = () => {
+    const st = S.get(); st.player.mood = Math.max(0, st.player.mood - 5); st.encounter = null; UI.show('#encounterModal', false); S.save(); UI.renderTop(); UI.renderMain();
+  };
 
   UI.$('#atk').onclick = actAttack;
   UI.$('#dodge').onclick = actDodge;
   UI.$('#med').onclick = actMed;
   UI.$('#retreat').onclick = () => finishFight(false);
   UI.$('#rewardOk').onclick = () => { UI.show('#rewardModal', false); S.save(); UI.renderMain(); };
-  UI.$('#newRun').onclick = () => { S.set(S.fresh()); UI.show('#defeatModal', false); UI.renderTop(); UI.renderMain(); S.save(); };
-  UI.$('#loadRun').onclick = () => { if (S.load()) { UI.show('#defeatModal', false); UI.toast('ЗАГРУЖЕНО'); UI.renderTop(); UI.renderMain(); } };
+
+  // Кнопка рестарта после поражения
+  UI.$('#newRun').onclick = () => {
+    S.set(S.fresh());
+    UI.show('#defeatModal', false);
+    UI.renderTop();
+    UI.renderMain();
+    S.save();
+    UI.toast('НОВЫЙ ЦИКЛ ИНИЦИАЛИЗИРОВАН');
+  };
 
   UI.$('#res').addEventListener('click', e => {
     const btn = e.target.closest('[data-use]'); if (!btn) return;
@@ -249,6 +306,7 @@
     S.save(); UI.renderTop(); UI.renderMain();
   });
 
+  // Запуск
   if (!S.load()) S.set(S.fresh());
   S.normalize(); UI.renderTop(); UI.renderMain(); renderMerchant(); renderCraft(); S.save();
 })();
