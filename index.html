@@ -21,6 +21,7 @@
       <div class="pill" id="day">ЦИКЛ 1</div>
       <div class="pill" id="phase">СТАТУС: ИССЛЕДОВАНИЕ</div>
       <div class="pill" id="weaponPill">ОРУЖИЕ: КУЛАКИ</div>
+      <button class="pill btn-mini" id="muteBtn" title="ЗВУК ВКЛ/ВЫКЛ">🔊 ЗВУК</button>
     </div>
   </header>
 
@@ -35,6 +36,7 @@
       <div class="res" id="res"></div>
       <div class="actionsRow">
         <button class="btn alt" id="merchantBtn">СЕТЬ ТОРГОВЛИ</button>
+        <button class="btn alt" id="equipBtn">ИНВЕНТАРЬ</button>
         <button class="btn" id="craftBtn">СИНТЕЗАТОР</button>
       </div>
     </section>
@@ -43,9 +45,15 @@
   <!-- МОДАЛЬНЫЕ ОКНА -->
   <div class="overlay" id="storyModal">
     <div class="card modal">
-      <h2>ПЕРЕХВАТ ДАННЫХ</h2>
-      <div id="storyText" class="scrollable" style="font-size: 1.2em; line-height: 1.5; margin: 1rem 0;"></div><button
-        class="btn good" id="storyOk">ПРОЧИТАНО [ЗАКРЫТЬ]</button>
+      <h2 id="storySpeaker">ПЕРЕХВАТ ДАННЫХ</h2>
+      <div class="row" style="gap: 1.5rem; align-items: flex-start;">
+        <img id="storyPortrait" src="" alt="Портрет"
+          style="width: 120px; height: 120px; border: 2px solid var(--line); display: none; object-fit: cover;"
+          onerror="this.style.display='none'" />
+        <div id="storyText" class="scrollable" style="font-size: 1.1em; line-height: 1.4; flex: 1;"></div>
+      </div>
+      <div id="storyChoices" class="actionsRow" style="margin-bottom: 1rem;"></div>
+      <button class="btn good" id="storyOk">ПРОДОЛЖИТЬ</button>
     </div>
   </div>
 
@@ -77,7 +85,12 @@
         </div>
       </div>
       <div class="actions">
-        <button class="btn" id="atk">АТАКА</button>
+        <button class="btn" id="atk">
+          АТАКА
+          <div class="cd-bar">
+            <div id="atkFill"></div>
+          </div>
+        </button>
         <button class="btn" id="dodge">УКЛОНЕНИЕ</button>
         <button class="btn" id="med">ЛЕЧЕНИЕ</button>
         <button class="btn bad" id="retreat" style="grid-column: span 3;">ОТСТУПИТЬ</button>
@@ -106,6 +119,13 @@
       <div id="craftStock" class="scrollable"></div><button class="btn" id="craftClose">ОТКЛЮЧИТЬСЯ</button>
     </div>
   </div>
+  <div class="overlay" id="equipModal">
+    <div class="card modal">
+      <h2>ИНВЕНТАРЬ</h2>
+      <div class="sub">ВЫБОР ДОСТУПНОГО СНАРЯЖЕНИЯ.</div>
+      <div id="equipList" class="scrollable"></div><button class="btn" id="equipClose">ЗАКРЫТЬ</button>
+    </div>
+  </div>
 
   <!-- НОВЫЙ ЭКРАН СМЕРТИ -->
   <div class="overlay defeat-overlay" id="defeatModal">
@@ -125,6 +145,7 @@
   <div class="toastWrap" id="toasts" aria-live="polite"></div>
 
   <script src="js/data.js"></script>
+  <script src="js/audio.js"></script>
   <script src="js/state.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/game.js"></script>

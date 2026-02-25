@@ -3,6 +3,7 @@ window.GameState = (() => {
   const fresh = () => ({
     v: D.SAVE_VER,
     day: 1,
+    initialized: false,
     phase: 'ИССЛЕДОВАНИЕ',
     dead: false,
 
@@ -20,6 +21,8 @@ window.GameState = (() => {
       baseDmg: 3,        // Урон кулаками
       dmgBonus: 0,
       weaponName: 'КУЛАКИ',
+      armorName: 'ЛОХМОТЬЯ',
+      armorClass: 0,
       healPower: 30      // Сила аптечки
     },
 
@@ -29,13 +32,20 @@ window.GameState = (() => {
       knife: false, wrench: false, pistol: false, shotgun: false, rifle: false, plasma: false, launcher: false
     },
 
+    // Открытая броня
+    armors: {
+      none: true,
+      light: false, medium: false, heavy: false
+    },
+
     encounter: null,
     combat: {
       active: false,
       time: 0,
       enemy: null,
       enemyAtk: 0,
-      cdDodge: 0
+      cdDodge: 0,
+      atkCd: 0
     }
   });
 
@@ -49,6 +59,7 @@ window.GameState = (() => {
     state.resources = { ...def.resources, ...state.resources };
     state.player = { ...def.player, ...state.player };
     state.weapons = { ...def.weapons, ...state.weapons };
+    state.armors = { ...def.armors, ...state.armors };
     state.combat = { ...def.combat, ...state.combat };
   };
 

@@ -53,6 +53,14 @@ window.GameUI = (() => {
     $('#telegraph').textContent = `[УГРОЗА] АТАКА ЧЕРЕЗ ${Math.max(0, c.enemyAtk).toFixed(1)}s`;
     $('#teleFill').style.width = `${clamp((1 - c.enemyAtk / e.atk) * 100, 0, 100)}%`;
 
+    // КД Игрока
+    const atkFill = $('#atkFill');
+    if (atkFill) {
+      const cdPerc = p.atkCd > 0 ? (1 - p.atkCd / p.atkCdMax) * 100 : 100;
+      atkFill.style.width = `${clamp(cdPerc, 0, 100)}%`;
+      $('#atk').disabled = p.atkCd > 0;
+    }
+
     // Кнопка уклонения с кулдауном
     $('#dodge').disabled = c.cdDodge > 0;
     $('#dodge').textContent = c.cdDodge > 0 ? `КД [${c.cdDodge.toFixed(1)}s]` : 'УКЛОНЕНИЕ';
@@ -60,8 +68,109 @@ window.GameUI = (() => {
 
   const setEncounterCard = ({ icon, title, desc }) => $('#encounterText').innerHTML = `<div class='pill'>${icon} ${title}</div><div style='margin-top:0.6rem;'>${desc}</div>`;
   const show = (id, on) => { $(id).classList.toggle('show', on); };
-  const triggerDamage = () => { document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); const modal = $('#battleModal .card'); if (modal) { modal.classList.remove('flash-red'); void modal.offsetWidth; modal.classList.add('flash-red'); } };
-  const triggerEnemyHit = () => { const el = $('.enemy'); if (!el) return; el.style.transform = 'translate(4px, 2px)'; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--line)'; setTimeout(() => { el.style.transform = ''; el.style.borderColor = ''; el.style.background = ''; }, 80); };
+  const triggerDamage = () => { window.SoundManager.play('damage'); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); const modal = $('#battleModal .card'); if (modal) { modal.classList.remove('flash-red'); void modal.offsetWidth; modal.classList.add('flash-red'); } };
+  const triggerEnemyHit = () => { window.SoundManager.play('click'); const el = $('.enemy'); if (!el) return; el.style.transform = 'translate(4px, 2px)'; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--line)'; setTimeout(() => { el.style.transform = ''; el.style.borderColor = ''; el.style.background = ''; }, 80); };
 
-  return { $, toast, clamp, renderTop, renderMain, renderBattle, setEncounterCard, show, triggerDamage, triggerEnemyHit };
+  const typeText = (el, text, speed = 25, onComplete = null) => {
+    el.innerHTML = ''; let i = 0;
+    const t = () => {
+      if (i < text.length) {
+        el.innerHTML += text.charAt(i); i++;
+        if (i % 3 === 0) window.SoundManager.play('hover');
+        setTimeout(t, speed);
+      } else if (onComplete) onComplete();
+    };
+    t();
+  };
+
+  const showDialogue = ({ speaker, text, img, choices = [] }) => {
+    $('#storySpeaker').textContent = speaker || 'ПЕРЕХВАТ ДАННЫХ';
+    const okBtn = $('#storyOk');
+    okBtn.style.display = choices.length ? 'none' : 'block';
+    okBtn.disabled = true;
+
+    const p = $('#storyPortrait');
+    if (img) { p.src = img; p.style.display = 'block'; } else { p.style.display = 'none'; }
+
+    const choicesCont = $('#storyChoices');
+    choicesCont.innerHTML = '';
+
+    show('#storyModal', true);
+    typeText($('#storyText'), text, 15, () => {
+      okBtn.disabled = false;
+      if (choices.length) {
+        choices.forEach(c => {
+          const btn = document.createElement('button');
+          btn.className = 'btn';
+          btn.textContent = c.text;
+          btn.onclick = () => {
+            window.SoundManager.play('click');
+            show('#storyModal', false);
+            if (c.action) c.action();
+          };
+          choicesCont.appendChild(btn);
+        });
+      }
+    });
+  };
+
+  const renderEquipment = (onSwitchWeapon, onSwitchArmor) => {
+    const st = S.get(), D = window.GameData;
+    const listCont = $('#equipList');
+    listCont.innerHTML = '<h3>ОРУЖИЕ</h3>';
+
+    Object.keys(st.weapons).forEach(id => {
+      if (!st.weapons[id]) return;
+      const w = D.WEAPON_STATS[id];
+      if (!w) return;
+
+      const div = document.createElement('div');
+      div.className = 'shopItem';
+      div.innerHTML = `
+        <div>${w.name}
+          <div class='sub'>УРОН: ${w.dmg} | КД: ${w.cd}с | ${w.isGun ? 'ОГНЕСТРЕЛ' : 'БЛИЖНИЙ БОЙ'}</div>
+        </div>
+        <button class='btn ${st.player.weaponName === w.name ? 'good' : ''}' data-equip-w='${id}'>
+          ${st.player.weaponName === w.name ? 'ВЫБРАНО' : 'ВЫБРАТЬ'}
+        </button>
+      `;
+      div.querySelector('[data-equip-w]').onclick = () => {
+        if (st.player.weaponName === w.name) return;
+        window.SoundManager.play('click');
+        if (onSwitchWeapon) onSwitchWeapon(id);
+        renderEquipment(onSwitchWeapon, onSwitchArmor);
+      };
+      listCont.appendChild(div);
+    });
+
+    listCont.innerHTML += '<h3 style="margin-top:1rem;">БРОНЯ</h3>';
+    Object.keys(st.armors).forEach(id => {
+      if (!st.armors[id]) return;
+      const a = D.ARMOR_STATS[id];
+      if (!a) return;
+
+      const div = document.createElement('div');
+      div.className = 'shopItem';
+      div.innerHTML = `
+        <div>${a.name}
+          <div class='sub'>БОНУС HP: +${a.hp} | ЗАЩИТА: ${Math.round(a.armorClass * 100)}%</div>
+        </div>
+        <button class='btn ${st.player.armorName === a.name ? 'good' : ''}' data-equip-a='${id}'>
+          ${st.player.armorName === a.name ? 'ВЫБРАНО' : 'ВЫБРАТЬ'}
+        </button>
+      `;
+      div.querySelector('[data-equip-a]').onclick = () => {
+        if (st.player.armorName === a.name) return;
+        window.SoundManager.play('click');
+        if (onSwitchArmor) onSwitchArmor(id);
+        renderEquipment(onSwitchWeapon, onSwitchArmor);
+      };
+      listCont.appendChild(div);
+    });
+  };
+
+  // Инициализация звука
+  window.SoundManager.init();
+
+  return { $, toast, clamp, renderTop, renderMain, renderBattle, setEncounterCard, show, triggerDamage, triggerEnemyHit, typeText, showDialogue, renderEquipment };
 })();
