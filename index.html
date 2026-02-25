@@ -7,19 +7,17 @@
   <title>Форпост: Дневной путь</title>
   <style>
     :root {
-      --bg: #0f141b;
       --panel: #1a222e;
       --line: #3a4a61;
       --txt: #e8eef7;
       --muted: #9fb0c6;
       --ok: #58c587;
       --bad: #ff7f8d;
-      --warn: #e4b855
+      --warn: #e4b855;
+      --info: #7fb8ff
     }
 
-    * {
-      box-sizing: border-box
-    }
+    * { box-sizing: border-box }
 
     body {
       margin: 0;
@@ -28,31 +26,10 @@
       color: var(--txt)
     }
 
-    .app {
-      max-width: 560px;
-      margin: 0 auto;
-      padding: 10px 10px 120px
-    }
-
-    .card {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 10px
-    }
-
-    .top {
-      position: sticky;
-      top: 0;
-      z-index: 5
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center
-    }
+    .app { max-width: 560px; margin: 0 auto; padding: 10px 10px 120px }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px }
+    .top { position: sticky; top: 0; z-index: 5 }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
 
     .pill {
       padding: 4px 8px;
@@ -62,65 +39,44 @@
       font-size: 12px
     }
 
-    .res {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-top: 8px
-    }
-
-    .res .pill {
-      display: flex;
-      justify-content: space-between
-    }
-
-    h1 {
-      font-size: 20px;
-      margin: 0
-    }
+    h1 { font-size: 20px; margin: 0 }
 
     .center {
       margin-top: 10px;
-      min-height: 55vh;
+      min-height: 60vh;
       display: grid;
       place-items: center;
       text-align: center
     }
 
     #charBtn {
-      width: 180px;
-      height: 180px;
+      width: 190px;
+      height: 190px;
       border-radius: 50%;
       border: 2px solid #6e8fc0;
       background: radial-gradient(circle at 35% 30%, #3e5675, #1d2a3a 70%);
-      color: #fff;
-      font-size: 72px;
-      cursor: pointer
-    }
-
-    #charBtn:active {
-      transform: scale(.98)
-    }
-
-    .sub {
-      color: var(--muted);
-      font-size: 13px
-    }
-
-    .log {
+      cursor: pointer;
+      overflow: hidden;
+      padding: 0;
       display: grid;
-      gap: 6px;
-      max-height: 200px;
-      overflow: auto
+      place-items: center
     }
 
-    .log div {
-      background: #151d27;
-      border-left: 2px solid #60789b;
-      padding: 5px;
-      border-radius: 6px;
-      font-size: 12px
+    #charBtn img {
+      width: 78%;
+      height: 78%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 8px #87b8ff66)
     }
+
+    #charBtn:active { transform: scale(.98) }
+    .sub { color: var(--muted); font-size: 13px }
+
+    .statusBars { margin-top: 12px; display: grid; gap: 8px; text-align: left }
+    .bar { height: 12px; background: #0f151d; border: 1px solid var(--line); border-radius: 999px; overflow: hidden }
+    .fill { height: 100% }
+
+    .res { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 10px }
 
     .btn {
       background: #253244;
@@ -131,24 +87,10 @@
       cursor: pointer
     }
 
-    .btn.alt {
-      background: #33465f
-    }
-
-    .btn.good {
-      background: #234836;
-      border-color: #3f8d67
-    }
-
-    .btn.bad {
-      background: #53303a;
-      border-color: #8f5562
-    }
-
-    .btn:disabled {
-      opacity: .5;
-      cursor: not-allowed
-    }
+    .btn.alt { background: #33465f }
+    .btn.good { background: #234836; border-color: #3f8d67 }
+    .btn.bad { background: #53303a; border-color: #8f5562 }
+    .btn:disabled { opacity: .5; cursor: not-allowed }
 
     .overlay {
       position: fixed;
@@ -160,31 +102,9 @@
       padding: 12px
     }
 
-    .overlay.show {
-      display: grid
-    }
-
-    .battle {
-      max-width: 560px;
-      width: 100%
-    }
-
-    .bars {
-      display: grid;
-      gap: 6px
-    }
-
-    .bar {
-      height: 10px;
-      background: #0f151d;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      overflow: hidden
-    }
-
-    .fill {
-      height: 100%
-    }
+    .overlay.show { display: grid }
+    .battle { max-width: 560px; width: 100% }
+    .bars { display: grid; gap: 6px }
 
     .enemy {
       margin-top: 8px;
@@ -194,28 +114,9 @@
       padding: 8px
     }
 
-    .actions {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 6px;
-      margin-top: 8px
-    }
-
-    .toastWrap {
-      position: fixed;
-      top: 70px;
-      right: 8px;
-      display: grid;
-      gap: 7px;
-      z-index: 9
-    }
-
-    .toast {
-      background: #1f2935;
-      border: 1px solid #576d8c;
-      border-radius: 8px;
-      padding: 8px 10px
-    }
+    .actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px }
+    .toastWrap { position: fixed; top: 70px; right: 8px; display: grid; gap: 7px; z-index: 9 }
+    .toast { background: #1f2935; border: 1px solid #576d8c; border-radius: 8px; padding: 8px 10px }
   </style>
 </head>
 
@@ -227,29 +128,30 @@
         <div class="pill" id="day">День 1</div>
         <div class="pill" id="phase">Исследование</div>
       </div>
-      <div class="res" id="res"></div>
     </div>
 
     <div class="card center">
       <div>
-        <button id="charBtn" title="Прожить день">🧭</button>
+        <button id="charBtn" title="Прожить день">
+          <img src="img/person.png" alt="Персонаж" />
+        </button>
         <div style="margin-top:8px"><b>Клик по персонажу = новый день</b></div>
         <div class="sub" id="statusText">Двигайтесь по пустоши и ищите возможности.</div>
-      </div>
-    </div>
 
-    <div class="card" style="margin-top:10px">
-      <b>Лента событий</b>
-      <div class="log" id="log" style="margin-top:7px"></div>
+        <div class="statusBars" id="statusBars"></div>
+        <div class="res" id="res"></div>
+      </div>
     </div>
   </div>
 
   <div class="overlay" id="encounterModal">
     <div class="card battle">
-      <h2 style="margin:0 0 8px">Контакт в пустоши</h2>
+      <h2 style="margin:0 0 8px">Событие в пустоши</h2>
       <div id="encounterText"></div>
-      <div class="row" style="margin-top:10px"><button class="btn good" id="fightYes">Вступить в бой</button><button
-          class="btn alt" id="fightNo">Обойти стороной</button></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn good" id="encounterYes">Взаимодействовать</button>
+        <button class="btn alt" id="encounterNo">Пройти мимо</button>
+      </div>
     </div>
   </div>
 
@@ -262,13 +164,9 @@
       <div class="bars" id="pBars" style="margin-top:8px"></div>
       <div class="enemy">
         <div id="enemyName">—</div>
-        <div class="bar" style="margin-top:5px">
-          <div class="fill" id="eHp" style="background:var(--bad);width:0%"></div>
-        </div>
+        <div class="bar" style="margin-top:5px"><div class="fill" id="eHp" style="background:var(--bad);width:0%"></div></div>
         <div class="sub" id="telegraph">АТАКА ЧЕРЕЗ 0.0с</div>
-        <div class="bar">
-          <div class="fill" id="teleFill" style="background:#ff9d9d;width:0%"></div>
-        </div>
+        <div class="bar"><div class="fill" id="teleFill" style="background:#ff9d9d;width:0%"></div></div>
       </div>
       <div class="actions">
         <button class="btn" id="atk">Атака</button>
@@ -283,7 +181,7 @@
 
   <div class="overlay" id="rewardModal">
     <div class="card battle">
-      <h2 style="margin:0 0 8px">Итоги боя</h2>
+      <h2 style="margin:0 0 8px">Результат</h2>
       <div id="rewardText"></div>
       <button class="btn good" id="rewardOk" style="margin-top:10px">Продолжить путь</button>
     </div>
@@ -292,18 +190,17 @@
   <div class="overlay" id="defeatModal">
     <div class="card battle">
       <h2 style="margin:0 0 8px">Поражение</h2>
-      <div>Команда не смогла пережить вылазку.</div>
-      <div class="row" style="margin-top:10px"><button class="btn" id="newRun">Новая попытка</button><button
-          class="btn alt" id="loadRun">Загрузить</button></div>
+      <div>Персонаж не пережил вылазку.</div>
+      <div class="row" style="margin-top:10px"><button class="btn" id="newRun">Новая попытка</button><button class="btn alt" id="loadRun">Загрузить</button></div>
     </div>
   </div>
 
   <div class="toastWrap" id="toasts" aria-live="polite"></div>
 
   <script>
-    // data
     window.GameData = (() => {
-      const SAVE_KEY = 'forpost_dayclick_v1', SAVE_VER = 1;
+      const SAVE_KEY = 'forpost_dayclick_v2';
+      const SAVE_VER = 2;
       const ENEMIES = [
         { name: 'Рейдер-рашер', hp: 36, dmg: 8, atk: 3.0, icon: '🏃' },
         { name: 'Щитоносец', hp: 55, dmg: 6, atk: 4.5, armor: 0.25, icon: '🛡️' },
@@ -311,105 +208,455 @@
         { name: 'Гончая', hp: 25, dmg: 7, atk: 2.5, icon: '🐕' },
         { name: 'Робот-охранник', hp: 64, dmg: 11, atk: 4.7, armor: 0.2, icon: '🤖' }
       ];
-      return { SAVE_KEY, SAVE_VER, ENEMIES };
+      const ELITE_ENEMIES = [
+        { name: 'Альфа-рейдер', hp: 80, dmg: 16, atk: 3.6, armor: 0.2, mark: true, icon: '☠️' },
+        { name: 'Штурмовой бот', hp: 120, dmg: 18, atk: 4.0, armor: 0.35, icon: '🦾' }
+      ];
+      const LOCATIONS = [
+        { name: 'Заброшенный склад', icon: '🏚️', reward: { food: 3, water: 2, materials: 7 }, danger: 0.33, elite: 0.45 },
+        { name: 'Старая заправка', icon: '⛽', reward: { water: 4, materials: 4, ammo: 3 }, danger: 0.29, elite: 0.36 },
+        { name: 'Военный блокпост', icon: '🪖', reward: { ammo: 6, materials: 5, medkits: 1 }, danger: 0.45, elite: 0.62 }
+      ];
+      return { SAVE_KEY, SAVE_VER, ENEMIES, ELITE_ENEMIES, LOCATIONS };
     })();
   </script>
 
   <script>
-    // state + persistence
     window.GameState = (() => {
       const D = window.GameData;
       const fresh = () => ({
-        v: D.SAVE_VER, day: 1, phase: 'Исследование', dead: false,
+        v: D.SAVE_VER,
+        day: 1,
+        phase: 'Исследование',
+        dead: false,
         resources: { food: 20, water: 20, materials: 25, ammo: 40, medkits: 3 },
-        player: { maxHp: 100, hp: 100, maxStab: 100, stability: 100, impulse: 0, stress: 5, dmg: 10 },
-        log: [],
+        player: { maxHp: 100, hp: 100, maxMood: 100, mood: 80, maxStab: 100, stability: 100, impulse: 0, dmg: 10 },
+        encounter: null,
         combat: { active: false, time: 0, enemy: null, enemyAtk: 0, dodge: 0, cdReload: 0, cdVolley: 0, reward: null }
       });
+
       let state = fresh();
+      const normalize = () => {
+        state.resources = state.resources || fresh().resources;
+        state.player = state.player || fresh().player;
+        if (typeof state.player.mood !== 'number') {
+          const oldStress = typeof state.player.stress === 'number' ? state.player.stress : 20;
+          state.player.maxMood = 100;
+          state.player.mood = Math.max(0, Math.min(100, 100 - oldStress));
+        }
+        state.player.maxMood = 100;
+        state.encounter = state.encounter || null;
+        state.combat = state.combat || fresh().combat;
+      };
+
       const save = () => localStorage.setItem(D.SAVE_KEY, JSON.stringify(state));
-      const load = () => { try { const r = localStorage.getItem(D.SAVE_KEY); if (!r) return false; state = JSON.parse(r); return true; } catch { return false } };
-      return { fresh, get: () => state, set: s => state = s, save, load };
+      const load = () => {
+        try {
+          const raw = localStorage.getItem(D.SAVE_KEY);
+          if (!raw) return false;
+          state = JSON.parse(raw);
+          normalize();
+          return true;
+        } catch {
+          return false;
+        }
+      };
+      return { fresh, get: () => state, set: s => state = s, save, load, normalize };
     })();
   </script>
 
   <script>
-    // ui
     window.GameUI = (() => {
-      const S = window.GameState; const $ = s => document.querySelector(s); const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-      const log = t => { const st = S.get(); st.log.unshift(`[Д${st.day}] ${t}`); st.log = st.log.slice(0, 120); renderLog(); };
-      const toast = t => { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; $('#toasts').appendChild(d); setTimeout(() => d.remove(), 2600) };
-      const renderTop = () => { const st = S.get(); $('#day').textContent = `День ${st.day}`; $('#phase').textContent = st.phase; $('#res').innerHTML = `<div class='pill'>🍖 ${st.resources.food}</div><div class='pill'>💧 ${st.resources.water}</div><div class='pill'>🧱 ${st.resources.materials}</div><div class='pill'>🔸 ${st.resources.ammo}</div><div class='pill'>🩹 ${st.resources.medkits}</div><div class='pill'>🙂 ${Math.round(st.player.stress)}</div>` };
-      const renderLog = () => { $('#log').innerHTML = S.get().log.map(x => `<div>${x}</div>`).join('') };
-      const renderMain = () => { const st = S.get(); $('#statusText').textContent = st.combat.active ? 'Сейчас идёт бой.' : 'Путь продолжается. Нажмите на персонажа, чтобы прожить день.'; $('#charBtn').disabled = st.combat.active || st.dead; };
-      const renderBattle = () => {
-        const st = S.get(), p = st.player, c = st.combat, e = c.enemy; if (!e) return; $('#battleTimer').textContent = `${c.time.toFixed(1)}с`; $('#pBars').innerHTML = `<div>❤️ HP ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%;background:var(--bad)'></div></div></div><div>🛡 Стабильность ${Math.round(p.stability)}/${p.maxStab}<div class='bar'><div class='fill
+      const S = window.GameState;
+      const $ = s => document.querySelector(s);
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-' style='width:${clamp(p.stability / p.maxStab * 100, 0, 100)}%;background:#7fb8ff'></div></div></div><div>⚡ Импульс ${Math.round(p.impulse)}/100<div class='bar'><div class='fill' style='width:${clamp(p.impulse, 0, 100)}%;background:var(--warn)'></div></div></div>`;
+      const toast = text => {
+        const d = document.createElement('div');
+        d.className = 'toast';
+        d.textContent = text;
+        $('#toasts').appendChild(d);
+        setTimeout(() => d.remove(), 2600);
+      };
+
+      const renderTop = () => {
+        const st = S.get();
+        $('#day').textContent = `День ${st.day}`;
+        $('#phase').textContent = st.phase;
+        $('#res').innerHTML = [
+          `🍖 Еда: ${st.resources.food}`,
+          `💧 Вода: ${st.resources.water}`,
+          `🧱 Материалы: ${st.resources.materials}`,
+          `🔸 Патроны: ${st.resources.ammo}`,
+          `🩹 Аптечки: ${st.resources.medkits}`
+        ].map(x => `<div class='pill'>${x}</div>`).join('');
+
+        const p = st.player;
+        $('#statusBars').innerHTML = `
+          <div>❤️ HP ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%;background:var(--bad)'></div></div></div>
+          <div>🙂 Настроение ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill' style='width:${clamp(p.mood / p.maxMood * 100, 0, 100)}%;background:var(--ok)'></div></div></div>
+        `;
+      };
+
+      const renderMain = () => {
+        const st = S.get();
+        $('#statusText').textContent = st.combat.active
+          ? 'Сейчас идёт бой.'
+          : 'Путь продолжается. Нажмите на персонажа, чтобы прожить день.';
+        $('#charBtn').disabled = st.combat.active || st.dead;
+      };
+
+      const renderBattle = () => {
+        const st = S.get(), p = st.player, c = st.combat, e = c.enemy;
+        if (!e) return;
+        $('#battleTimer').textContent = `${c.time.toFixed(1)}с`;
+        $('#pBars').innerHTML = `
+          <div>❤️ HP ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%;background:var(--bad)'></div></div></div>
+          <div>🙂 Настроение ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill' style='width:${clamp(p.mood / p.maxMood * 100, 0, 100)}%;background:var(--ok)'></div></div></div>
+          <div>🛡 Стабильность ${Math.round(p.stability)}/${p.maxStab}<div class='bar'><div class='fill' style='width:${clamp(p.stability / p.maxStab * 100, 0, 100)}%;background:var(--info)'></div></div></div>
+          <div>⚡ Импульс ${Math.round(p.impulse)}/100<div class='bar'><div class='fill' style='width:${clamp(p.impulse, 0, 100)}%;background:var(--warn)'></div></div></div>`;
+
         $('#enemyName').textContent = `${e.icon} ${e.name} (${Math.max(0, Math.round(e.hp))}/${e.maxHp})`;
         $('#eHp').style.width = `${clamp(e.hp / e.maxHp * 100, 0, 100)}%`;
         $('#telegraph').textContent = `АТАКА ЧЕРЕЗ ${Math.max(0, c.enemyAtk).toFixed(1)}с`;
         $('#teleFill').style.width = `${clamp((1 - c.enemyAtk / e.atk) * 100, 0, 100)}%`;
-        $('#reload').disabled = c.cdReload > 0; $('#volley').disabled = c.cdVolley > 0;
+        $('#reload').disabled = c.cdReload > 0;
+        $('#volley').disabled = c.cdVolley > 0;
         $('#reload').textContent = c.cdReload > 0 ? `Перезарядка ${c.cdReload.toFixed(1)}с` : 'Перезарядка';
         $('#volley').textContent = c.cdVolley > 0 ? `Залп ${c.cdVolley.toFixed(1)}с` : 'Залп';
       };
+
       const show = (id, on) => $(id).classList.toggle('show', on);
-      return { $, log, toast, renderTop, renderLog, renderMain, renderBattle, show };
+      return { $, toast, clamp, renderTop, renderMain, renderBattle, show };
     })();
   </script>
 
   <script>
-    // core combat + day click
     (() => {
       const D = window.GameData, S = window.GameState, UI = window.GameUI;
-      const clamp = UI.clamp || ((v, a, b) => Math.max(a, Math.min(b, v)));
       const rng = () => Math.random();
-      const upkeep = () => { const st = S.get(), p = st.player; st.resources.food = Math.max(0, st.resources.food - 2); st.resources.water = Math.max(0, st.resources.water - 2); if (st.resources.food === 0 || st.resources.water === 0) { p.hp -= 6; p.stress += 4; UI.toast('Нехватка припасов'); } p.stress = Math.min(100, p.stress + 0.7); p.stability = Math.min(p.maxStab, p.stability + 6); if (p.hp <= 0) defeat(); };
-      const enemyRoll = () => { const st = S.get(); const chance = Math.min(.75, .22 + st.day * 0.02); return rng() < chance };
-      const newEnemy = () => { const st = S.get(); const base = D.ENEMIES[Math.floor(rng() * D.ENEMIES.length)]; const scale = 1 + Math.min(.7, st.day * 0.03); return { ...base, maxHp: Math.round(base.hp * scale), hp: Math.round(base.hp * scale), dmg: Math.round(base.dmg * scale) }; };
-      const startDay = () => { const st = S.get(); if (st.combat.active || st.dead) return; st.day++; st.phase = 'Исследование'; upkeep(); if (st.dead) return; UI.log('Вы прошли ещё один день пути.'); if (enemyRoll()) { const e = newEnemy(); st.combat.enemy = e; UI.$('#encounterText').textContent = `Замечен противник: ${e.icon} ${e.name}. Вступить в бой или обойти?`; UI.show('#encounterModal', true); st.phase = 'Контакт'; } else { st.resources.materials += 2 + Math.floor(rng() * 3); st.resources.ammo += 1 + Math.floor(rng() * 2); UI.toast('Спокойный день: найдено немного ресурсов.'); } S.save(); UI.renderTop(); UI.renderMain(); };
+      const pick = arr => arr[Math.floor(rng() * arr.length)];
 
-      const beginFight = () => { const st = S.get(), c = st.combat, e = c.enemy; if (!e) return; UI.show('#encounterModal', false); c.active = true; c.time = 0; c.enemyAtk = 1.5; c.dodge = 0; c.cdReload = 0; c.cdVolley = 0; st.phase = 'Бой'; UI.show('#battleModal', true); tick(performance.now()); };
-      const finishFight = (win) => {
-        const st = S.get(), c = st.combat; c.active = false; UI.show('#battleModal', false); st.phase = 'Исследование'; let txt = '';
-        if (win) { const reward = { materials: 6 + Math.floor(rng() * 6), ammo: 4 + Math.floor(rng() * 5), food: 1, water: 1 }; for (const k in reward) st.resources[k] = (st.resources[k] || 0) + reward[k]; if (rng() < 0.24) st.resources.medkits++; txt = `Победа! Получено: 🧱${reward.materials}, 🔸${reward.ammo}, 🍖${reward.food}, 💧${reward.water}${rng() < 0.24 ? ', 🩹1' : ''}`; UI.log('Бой завершён победой.'); }
-        else { st.player.stress = Math.min(100, st.player.stress + 8); txt = 'Вы отошли. Потерь больше не было, но стресс вырос.'; UI.log('Бой не принят или отступление.'); }
-        c.reward = txt; UI.$('#rewardText').textContent = txt; UI.show('#rewardModal', true); S.save(); UI.renderTop(); UI.renderMain();
+      const newEnemy = elite => {
+        const st = S.get();
+        const source = elite ? D.ELITE_ENEMIES : D.ENEMIES;
+        const base = pick(source);
+        const scale = elite ? (1 + Math.min(.9, st.day * 0.05)) : (1 + Math.min(.7, st.day * 0.03));
+        return {
+          ...base,
+          elite,
+          maxHp: Math.round(base.hp * scale),
+          hp: Math.round(base.hp * scale),
+          dmg: Math.round(base.dmg * scale)
+        };
       };
-      const defeat = () => { const st = S.get(); st.dead = true; st.combat.active = false; UI.show('#battleModal', false); UI.show('#defeatModal', true); S.save(); };
 
-      const tick = (ts) => {
-        const st = S.get(), c = st.combat, p = st.player, e = c.enemy; if (!c.active || !e || st.dead) return; const last = c.lastTs || ts; const dt = Math.min(.08, (ts - last) / 1000 || .016); c.lastTs = ts; c.time += dt;
-        c.enemyAtk -= dt; if (c.dodge > 0) c.dodge -= dt; if (c.cdReload > 0) c.cdReload -= dt; if (c.cdVolley > 0) c.cdVolley -= dt;
-        if (c.enemyAtk <= 0) {
-          if (c.dodge >
+      const upkeep = () => {
+        const st = S.get(), p = st.player;
+        st.resources.food = Math.max(0, st.resources.food - 2);
+        st.resources.water = Math.max(0, st.resources.water - 2);
 
-            0) { UI.log('Уклон сработал.'); c.dodge = 0; } else { let dmg = e.dmg; if (e.mark) dmg = Math.round(dmg * 1.15); p.hp -= dmg; if (e.atk > 4.5) p.stability = Math.max(0, p.stability - 8); p.stress = Math.min(100, p.stress + 1.4); UI.log(`${e.name} наносит ${dmg} урона.`); if (p.hp <= 0) { defeat(); return; } } c.enemyAtk = e.atk;
+        if (st.resources.food === 0) {
+          p.hp -= 7;
+          p.mood = Math.max(0, p.mood - 10);
+          UI.toast('Закончилась еда: HP и настроение падают.');
         }
-        if (e.hp <= 0) { finishFight(true); return; }
+        if (st.resources.water === 0) {
+          p.hp -= 10;
+          p.mood = Math.max(0, p.mood - 14);
+          UI.toast('Закончилась вода: HP и настроение падают сильнее.');
+        }
+
+        p.mood = Math.max(0, p.mood - 1.5);
+        p.stability = Math.min(p.maxStab, p.stability + 6);
+        if (p.mood < 25) p.hp -= 2;
+
+        if (p.hp <= 0) defeat();
+      };
+
+      const encounterRoll = () => {
+        const st = S.get();
+        const enemyChance = Math.min(.65, .24 + st.day * 0.018);
+        const locationChance = 0.34;
+        const roll = rng();
+        if (roll < enemyChance) return { type: 'enemy', enemy: newEnemy(false) };
+        if (roll < enemyChance + locationChance) return { type: 'location', location: pick(D.LOCATIONS) };
+        return { type: 'calm' };
+      };
+
+      const applyReward = reward => {
+        const st = S.get();
+        Object.entries(reward).forEach(([key, value]) => {
+          st.resources[key] = (st.resources[key] || 0) + value;
+        });
+      };
+
+      const startDay = () => {
+        const st = S.get();
+        if (st.combat.active || st.dead) return;
+        st.day++;
+        st.phase = 'Исследование';
+        upkeep();
+        if (st.dead) return;
+
+        const event = encounterRoll();
+        if (event.type === 'enemy') {
+          st.encounter = event;
+          UI.$('#encounterText').textContent = `Замечен противник: ${event.enemy.icon} ${event.enemy.name}. Вступить в бой?`;
+          UI.$('#encounterYes').textContent = 'Вступить в бой';
+          UI.$('#encounterNo').textContent = 'Обойти стороной';
+          st.phase = 'Контакт';
+          UI.show('#encounterModal', true);
+        } else if (event.type === 'location') {
+          st.encounter = event;
+          UI.$('#encounterText').textContent = `${event.location.icon} Найдено место: ${event.location.name}. Исследовать и попробовать найти припасы?`;
+          UI.$('#encounterYes').textContent = 'Исследовать';
+          UI.$('#encounterNo').textContent = 'Не рисковать';
+          st.phase = 'Разведка';
+          UI.show('#encounterModal', true);
+        } else {
+          applyReward({ materials: 2 + Math.floor(rng() * 3), ammo: 1 + Math.floor(rng() * 2) });
+          UI.toast('Спокойный день: найдено немного ресурсов.');
+        }
+
+        S.save();
+        UI.renderTop();
+        UI.renderMain();
+      };
+
+      const beginFight = () => {
+        const st = S.get(), c = st.combat, e = c.enemy;
+        if (!e) return;
+        UI.show('#encounterModal', false);
+        c.active = true;
+        c.time = 0;
+        c.enemyAtk = 1.5;
+        c.dodge = 0;
+        c.cdReload = 0;
+        c.cdVolley = 0;
+        c.lastTs = 0;
+        st.phase = 'Бой';
+        UI.show('#battleModal', true);
+        tick(performance.now());
+      };
+
+      const resolveLocationExplore = () => {
+        const st = S.get();
+        const loc = st.encounter?.location;
+        if (!loc) return;
+
+        applyReward(loc.reward);
+        UI.toast(`${loc.name}: найдено припасов.`);
+
+        if (rng() < loc.danger) {
+          const elite = rng() < loc.elite;
+          st.combat.enemy = newEnemy(elite);
+          st.phase = 'Засада';
+          UI.toast(elite ? 'Засада! Вы наткнулись на элитного противника.' : 'Засада! Противник на месте.');
+          beginFight();
+          return;
+        }
+
+        st.phase = 'Исследование';
+      };
+
+      const finishFight = win => {
+        const st = S.get(), c = st.combat;
+        c.active = false;
+        UI.show('#battleModal', false);
+        st.phase = 'Исследование';
+        let txt = '';
+
+        if (win) {
+          const reward = { materials: 6 + Math.floor(rng() * 6), ammo: 4 + Math.floor(rng() * 5), food: 1, water: 1 };
+          applyReward(reward);
+          if (rng() < 0.24) st.resources.medkits++;
+          txt = `Победа! Получено: 🧱${reward.materials}, 🔸${reward.ammo}, 🍖${reward.food}, 💧${reward.water}${rng() < 0.24 ? ', 🩹1' : ''}`;
+        } else {
+          st.player.mood = Math.max(0, st.player.mood - 9);
+          txt = 'Вы отошли. Потерь больше не было, но настроение упало.';
+        }
+
+        c.reward = txt;
+        UI.$('#rewardText').textContent = txt;
+        UI.show('#rewardModal', true);
+        S.save();
+        UI.renderTop();
+        UI.renderMain();
+      };
+
+      const defeat = () => {
+        const st = S.get();
+        st.dead = true;
+        st.combat.active = false;
+        UI.show('#battleModal', false);
+        UI.show('#defeatModal', true);
+        S.save();
+      };
+
+      const tick = ts => {
+        const st = S.get(), c = st.combat, p = st.player, e = c.enemy;
+        if (!c.active || !e || st.dead) return;
+
+        const last = c.lastTs || ts;
+        const dt = Math.min(.08, (ts - last) / 1000 || .016);
+        c.lastTs = ts;
+        c.time += dt;
+
+        c.enemyAtk -= dt;
+        if (c.dodge > 0) c.dodge -= dt;
+        if (c.cdReload > 0) c.cdReload -= dt;
+        if (c.cdVolley > 0) c.cdVolley -= dt;
+
+        if (c.enemyAtk <= 0) {
+          if (c.dodge > 0) {
+            c.dodge = 0;
+            UI.toast('Уклон сработал.');
+          } else {
+            let dmg = e.dmg;
+            if (e.mark) dmg = Math.round(dmg * 1.15);
+            p.hp -= dmg;
+            p.mood = Math.max(0, p.mood - 2.2);
+            if (e.atk > 4.5) p.stability = Math.max(0, p.stability - 8);
+            if (p.hp <= 0) {
+              defeat();
+              return;
+            }
+          }
+          c.enemyAtk = e.atk;
+        }
+
+        if (e.hp <= 0) {
+          finishFight(true);
+          return;
+        }
+
+        UI.renderTop();
         UI.renderBattle();
         requestAnimationFrame(tick);
       };
 
-      const actAttack = () => { const st = S.get(), p = st.player, c = st.combat, e = c.enemy; if (!c.active || !e) return; if (st.resources.ammo < 1) return UI.toast('Патроны закончились'); st.resources.ammo--; let dmg = p.dmg + Math.floor(rng() * 5); if (rng() < 0.12) dmg = Math.round(dmg * 1.6); if (e.armor) dmg = Math.round(dmg * (1 - e.armor)); e.hp -= Math.max(1, dmg); p.impulse = Math.min(100, p.impulse + 8); UI.log(`Атака: -${Math.max(1, dmg)} HP`); UI.renderTop(); UI.renderBattle(); };
-      const actDodge = () => { const st = S.get(); if (st.player.impulse < 20) return UI.toast('Нужно 20 импульса'); st.player.impulse -= 20; st.combat.dodge = 1.2; UI.log('Подготовлен уклон'); UI.renderBattle(); };
-      const actMed = () => { const st = S.get(); if (st.resources.medkits < 1) return UI.toast('Аптечек нет'); st.resources.medkits--; st.player.hp = Math.min(st.player.maxHp, st.player.hp + 24); st.player.stress = Math.max(0, st.player.stress - 5); UI.log('Использована аптечка'); UI.renderTop(); UI.renderBattle(); };
-      const actReload = () => { const st = S.get(), c = st.combat; if (c.cdReload > 0) return; st.resources.ammo += 8; st.player.impulse = Math.min(100, st.player.impulse + 10); c.cdReload = 11; UI.log('Перезарядка: +8 патронов'); UI.renderTop(); UI.renderBattle(); };
-      const actVolley = () => { const st = S.get(), c = st.combat, e = c.enemy; if (c.cdVolley > 0 || !e) return; if (st.resources.ammo < 6) return UI.toast('Для залпа нужно 6 патронов'); st.resources.ammo -= 6; e.hp -= Math.round((st.player.dmg + 6) * 1.5); c.cdVolley = 16; UI.log('Залп наносит тяжёлый урон'); UI.renderTop(); UI.renderBattle(); };
+      const actAttack = () => {
+        const st = S.get(), p = st.player, c = st.combat, e = c.enemy;
+        if (!c.active || !e) return;
+        if (st.resources.ammo < 1) return UI.toast('Патроны закончились');
+        st.resources.ammo--;
+        let dmg = p.dmg + Math.floor(rng() * 5);
+        if (rng() < 0.12) dmg = Math.round(dmg * 1.6);
+        if (e.armor) dmg = Math.round(dmg * (1 - e.armor));
+        e.hp -= Math.max(1, dmg);
+        p.impulse = Math.min(100, p.impulse + 8);
+        UI.renderTop();
+        UI.renderBattle();
+      };
+
+      const actDodge = () => {
+        const st = S.get();
+        if (st.player.impulse < 20) return UI.toast('Нужно 20 импульса');
+        st.player.impulse -= 20;
+        st.combat.dodge = 1.2;
+        UI.renderBattle();
+      };
+
+      const actMed = () => {
+        const st = S.get();
+        if (st.resources.medkits < 1) return UI.toast('Аптечек нет');
+        st.resources.medkits--;
+        st.player.hp = Math.min(st.player.maxHp, st.player.hp + 24);
+        st.player.mood = Math.min(st.player.maxMood, st.player.mood + 6);
+        UI.renderTop();
+        UI.renderBattle();
+      };
+
+      const actReload = () => {
+        const st = S.get(), c = st.combat;
+        if (c.cdReload > 0) return;
+        st.resources.ammo += 8;
+        st.player.impulse = Math.min(100, st.player.impulse + 10);
+        c.cdReload = 11;
+        UI.renderTop();
+        UI.renderBattle();
+      };
+
+      const actVolley = () => {
+        const st = S.get(), c = st.combat, e = c.enemy;
+        if (c.cdVolley > 0 || !e) return;
+        if (st.resources.ammo < 6) return UI.toast('Для залпа нужно 6 патронов');
+        st.resources.ammo -= 6;
+        e.hp -= Math.round((st.player.dmg + 6) * 1.5);
+        c.cdVolley = 16;
+        UI.renderTop();
+        UI.renderBattle();
+      };
 
       UI.$('#charBtn').onclick = startDay;
-      UI.$('#fightYes').onclick = beginFight;
-      UI.$('#fightNo').onclick = () => { UI.show('#encounterModal', false); finishFight(false) };
-      UI.$('#atk').onclick = actAttack; UI.$('#dodge').onclick = actDodge; UI.$('#med').onclick = actMed; UI.$('#reload').onclick = actReload; UI.$('#volley').onclick = actVolley;
+      UI.$('#encounterYes').onclick = () => {
+        const st = S.get();
+        const encounter = st.encounter;
+        if (!encounter) return;
+
+        if (encounter.type === 'enemy') {
+          st.combat.enemy = encounter.enemy;
+          st.encounter = null;
+          beginFight();
+        } else if (encounter.type === 'location') {
+          UI.show('#encounterModal', false);
+          resolveLocationExplore();
+          st.encounter = null;
+          S.save();
+          UI.renderTop();
+          UI.renderMain();
+        }
+      };
+
+      UI.$('#encounterNo').onclick = () => {
+        const st = S.get();
+        st.player.mood = Math.max(0, st.player.mood - 2);
+        st.phase = 'Исследование';
+        st.encounter = null;
+        UI.show('#encounterModal', false);
+        S.save();
+        UI.renderTop();
+        UI.renderMain();
+      };
+
+      UI.$('#atk').onclick = actAttack;
+      UI.$('#dodge').onclick = actDodge;
+      UI.$('#med').onclick = actMed;
+      UI.$('#reload').onclick = actReload;
+      UI.$('#volley').onclick = actVolley;
       UI.$('#retreat').onclick = () => finishFight(false);
-      UI.$('#rewardOk').onclick = () => { UI.show('#rewardModal', false); const st = S.get(); st.combat.enemy = null; S.save(); UI.renderMain(); };
-      UI.$('#newRun').onclick = () => { S.set(S.fresh()); UI.show('#defeatModal', false); UI.log('Новая попытка началась.'); UI.renderTop(); UI.renderMain(); S.save(); };
-      UI.$('#loadRun').onclick = () => { if (S.load()) { UI.show('#defeatModal', false); UI.toast('Сохранение загружено'); UI.renderTop(); UI.renderMain(); UI.renderLog(); } };
+
+      UI.$('#rewardOk').onclick = () => {
+        UI.show('#rewardModal', false);
+        const st = S.get();
+        st.combat.enemy = null;
+        S.save();
+        UI.renderMain();
+      };
+
+      UI.$('#newRun').onclick = () => {
+        S.set(S.fresh());
+        UI.show('#defeatModal', false);
+        UI.renderTop();
+        UI.renderMain();
+        S.save();
+      };
+
+      UI.$('#loadRun').onclick = () => {
+        if (S.load()) {
+          UI.show('#defeatModal', false);
+          UI.toast('Сохранение загружено');
+          UI.renderTop();
+          UI.renderMain();
+        }
+      };
 
       if (!S.load()) S.set(S.fresh());
-      UI.log('Клик по персонажу запускает каждый новый день.');
-      UI.renderTop(); UI.renderMain(); UI.renderLog(); S.save();
+      S.normalize();
+      UI.renderTop();
+      UI.renderMain();
+      S.save();
     })();
   </script>
 </body>
