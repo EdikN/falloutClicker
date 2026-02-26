@@ -8,9 +8,23 @@ window.GameState = (() => {
     dead: false,
 
     // Система истории
-    storyIndex: 0,       // Какой сюжетный кусок показывать следующим
-    nextStoryDay: 1,     // Когда показать сюжет
-    nextNoteDay: 10,     // Когда показать случайную записку (редко)
+    storyIndex: 0,
+    nextStoryDay: 1,
+    nextNoteDay: 10,
+
+    // === СИСТЕМА ФЛАГОВ СЮЖЕТНЫХ ВЫБОРОВ ===
+    flags: {
+      savedDrifter: false,      // Спас Бродягу (день 145)
+      mercyAmazon: false,       // Пощадил Амазонку (день 210)
+      paidBarWoman: false,      // Заплатил женщине в баре
+      foughtBarWoman: false,    // Подрался с вышибалой
+      barWomanHelped: false,    // Женщина помогла вторично (если платил)
+      readAmazonLog: false,     // Нашёл журнал Амазонки (день 195)
+      drifterMet: 0,            // Счётчик встреч с Бродягой
+      cartographerMet: false,   // Встретил Картографа
+      amazonImplant: false,     // Получил имплант Амазонки (убил её)
+      endingReached: false      // Финал достигнут
+    },
 
     resources: { food: 15, water: 15, materials: 0, ammo: 0, medkits: 1, caps: 0 },
 
@@ -18,12 +32,12 @@ window.GameState = (() => {
     player: {
       maxHp: 100, hp: 100,
       maxMood: 100, mood: 100,
-      baseDmg: 3,        // Урон кулаками
+      baseDmg: 3,
       dmgBonus: 0,
       weaponName: 'КУЛАКИ',
       armorName: 'ЛОХМОТЬЯ',
       armorClass: 0,
-      healPower: 30      // Сила аптечки
+      healPower: 30
     },
 
     // Открытое оружие
@@ -61,6 +75,7 @@ window.GameState = (() => {
     state.weapons = { ...def.weapons, ...state.weapons };
     state.armors = { ...def.armors, ...state.armors };
     state.combat = { ...def.combat, ...state.combat };
+    state.flags = { ...def.flags, ...(state.flags || {}) };
   };
 
   const save = () => localStorage.setItem(D.SAVE_KEY, JSON.stringify(state));

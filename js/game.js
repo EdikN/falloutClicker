@@ -26,16 +26,12 @@
   const switchArmor = id => {
     const st = S.get(), p = st.player, a = D.ARMOR_STATS[id];
     if (!a || !st.armors[id]) return;
-
-    // Снимаем старые бонусы (если были)
     const oldA = Object.values(D.ARMOR_STATS).find(x => x.name === p.armorName);
     if (oldA) p.maxHp -= oldA.hp;
-
     p.armorName = a.name;
     p.armorClass = a.armorClass;
     p.maxHp += a.hp;
-    p.hp = Math.min(p.maxHp, p.hp); // Не хилим просто так, но ограничиваем
-
+    p.hp = Math.min(p.maxHp, p.hp);
     UI.toast(`ЭКИПИРОВАНА БРОНЯ: ${a.name}`);
     UI.renderTop();
     UI.renderMain();
@@ -47,18 +43,16 @@
     switchArmor(id);
   };
 
-  // --- НОВАЯ СИСТЕМА СМЕРТИ ---
+  // --- СМЕРТЬ ---
   const defeat = (reason = "ПОТЕРЯ ЖИЗНЕННЫХ ПОКАЗАТЕЛЕЙ") => {
     const st = S.get();
     st.dead = true;
     st.combat.active = false;
 
-    // Скрываем все игровые окна
     UI.show('#battleModal', false);
     UI.show('#encounterModal', false);
     UI.show('#storyModal', false);
 
-    // Обновляем статистику экрана поражения
     const defeatDaysEl = UI.$('#defeatDays');
     const defeatReasonEl = UI.$('#defeatReason');
     const defeatMsgEl = UI.$('#defeatMsg');
@@ -79,16 +73,10 @@
     UI.renderTop();
     UI.show('#defeatModal', true);
 
-    // ПЕРМАСМЕРТЬ: удаляем сохранение
     localStorage.removeItem(D.SAVE_KEY);
   };
 
-  const typeText = (el, text, speed = 22) => {
-    el.innerHTML = ''; let i = 0; const btn = UI.$('#storyOk'); btn.disabled = true;
-    const t = () => { if (i < text.length) { el.innerHTML += text.charAt(i); i++; setTimeout(t, speed); } else btn.disabled = false; };
-    t();
-  };
-
+  // --- СЮЖЕТНЫЕ СОБЫТИЯ ---
   const checkStoryEvents = () => {
     const st = S.get();
     const event = D.STORY_EVENTS.find(e => e.day === st.day);
@@ -101,8 +89,25 @@
       return false;
     }
 
+    // Обработка флагового события (выставляет флаг и показывает)
+    if (event.isFlag) {
+      st.flags[event.flagKey] = true;
+      UI.showDialogue({ speaker: event.speaker, text: event.text, img: event.img });
+      return true;
+    }
+
+    // Обработка фрагментов памяти
+    if (event.isMemory) {
+      UI.showDialogue({ speaker: event.speaker, text: event.text, img: event.img });
+      return true;
+    }
+
     if (event.isBranching && event.id === 'bar_woman') {
       handleBarWoman(event);
+    } else if (event.isBranching && event.id === 'drifter_rescue') {
+      handleDrifterRescue(event);
+    } else if (event.isBranching && event.id === 'cartographer') {
+      handleCartographer(event);
     } else if (event.isCombat) {
       handleStoryCombat(event);
     } else {
@@ -111,11 +116,18 @@
     return true;
   };
 
+  // === ОБРАБОТЧИКИ СЮЖЕТНЫХ ВЕТВЛЕНИЙ ===
+
+  // --- БАР --- (день 45)
   const handleBarWoman = (event) => {
     const st = S.get();
     const negotiate = () => {
-      if (rng() < 0.25) {
-        UI.showDialogue({ speaker: event.speaker, img: event.img, text: '«Ладно, ты всегда умел заговорить зубы... Слушай, ты работал на Амазонка-Синт. Она тебя и прихлопнула. Ищи ее в секторе 7». ВЫ ПОЛУЧИЛИ ПОЛНУЮ ИНФОРМАЦИЮ И ЗАПАСЫ.', choices: [{ text: 'ПРИНЯТЬ', action: () => applyReward({ food: 5, water: 5, ammo: 10 }) }] });
+      if (rng() < 0.3) {
+        UI.showDialogue({
+          speaker: event.speaker, img: event.img,
+          text: '«Ладно... Ты всегда умел заговорить зубы. Слушай: тот, кем ты был раньше, работал на Амазонка-Синт. Она тебя и прихлопнула. Ищи её в секторе 7». ВЫ ПОЛУЧИЛИ НУЖНУЮ ИНФОРМАЦИЮ.',
+          choices: [{ text: 'ПРИНЯТЬ', action: () => { applyReward({ food: 5, water: 5, ammo: 10 }); st.flags.paidBarWoman = false; } }]
+        });
       } else {
         UI.showDialogue({ speaker: event.speaker, img: event.img, text: '«Не пытайся меня обмануть! Либо плати, либо проваливай!»' });
       }
@@ -123,60 +135,263 @@
     const pay = () => {
       if (st.resources.caps < 50) return UI.toast('НЕДОСТАТОЧНО КРЕДИТОВ (НУЖНО 50)');
       st.resources.caps -= 50;
-      UI.showDialogue({ speaker: event.speaker, img: event.img, text: '«Хм, ну ладно. Ты был с Амазонка-Синт. Больше ничего не скажу». ВЫ ПОЛУЧИЛИ ЧАСТЬ ИНФОРМАЦИИ.' });
+      st.flags.paidBarWoman = true;
+      UI.showDialogue({ speaker: event.speaker, img: event.img, text: '«Хм, ну ладно. Тот, кем ты был — был связан с Амазонка-Синт. Больше ничего не скажу... пока». ВЫ ПОЛУЧИЛИ ЧАСТЬ ИНФОРМАЦИИ.' });
     };
     const fight = () => {
-      const enemy = { name: 'Пьяный вышибала', hp: 40, dmg: 8, atk: 3.5, img: 'img/enemy_scavenger.png', icon: '[👊]' };
-      st.combat.enemy = { ...enemy, maxHp: 40 };
+      st.flags.foughtBarWoman = true;
+      const enemy = { name: 'Вышибала из бара', hp: 55, dmg: 10, atk: 3.5, img: 'img/enemy_scavenger.png', icon: '[👊]' };
+      st.combat.enemy = { ...enemy, maxHp: enemy.hp };
       st.combat.onWin = () => {
-        UI.showDialogue({ speaker: event.speaker, img: event.img, text: '«Хорошо, хорошо! Ты победил! Ты был связан с Амазонка-Синт. Она где-то в лабораториях на севере». ВЫ ПОЛУЧИЛИ 50% ИНФОРМАЦИИ.' });
+        UI.showDialogue({ speaker: event.speaker, img: event.img, text: '«Хорошо! Ты победил! Прошлый "ты" был связан с Амазонка-Синт. Она где-то в северных лабораториях». ВЫ УЗНАЛИ РАСПОЛОЖЕНИЕ ЦЕЛИ.' });
       };
       beginFight();
     };
 
     UI.showDialogue({
-      speaker: event.speaker,
-      img: event.img,
-      text: event.text,
+      speaker: event.speaker, img: event.img, text: event.text,
       choices: [
-        { text: 'ДОГОВОРИТЬСЯ (25%)', action: negotiate },
+        { text: 'ДОГОВОРИТЬСЯ (30%)', action: negotiate },
         { text: 'ЗАПЛАТИТЬ 50 КР', action: pay },
         { text: 'УГРОЖАТЬ (БОЙ)', action: fight }
       ]
     });
   };
 
+  // --- СПАСЕНИЕ БРОДЯГИ --- (день 145)
+  const handleDrifterRescue = (event) => {
+    const st = S.get();
+    const saveHim = () => {
+      const enemy = D.STORY_ENEMIES.drifter_enemy;
+      st.combat.enemy = { ...enemy, maxHp: enemy.hp };
+      st.flags.savedDrifter = true;
+      st.combat.onWin = () => {
+        UI.showDialogue({
+          speaker: 'БРОДЯГА', img: event.img,
+          text: '«Ты... ты спас меня. Зачем?» Он молчит. Потом кивает. «Хорошо. Я с тобой до конца. Буду ждать тебя у главного входа». Бродяга теперь ВАШ СОЮЗНИК.',
+          choices: [{ text: 'ПРИНЯТЬ', action: () => applyReward({ medkits: 2, ammo: 15, food: 3 }) }]
+        });
+      };
+      beginFight();
+    };
+    const leaveHim = () => {
+      st.flags.savedDrifter = false;
+      UI.showDialogue({
+        speaker: 'БРОДЯГА', img: event.img,
+        text: '«Ты... уходишь? Ладно. Я справлюсь сам.» Его голос едва слышен за звуком выстрелов. ВЫ УШЛИ. Что-то осталось позади навсегда.'
+      });
+    };
+
+    UI.showDialogue({
+      speaker: event.speaker, img: event.img, text: event.text,
+      choices: [
+        { text: 'СПАСТИ (БОЙ)', action: saveHim },
+        { text: 'УЙТИ', action: leaveHim }
+      ]
+    });
+  };
+
+  // --- КАРТОГРАФ --- (день 55)
+  const handleCartographer = (event) => {
+    const st = S.get();
+    st.flags.cartographerMet = true;
+    const buyMap = () => {
+      if (st.resources.caps < 50) return UI.toast('НУЖНО 50 КРЕДИТОВ');
+      st.resources.caps -= 50;
+      UI.showDialogue({
+        speaker: 'КАРТОГРАФ', img: event.img,
+        text: '«Карта Сектора 4 — ваша. Там капсульный зал. Жуткое место, но богатое. Удачи... она вам пригодится».',
+        choices: [{ text: 'ПРИНЯТЬ', action: () => { st.flags.sector4Unlocked = true; UI.toast('СЕКТОР 4 ОТКРЫТ'); } }]
+      });
+    };
+    const buyFile = () => {
+      if (st.resources.caps < 120) return UI.toast('НУЖНО 120 КРЕДИТОВ');
+      st.resources.caps -= 120;
+      const mem = D.MEMORY_FRAGMENTS[Math.floor(rng() * 5) + 2]; // случайный ранний фрагмент
+      UI.showDialogue({
+        speaker: 'КАРТОГРАФ', img: event.img,
+        text: `«Личное дело Янковского. Копия. Держите.» ВЫ ПОЛУЧИЛИ ФРАГМЕНТ:\n\n${mem.text}`
+      });
+    };
+    const buyCode = () => {
+      if (st.resources.caps < 200) return UI.toast('НУЖНО 200 КРЕДИТОВ');
+      st.resources.caps -= 200;
+      UI.showDialogue({
+        speaker: 'КАРТОГРАФ', img: event.img,
+        text: '«Код обхода патрулей в Секторе 7. Амазонка туда не заглядывает. Используйте мудро». Вы получили ПРОПУСК: следующий сюжетный бой снизит HP врага на 30% до начала.',
+        choices: [{ text: 'ПРИНЯТЬ', action: () => { st.flags.bypassCode = true; UI.toast('КОД ОБХОДА ПОЛУЧЕН'); } }]
+      });
+    };
+    const leave = () => {
+      UI.showDialogue({ speaker: 'КАРТОГРАФ', img: event.img, text: '«Как знаете. Предложение остаётся в силе — я почти всегда здесь». Он сворачивает карту.' });
+    };
+
+    UI.showDialogue({
+      speaker: event.speaker, img: event.img, text: event.text,
+      choices: [
+        { text: 'КАРТА СЕКТОРА 4 (50 КР)', action: buyMap },
+        { text: 'ДОСЬЕ ЯНКОВСКОГО (120 КР)', action: buyFile },
+        { text: 'КОД ОБХОДА (200 КР)', action: buyCode },
+        { text: 'УЙТИ', action: leave }
+      ]
+    });
+  };
+
+  // --- СЮЖЕТНЫЕ БОИ ---
   const handleStoryCombat = (event) => {
     const st = S.get();
     const enemyData = D.STORY_ENEMIES[event.enemyId];
-    st.combat.enemy = { ...enemyData, maxHp: enemyData.hp };
+    let enemyHp = enemyData.hp;
 
-    // Специальная логика для Амазонки (оставить в живых)
+    // Бонус кода обхода: -30% HP врага если куплен
+    if (st.flags && st.flags.bypassCode) {
+      enemyHp = Math.round(enemyHp * 0.7);
+      st.flags.bypassCode = false; // Одноразовый
+      UI.toast('КОД ОБХОДА СРАБОТАЛ: -30% HP ВРАГА');
+    }
+
+    st.combat.enemy = { ...enemyData, hp: enemyHp, maxHp: enemyHp };
+
+    // Амазонка #1
     if (event.enemyId === 'amazon_weak') {
       st.combat.onWin = () => {
-        UI.showDialogue({ speaker: 'АМАЗОНКА-СИНТ', img: event.img, text: '«Кхм... Живучий ублюдок... Я еще вернусь...» ОНА СБЕГАЕТ, ОСТАВИВ ПРИПАСЫ.', choices: [{ text: 'ПОПРОЩАТЬСЯ', action: () => applyReward({ medkits: 2, ammo: 20 }) }] });
+        UI.showDialogue({
+          speaker: 'АМАЗОНКА-СИНТ', img: event.img,
+          text: '«Кхм... Живучий... Я... не понимаю.» Она отступает, держась за плечо. Оставляет позади припасы. Возможно — не случайно.',
+          choices: [{ text: 'ПРОДОЛЖИТЬ', action: () => applyReward({ medkits: 2, ammo: 20 }) }]
+        });
       };
-    } else if (event.enemyId === 'amazon_full') {
-      st.combat.onWin = () => {
-        UI.showDialogue({ speaker: 'СИСТЕМА', img: event.img, text: 'ПОСЛЕ ПОБЕДЫ ВЫ НАХОДИТЕ В КОМПЬЮТЕРЕ ИНФОРМАЦИЮ О ПЕРЕМЕЩЕНИИ ЛЮДЕЙ В ГЛАВНУЮ ЛАБОРАТОРИЮ. ПУТЬ СВОБОДЕН.' });
-      };
-    } else if (event.enemyId === 'boss_technician') {
-      st.combat.onWin = () => {
-        UI.showDialogue({ speaker: 'ФИНАЛ', img: event.img, text: 'ТЕХНИК ПОВЕРЖЕН. СИСТЕМА ИЕРИХОН ДЕСТАБИЛИЗИРОВАНА. ВЫ СВОБОДНЫ... ИЛИ ЭТО ЛИШЬ НАЧАЛО НОВОГО ЦИКЛА?' });
-      };
+    }
+    // Амазонка #2 — выбор
+    else if (event.enemyId === 'amazon_full') {
+      st.combat.onWin = () => handleAmazonChoice(event);
+    }
+    // Финальный Босс
+    else if (event.enemyId === 'boss_technician') {
+      st.combat.onWin = () => handleEnding(event);
     }
 
     UI.showDialogue({
-      speaker: event.speaker,
-      img: event.img,
-      text: event.text,
+      speaker: event.speaker, img: event.img, text: event.text,
       choices: [{ text: 'В БОЙ', action: beginFight }]
     });
   };
 
+  // --- ВЫБОР СУДЬБЫ АМАЗОНКИ --- (после победы день 210)
+  const handleAmazonChoice = (event) => {
+    const st = S.get();
+    const kill = () => {
+      st.flags.mercyAmazon = false;
+      st.flags.amazonImplant = true;
+      st.player.armorClass = Math.min(0.9, (st.player.armorClass || 0) + 0.2);
+      UI.showDialogue({
+        speaker: 'СИСТЕМА', img: 'img/portrait_sys.png',
+        text: 'ВЫ ИЗВЛЕКАЕТЕ БОЕВОЙ ИМПЛАНТ ИЗ ЕЁ БРОНИ. ЗАЩИТА +20%. ПУТЬ СВОБОДЕН.\n\nЕЁ ГЛАЗА ГАСНУТ. ОНА СМОТРИТ НА ВАС ДО ПОСЛЕДНЕГО. БЕЗ ЗЛОСТИ.'
+      });
+      S.save();
+      UI.renderTop(); UI.renderMain();
+    };
+    const spare = () => {
+      st.flags.mercyAmazon = true;
+      UI.showDialogue({
+        speaker: 'АМАЗОНКА-СИНТ', img: event.img,
+        text: '«Ты... не убиваешь меня?» Долгое молчание. «Почему?»\n\nОНА МЕДЛЕННО ПОДНИМАЕТСЯ. «Я не буду мешать тебе дальше. Но... если ты дойдёшь до него... я буду рядом».',
+        choices: [{ text: 'ПРИНЯТЬ', action: () => UI.toast('АМАЗОНКА ТЕПЕРЬ СОЮЗНИК') }]
+      });
+      S.save();
+    };
+
+    UI.showDialogue({
+      speaker: 'АМАЗОНКА-СИНТ', img: event.img,
+      text: 'ОНА ЛЕЖИТ У ВАШИХ НОГ. ПОЛУСЛОМАНА. В ЕЁ ГЛАЗАХ — НЕ ЗЛОСТЬ, А УСТАЛОСТЬ.\n\n«Делай что должен... я устала. Устала убивать твоё лицо снова и снова».',
+      choices: [
+        { text: 'УБИТЬ (ИМПЛАНТ +20% БРОНИ)', action: kill },
+        { text: 'ПОЩАДИТЬ', action: spare }
+      ]
+    });
+  };
+
+  // === ТРИ ФИНАЛА ===
+  const handleEnding = () => {
+    const st = S.get();
+    const flags = st.flags || {};
+
+    // Концовка A — ОСВОБОЖДЕНИЕ (спас Бродягу + пощадил Амазонку)
+    if (flags.savedDrifter && flags.mercyAmazon) {
+      showEnding({
+        title: '🌅 КОНЦОВКА A — ОСВОБОЖДЕНИЕ',
+        text: `БРОДЯГА ВЗРЫВАЕТ ГЕНЕРАТОРЫ КОМПЛЕКСА.\nАМАЗОНКА БЛОКИРУЕТ ПРОТОКОЛ САМОВОССТАНОВЛЕНИЯ.\n\nТЕХНИК ПОВЕРЖЕН ОКОНЧАТЕЛЬНО.\n\nВЫ ВЫХОДИТЕ ИЗ ИЕРИХОНА ПОД ОТКРЫТОЕ НЕБО В ПЕРВЫЙ РАЗ ЗА 73 ЦИКЛА.\n\n«ЯНКОВСКИЙ УМЕР В 2044-М.\nНЕЧТО НОВОЕ ВЫШЛО ИЗ ИЕРИХОНА В 2057-М.\nНЕ КЛОН. НЕ КОПИЯ. ПРОСТО — ЧЕЛОВЕК».`,
+        score: `ПОБЕДА: ПОЛНОЕ ОСВОБОЖДЕНИЕ | ЦИКЛ ${st.day}`
+      });
+    }
+    // Концовка C — СЛИЯНИЕ / ТЁМНАЯ (убил Амазонку, не спас Бродягу)
+    else if (!flags.savedDrifter && !flags.mercyAmazon) {
+      showEndingChoice();
+    }
+    // Концовка B — ЦИКЛ (нейтральная)
+    else {
+      showEnding({
+        title: '🔄 КОНЦОВКА B — ЦИКЛ',
+        text: `ТЕХНИК ПОВЕРЖЕН. НО ЕГО СОЗНАНИЕ БЫЛО ЗАГРУЖЕНО В РЕЗЕРВНЫЙ СЕРВЕР.\n\nКОМПЛЕКС ИЕРИХОН НАЧИНАЕТ ПЕРЕЗАГРУЗКУ.\nКАМЕРА КЛОНИРОВАНИЯ АКТИВИРУЕТСЯ.\n\n«ВЫ УМИРАЛИ 73 РАЗА.\nВЫ УМРЁТЕ ЕЩЁ РАЗ.\nНО ТЕПЕРЬ ВЫ ЗНАЕТЕ — ЗАЧЕМ».`,
+        score: `ПРОГРЕСС СОХРАНЁН: ЦИКЛ ${st.day} | ПРОДОЛЖАЙТЕ`
+      });
+    }
+  };
+
+  // Концовка C — Диалог с Техником (принять/отклонить предложение)
+  const showEndingChoice = () => {
+    const st = S.get();
+    UI.showDialogue({
+      speaker: 'ОДЕРЖИМЫЙ ТЕХНИК', img: 'img/enemy_technician.png',
+      text: '«...Ты дошёл. Невероятно.» Техник смотрит на вас долго. «Ты — моё лучшее творение. Не инструмент. Партнёр. Стань со мной. Вместе мы продолжим работу Иерихона. Ты будешь жить вечно».',
+      choices: [
+        {
+          text: 'ПРИНЯТЬ ПРЕДЛОЖЕНИЕ', action: () => {
+            st.flags.endingReached = true;
+            showEnding({
+              title: '🕯️ КОНЦОВКА C — СЛИЯНИЕ',
+              text: `«...Добро пожаловать, партнёр».\n\nВЫ СТАНОВИТЕСЬ НОВЫМ ДИРЕКТОРОМ КОМПЛЕКСА ИЕРИХОН.\n\nЗНАЕТЕ ЛИ ВЫ, КЕМ БЫЛИ РАНЬШЕ?\nЗНАЕТЕ ЛИ ВЫ, КЕМ СТАЛИ?\n\n«ВОЗМОЖНО, ИМЕННО ЭТОГО ОН И ХОТЕЛ ОТ ВАС ВСЁ ВРЕМЯ».`,
+              score: `КОНЦОВКА: ТЁМНАЯ | ЦИКЛ ${st.day}`
+            });
+          }
+        },
+        {
+          text: 'ОТКАЗАТЬ И УНИЧТОЖИТЬ', action: () => {
+            st.flags.endingReached = true;
+            showEnding({
+              title: '💀 КОНЦОВКА C— ОТРЕЧЕНИЕ',
+              text: `«...Значит, нет».\n\nТЕХНИК АКТИВИРУЕТ ПОСЛЕДНИЙ ПРОТОКОЛ.\nВЗРЫВ. ОБЛОМКИ. ТИШИНА.\n\nВЫ ВЫЖИВАЕТЕ В ОДИНОЧЕСТВЕ.\nБЕЗ СОЮЗНИКОВ. БЕЗ ОТВЕТОВ.\nНО ИЕРИХОН МЁРТВ.\n\n«ЭТОГО ДОСТАТОЧНО».`,
+              score: `ЦИКЛ ${st.day} | ЖЕРТВА`
+            });
+          }
+        }
+      ]
+    });
+  };
+
+  const showEnding = ({ title, text, score }) => {
+    const st = S.get();
+    st.flags.endingReached = true;
+    st.dead = true;
+    localStorage.removeItem(D.SAVE_KEY);
+
+    const modal = UI.$('#endingModal');
+    if (modal) {
+      UI.$('#endingTitle').textContent = title;
+      UI.$('#endingText').textContent = text;
+      UI.$('#endingScore').textContent = score;
+      UI.show('#battleModal', false);
+      UI.show('#storyModal', false);
+      UI.show('#endingModal', true);
+    } else {
+      // Fallback если модала нет — показываем через storyModal
+      UI.showDialogue({ speaker: title, text: text + '\n\n' + score });
+    }
+  };
+
+  // --- НОВЫЙ ПРОТИВНИК ---
   const newEnemy = elite => {
     const st = S.get(), base = pick(elite ? D.ELITE_ENEMIES : D.ENEMIES);
-    // Прогрессирующая сложность: экспоненциальный рост каждые 10 дней
     const scale = elite
       ? (1 + Math.pow(st.day / 12, 1.25))
       : (1 + Math.pow(st.day / 15, 1.15));
@@ -185,6 +400,7 @@
     return { ...base, elite, maxHp, hp: maxHp, dmg, threat: Math.round(maxHp / 8 + dmg * 1.5) };
   };
 
+  // --- ЕЖЕДНЕВНЫЕ РАСХОДЫ ---
   const upkeep = () => {
     const st = S.get(), p = st.player;
     st.resources.food = Math.max(0, st.resources.food - 2);
@@ -194,7 +410,6 @@
       p.hp -= 5; p.mood -= 5; UI.toast('ГОЛОД: -5 HP'); UI.triggerDamage();
       if (p.hp <= 0) { defeat("КРИТИЧЕСКОЕ ИСТОЩЕНИЕ"); return; }
     }
-
     if (st.resources.water === 0) {
       p.hp -= 8; p.mood -= 8; UI.toast('ЖАЖДА: -8 HP'); UI.triggerDamage();
       if (p.hp <= 0) { defeat("ОБЕЗВОЖИВАНИЕ"); return; }
@@ -207,6 +422,7 @@
     }
   };
 
+  // --- СЛУЧАЙНЫЕ СОБЫТИЯ ---
   const encounterRoll = () => {
     const st = S.get();
     const enemyChance = Math.min(.55, .20 + st.day * 0.005), roll = rng();
@@ -221,6 +437,7 @@
     UI.renderTop(); UI.renderMain();
   };
 
+  // --- МАГАЗИН ---
   const renderMerchant = () => {
     const st = S.get();
     UI.$('#merchantStock').innerHTML = D.SHOP_ITEMS.map((item, i) =>
@@ -241,6 +458,7 @@
     });
   };
 
+  // --- СИНТЕЗАТОР ---
   const renderCraft = () => {
     const st = S.get();
     UI.$('#craftStock').innerHTML = D.CRAFT_ITEMS.map((item, i) => {
@@ -263,17 +481,17 @@
       st.resources.materials -= rec.materials;
       if (rec.ammo) st.resources.ammo -= rec.ammo;
       if (rec.unlock) weaponUnlock(rec.unlock);
-      if (rec.armorId) armorUnlock(rec.armorId); // Для брони
+      if (rec.armorId) armorUnlock(rec.armorId);
       if (rec.hpBoost) { st.player.maxHp += rec.hpBoost; st.player.hp = Math.min(st.player.maxHp, st.player.hp + rec.hpBoost); }
       if (rec.healBoost) st.player.healPower = (st.player.healPower || 30) + rec.healBoost;
       UI.toast(`СОЗДАНО: ${rec.label}`); S.save(); UI.renderTop(); UI.renderMain(); renderCraft();
     });
   };
 
+  // --- НОВЫЙ ДЕНЬ ---
   const startDay = () => {
     const st = S.get(); if (st.combat.active || st.dead) return;
 
-    // Счётчик дней
     if (st.day === 1 && !st.initialized) {
       st.initialized = true;
       checkStoryEvents();
@@ -283,10 +501,13 @@
 
     st.day++; st.phase = 'ИССЛЕДОВАНИЕ'; upkeep();
     window.SoundManager.play('click');
-    if (st.player.hp <= 0) return; // Убит при upkeep
+    if (st.player.hp <= 0) return;
+
+    // Обновляем заголовок главы
+    updateChapterTitle(st.day);
 
     UI.renderTop(); UI.renderMain();
-    if (checkStoryEvents()) return; // Если сюжетка — не запускаем обычный энкаунтер в этот день
+    if (checkStoryEvents()) return;
 
     const event = encounterRoll();
     if (event.type === 'enemy') {
@@ -297,6 +518,11 @@
       UI.$('#encounterYes').textContent = 'В БОЙ'; UI.$('#encounterNo').textContent = 'БЕЖАТЬ';
       st.phase = 'КОНТАКТ'; UI.show('#encounterModal', true);
     } else if (event.type === 'location') {
+      // Применяем стоимость рассудка для сюжетных локаций
+      if (event.location.moodCost) {
+        st.player.mood = Math.max(0, st.player.mood - event.location.moodCost);
+        UI.toast(`РАССУДОК -${event.location.moodCost}`);
+      }
       st.encounter = event;
       UI.setEncounterCard({ icon: event.location.icon, title: `НАЙДЕНО: ${event.location.name}`, desc: event.location.desc });
       UI.$('#encounterYes').textContent = 'ОБЫСКАТЬ'; UI.$('#encounterNo').textContent = 'ИГНОРИРОВАТЬ';
@@ -308,6 +534,20 @@
     S.save();
   };
 
+  // Обновление заголовка главы
+  const updateChapterTitle = (day) => {
+    const el = UI.$('#storyChapter');
+    if (!el) return;
+    if (day < 30) el.textContent = 'ГЛАВА I: ПРОБУЖДЕНИЕ';
+    else if (day < 80) el.textContent = 'ГЛАВА II: ВЫЖИВШИЙ';
+    else if (day < 145) el.textContent = 'ГЛАВА III: СЛЕДЫ ПРОШЛОГО';
+    else if (day < 210) el.textContent = 'ГЛАВА IV: СОЮЗНИКИ И ВРАГИ';
+    else if (day < 300) el.textContent = 'ГЛАВА V: ПРАВДА ИЕРИХОНА';
+    else if (day < 365) el.textContent = 'ГЛАВА VI: ФИНАЛЬНЫЙ ПУТЬ';
+    else el.textContent = 'ФИНАЛ: КОНЕЦ ЦИКЛА';
+  };
+
+  // --- БОЙ ---
   const beginFight = () => {
     const st = S.get(), c = st.combat; if (!c.enemy) return;
     UI.show('#encounterModal', false);
@@ -342,10 +582,8 @@
   const tick = ts => {
     const st = S.get(), c = st.combat, p = st.player, e = c.enemy; if (!c.active || !e || st.dead) return;
     const dt = Math.min(.08, (ts - (c.lastTs || ts)) / 1000 || .016);
-    // Игрок: откат атаки
     if (st.player.atkCd > 0) st.player.atkCd = Math.max(0, st.player.atkCd - dt);
 
-    // Враг: таймер атаки
     c.lastTs = ts; c.time += dt; c.enemyAtk -= dt;
     if (c.cdDodge > 0) c.cdDodge -= dt;
     if (c.dodge > 0) c.dodge -= dt;
@@ -372,7 +610,7 @@
     const isGun = p.isGun;
     if (isGun && st.resources.ammo <= 0) return UI.toast('НЕТ ПАТРОНОВ!');
 
-    p.atkCd = p.atkCdMax || 1; // Сброс КД (минимум 1 сек если не задано)
+    p.atkCd = p.atkCdMax || 1;
     if (isGun) { st.resources.ammo--; window.SoundManager.play('shoot'); }
     else { window.SoundManager.play('punch'); }
 
@@ -407,7 +645,13 @@
   UI.$('#encounterYes').onclick = () => {
     const st = S.get(), enc = st.encounter; if (!enc) return;
     if (enc.type === 'enemy') { st.combat.enemy = enc.enemy; st.encounter = null; beginFight(); }
-    else { applyReward(enc.location.reward); UI.toast(`ПОЛУЧЕНО: ${enc.location.name}`); st.encounter = null; UI.show('#encounterModal', false); S.save(); UI.renderTop(); UI.renderMain(); }
+    else {
+      applyReward(enc.location.reward);
+      UI.toast(`ПОЛУЧЕНО: ${enc.location.name}`);
+      st.encounter = null;
+      UI.show('#encounterModal', false);
+      S.save(); UI.renderTop(); UI.renderMain();
+    }
   };
 
   UI.$('#encounterNo').onclick = () => {
@@ -419,6 +663,19 @@
   UI.$('#med').onclick = actMed;
   UI.$('#retreat').onclick = () => finishFight(false);
   UI.$('#rewardOk').onclick = () => { UI.show('#rewardModal', false); S.save(); UI.renderMain(); };
+
+  // Кнопка финального экрана "Новая партия"
+  const endingNewRun = UI.$('#endingNewRun');
+  if (endingNewRun) {
+    endingNewRun.onclick = () => {
+      window.SoundManager.play('click');
+      S.set(S.fresh());
+      UI.show('#endingModal', false);
+      UI.renderTop(); UI.renderMain();
+      S.save();
+      UI.toast('НОВЫЙ ЦИКЛ ИНИЦИАЛИЗИРОВАН');
+    };
+  }
 
   // Кнопка рестарта после поражения
   UI.$('#newRun').onclick = () => {
@@ -447,16 +704,17 @@
     UI.$('#muteBtn').textContent = window.SoundManager.isEnabled() ? '🔊 ЗВУК' : '🔇 ТИШИНА';
   };
 
-  // Запуск
+  /* ---------- ЗАПУСК ---------- */
   if (!S.load()) S.set(S.fresh());
-  S.normalize(); UI.renderTop(); UI.renderMain(); renderMerchant(); renderCraft(); S.save();
+  S.normalize();
+  updateChapterTitle(S.get().day);
+  UI.renderTop(); UI.renderMain(); renderMerchant(); renderCraft(); S.save();
 
-  // При первом запуске или загрузке проверяем день 1
   if (S.get().day === 1 && !S.get().initialized) {
     checkStoryEvents();
     S.get().initialized = true;
     S.save();
-  };
+  }
 
   // Экспорт для диалогов из data.js
   window.Game = { applyReward, switchWeapon, switchArmor, weaponUnlock, armorUnlock };

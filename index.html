@@ -127,7 +127,7 @@
     </div>
   </div>
 
-  <!-- НОВЫЙ ЭКРАН СМЕРТИ -->
+  <!-- ЭКРАН ПОРАЖЕНИЯ -->
   <div class="overlay defeat-overlay" id="defeatModal">
     <div class="card modal defeat-card">
       <h2 class="glitch-text" data-text="КРИТИЧЕСКИЙ СБОЙ">КРИТИЧЕСКИЙ СБОЙ</h2>
@@ -139,6 +139,21 @@
       </div>
       <div class="defeat-msg" id="defeatMsg">"СИСТЕМА ОЧИЩЕНА. ЗАГРУЗКА НОВОГО КЛОНА..."</div>
       <button class="btn bad" id="newRun" style="margin-top: 1rem; padding: 1rem;">ИНИЦИАЛИЗАЦИЯ НОВОГО ЦИКЛА</button>
+    </div>
+  </div>
+
+  <!-- ФИНАЛЬНЫЙ ЭКРАН (три концовки) -->
+  <div class="overlay ending-overlay" id="endingModal">
+    <div class="card modal ending-card">
+      <div class="ending-glow"></div>
+      <h2 id="endingTitle" class="ending-title">КОНЕЦ ЦИКЛА</h2>
+      <div class="ending-divider"></div>
+      <div id="endingText" class="ending-text scrollable"></div>
+      <div class="ending-divider"></div>
+      <div id="endingScore" class="ending-score"></div>
+      <button class="btn good" id="endingNewRun" style="margin-top:1.5rem; padding:1rem; font-size:1.1em;">
+        ↺ НАЧАТЬ НОВЫЙ ЦИКЛ
+      </button>
     </div>
   </div>
 
