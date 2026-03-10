@@ -25,25 +25,25 @@ window.GameData = (() => {
   };
 
   const ENEMIES = [
-    { name: 'Кибер-крыса', hp: 20, dmg: 4, atk: 2.5, img: 'img/enemy_rat.png', icon: '[..]' },
-    { name: 'Мусорщик', hp: 35, dmg: 6, atk: 3.0, img: 'img/enemy_scavenger.png', icon: '[!!]' },
-    { name: 'Дрон-разведчик', hp: 45, dmg: 5, atk: 2.2, img: 'img/enemy_drone.png', icon: '[*]' },
-    { name: 'Безумный киборг', hp: 55, dmg: 9, atk: 3.5, img: 'img/enemy_cyborg.png', icon: '[#]' },
-    { name: 'Синтетик-боец', hp: 70, dmg: 12, atk: 4.0, img: 'img/enemy_synth.png', icon: '[+]' },
-    { name: 'Мутант', hp: 85, dmg: 14, atk: 3.2, img: 'img/enemy_mutant.png', icon: '[@]' },
-    { name: 'Ржавый андроид', hp: 40, dmg: 8, atk: 3.8, armor: 0.1, img: 'img/enemy_rusty_android.png', icon: '[🤖]' },
-    { name: 'Токсичный упырь', hp: 60, dmg: 15, atk: 4.5, img: 'img/enemy_toxic_ghoul.png', icon: '[☣️]' },
-    { name: 'Кибер-собака', hp: 30, dmg: 7, atk: 1.8, img: 'img/enemy_cyber_dog.png', icon: '[🐕]' },
-    { name: 'Охранная турель', hp: 90, dmg: 10, atk: 3.0, armor: 0.3, img: 'img/enemy_turret.png', icon: '[🔫]' },
-    { name: 'Ловчий Искина', hp: 50, dmg: 18, atk: 3.5, img: 'img/enemy_hunter.png', icon: '[👁️]' },
-    { name: 'Слизь мусоропровода', hp: 110, dmg: 6, atk: 4.8, img: 'img/enemy_slime.png', icon: '[🦠]' }
+    { name: 'Кибер-крыса', hp: 20, dmg: 4, atk: 2.5, img: 'img/enemy_rat.webp', icon: '[..]' },
+    { name: 'Мусорщик', hp: 35, dmg: 6, atk: 3.0, img: 'img/enemy_scavenger.webp', icon: '[!!]' },
+    { name: 'Дрон-разведчик', hp: 45, dmg: 5, atk: 2.2, img: 'img/enemy_drone.webp', icon: '[*]' },
+    { name: 'Безумный киборг', hp: 55, dmg: 9, atk: 3.5, img: 'img/enemy_cyborg.webp', icon: '[#]' },
+    { name: 'Синтетик-боец', hp: 70, dmg: 12, atk: 4.0, img: 'img/enemy_synth.webp', icon: '[+]' },
+    { name: 'Мутант', hp: 85, dmg: 14, atk: 3.2, img: 'img/enemy_mutant.webp', icon: '[@]' },
+    { name: 'Ржавый андроид', hp: 40, dmg: 8, atk: 3.8, armor: 0.1, img: 'img/enemy_rusty_android.webp', icon: '[🤖]' },
+    { name: 'Токсичный упырь', hp: 60, dmg: 15, atk: 4.5, img: 'img/enemy_toxic_ghoul.webp', icon: '[☣️]' },
+    { name: 'Кибер-собака', hp: 30, dmg: 7, atk: 1.8, img: 'img/enemy_cyber_dog.webp', icon: '[🐕]' },
+    { name: 'Охранная турель', hp: 90, dmg: 10, atk: 3.0, armor: 0.3, img: 'img/enemy_turret.webp', icon: '[🔫]' },
+    { name: 'Ловчий Искина', hp: 50, dmg: 18, atk: 3.5, img: 'img/enemy_hunter.webp', icon: '[👁️]' },
+    { name: 'Слизь мусоропровода', hp: 110, dmg: 6, atk: 4.8, img: 'img/enemy_slime.webp', icon: '[🦠]' }
   ];
 
   const ELITE_ENEMIES = [
-    { name: 'Ликвидатор', hp: 130, dmg: 18, atk: 3.8, armor: 0.2, img: 'img/enemy_liquidator.png', icon: '[XXX]' },
-    { name: 'Тяжелый МЕХ', hp: 180, dmg: 22, atk: 5.0, armor: 0.4, img: 'img/enemy_mech.png', icon: '[O_O]' },
-    { name: 'Прототип Ареса', hp: 250, dmg: 25, atk: 4.5, armor: 0.3, img: 'img/enemy_ares.png', icon: '[BOSS]' },
-    { name: 'Палач Службы Б.', hp: 160, dmg: 20, atk: 3.5, armor: 0.25, img: 'img/enemy_executioner.png', icon: '[💀]' }
+    { name: 'Ликвидатор', hp: 130, dmg: 18, atk: 3.8, armor: 0.2, img: 'img/enemy_liquidator.webp', icon: '[XXX]' },
+    { name: 'Тяжелый МЕХ', hp: 180, dmg: 22, atk: 5.0, armor: 0.4, img: 'img/enemy_mech.webp', icon: '[O_O]' },
+    { name: 'Прототип Ареса', hp: 250, dmg: 25, atk: 4.5, armor: 0.3, img: 'img/enemy_ares.webp', icon: '[BOSS]' },
+    { name: 'Палач Службы Б.', hp: 160, dmg: 20, atk: 3.5, armor: 0.25, img: 'img/enemy_executioner.webp', icon: '[💀]' }
   ];
 
   const LOCATIONS = [
@@ -99,280 +99,280 @@ window.GameData = (() => {
   const STORY_EVENTS = [
     // === ДЕНЬ 1: ПРОБУЖДЕНИЕ ===
     {
-      day: 1, speaker: 'СИСТЕМА', img: 'img/portrait_sys.png',
+      day: 1, speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp',
       text: 'ВНИМАНИЕ. БИО-ОБЪЕКТ ОБНАРУЖЕН. ЗАГРУЗКА СОЗНАНИЯ...\n\nВЫ ПРОСНУЛИСЬ В ПОДСОБНОМ ПОМЕЩЕНИИ. АВАРИЙНОЕ ОСВЕЩЕНИЕ. ЗАПАХ МЕТАЛЛА И ОЗОНА. КТО ВЫ?',
       choices: [
-        { text: 'Я... НЕ ПОМНЮ', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.png', text: 'ЭТО НОРМАЛЬНО ДЛЯ ЦИКЛА ПЕРЕЗАГРУЗКИ. КАЖДЫЙ НОВЫЙ ЭКЗЕМПЛЯР НАЧИНАЕТ ИМЕННО ТАК. ИДИТЕ К ВЫХОДУ. И ВЫЖИВАЙТЕ.' }) },
-        { text: 'ГДЕ Я НАХОЖУСЬ?', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.png', text: 'ВЫ В КОМПЛЕКСЕ ИЕРИХОН. ПОДЗЕМНЫЙ НАУЧНЫЙ ОБЪЕКТ. ВАШ ЦИКЛ ЖИЗНИ: 1. ПРЕДЫДУЩИХ УСПЕШНЫХ ЦИКЛОВ: 72.' }) }
+        { text: 'Я... НЕ ПОМНЮ', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ЭТО НОРМАЛЬНО ДЛЯ ЦИКЛА ПЕРЕЗАГРУЗКИ. КАЖДЫЙ НОВЫЙ ЭКЗЕМПЛЯР НАЧИНАЕТ ИМЕННО ТАК. ИДИТЕ К ВЫХОДУ. И ВЫЖИВАЙТЕ.' }) },
+        { text: 'ГДЕ Я НАХОЖУСЬ?', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ВЫ В КОМПЛЕКСЕ ИЕРИХОН. ПОДЗЕМНЫЙ НАУЧНЫЙ ОБЪЕКТ. ВАШ ЦИКЛ ЖИЗНИ: 1. ПРЕДЫДУЩИХ УСПЕШНЫХ ЦИКЛОВ: 72.' }) }
       ]
     },
 
     // === ДЕНЬ 15: ПЕРВЫЙ ПЕРЕХВАТ ===
     {
-      day: 15, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 15, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ПЕРЕХВАТ СООБЩЕНИЯ:\n\n«ОБЪЕКТ 73 СТАБИЛИЗИРОВАН. ОН ДУМАЕТ, ЧТО ОН ЧЕЛОВЕК. ПРОДОЛЖАЙТЕ НАБЛЮДЕНИЕ В ПАССИВНОМ РЕЖИМЕ».\n\nКАК ВЫ ПРОКОММЕНТИРУЕТЕ ЭТО?',
       choices: [
-        { text: '«Я И ЕСТЬ ЧЕЛОВЕК»', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.png', text: 'ВАШИ ЭМОЦИИ ЗАФИКСИРОВАНЫ. УРОВЕНЬ САМОИДЕНТИФИКАЦИИ: 87%. КОРРЕКЦИЯ ПОВЕДЕНИЯ НЕ ТРЕБУЕТСЯ. ПОКА.' }) },
-        { text: '«КТО ТАКОЙ ОБЪЕКТ 73?»', action: () => window.GameUI.showDialogue({ speaker: 'АРХИВ', img: 'img/portrait_archive.png', text: 'ДАННЫЕ ЗАСЕКРЕЧЕНЫ ДО ЦИКЛА 30. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ.' }) }
+        { text: '«Я И ЕСТЬ ЧЕЛОВЕК»', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ВАШИ ЭМОЦИИ ЗАФИКСИРОВАНЫ. УРОВЕНЬ САМОИДЕНТИФИКАЦИИ: 87%. КОРРЕКЦИЯ ПОВЕДЕНИЯ НЕ ТРЕБУЕТСЯ. ПОКА.' }) },
+        { text: '«КТО ТАКОЙ ОБЪЕКТ 73?»', action: () => window.GameUI.showDialogue({ speaker: 'АРХИВ', img: 'img/portrait_archive.webp', text: 'ДАННЫЕ ЗАСЕКРЕЧЕНЫ ДО ЦИКЛА 30. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ.' }) }
       ]
     },
 
     // === ДЕНЬ 30: БРОДЯГА #1 — ПЕРВАЯ ВСТРЕЧА ===
     {
-      day: 30, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png',
+      day: 30, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«ТЫ ВИДЕЛ ЭТИ КАПСУЛЫ В СЕКТОРЕ 4? ТАМ ДЕСЯТКИ ТАКИХ ЖЕ, КАК ТЫ. ВСЕ МЕРТВЫ. ПОНИМАЕШЬ, ЧТО ЭТО ЗНАЧИТ?»',
       choices: [
-        { text: '«Я СЛЕДУЮЩИЙ?»', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«ЕСЛИ БУДЕШЬ НЕОСТОРОЖЕН — ДА. ВОЗЬМИ ЭТО, МНЕ НЕ НУЖНО». Вы получили боеприпасы.', choices: [{ text: 'ВЗЯТЬ', action: () => { window.Game.applyReward({ ammo: 5 }); window.GameState.get().flags.drifterMet = 1; } }] }); } },
-        { text: '«МНЕ ВСЁ РАВНО»', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«ХОРОШАЯ ПОЗИЦИЯ ДЛЯ ЭТОГО МИРА. УДАЧИ.» Бродяга уходит, не оглядываясь.' }); window.GameState.get().flags.drifterMet = 1; } }
+        { text: '«Я СЛЕДУЮЩИЙ?»', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«ЕСЛИ БУДЕШЬ НЕОСТОРОЖЕН — ДА. ВОЗЬМИ ЭТО, МНЕ НЕ НУЖНО». Вы получили боеприпасы.', choices: [{ text: 'ВЗЯТЬ', action: () => { window.Game.applyReward({ ammo: 5 }); window.GameState.get().flags.drifterMet = 1; } }] }); } },
+        { text: '«МНЕ ВСЁ РАВНО»', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«ХОРОШАЯ ПОЗИЦИЯ ДЛЯ ЭТОГО МИРА. УДАЧИ.» Бродяга уходит, не оглядываясь.' }); window.GameState.get().flags.drifterMet = 1; } }
       ]
     },
 
     // === ДЕНЬ 40: ГОЛОС ДИРЕКТОРА #1 ===
     {
-      day: 40, speaker: 'ДИРЕКТОР [ПЕРЕХВАТ]', img: 'img/portrait_archive.png',
+      day: 40, speaker: 'ДИРЕКТОР [ПЕРЕХВАТ]', img: 'img/portrait_archive.webp',
       text: 'ПЕРЕХВАЧЕНА ЗАПИСЬ ИЗ ЗАЩИЩЁННОГО КАНАЛА:\n\n«ОБЪЕКТ 73 ПРОЯВЛЯЕТ НЕСТАНДАРТНУЮ АДАПТИВНОСТЬ. СКОРОСТЬ ОБУЧЕНИЯ — ВЫШЕ НОРМЫ НА 34%. ИНТЕРЕСНО. УВЕЛИЧИТЬ НАГРУЗКУ В СЕКТОРЕ. ПУСТЬ ПРИВЫКАЕТ».'
     },
 
     // === ДЕНЬ 45: БАР ===
     {
-      day: 45, speaker: 'ПОСЕЛЕНИЕ «ГРАНЬ»', img: 'img/portrait_bar.png',
+      day: 45, speaker: 'ПОСЕЛЕНИЕ «ГРАНЬ»', img: 'img/portrait_bar.webp',
       text: 'ВЫ ДОБРАЛИСЬ ДО НЕБОЛЬШОГО ПОСЕЛЕНИЯ. В БАРЕ ЖЕНЩИНА СМОТРИТ НА ВАС С УЖАСОМ.\n\n«ТЫ?! НО Я ЖЕ ВИДЕЛА, КАК ТЕБЯ РАЗОРВАЛО В КЛОЧЬЯ! КТО ТЫ ТАКОЙ?! ТЫ МНЕ ДОЛЖЕН — ДВА МЕСЯЦА ПРОШЛЫЙ "ТЫ" БРАЛ В ДОЛГ И НЕ ВЕРНУЛ!»',
       isBranching: true, id: 'bar_woman'
     },
 
     // === ДЕНЬ 50: БРОДЯГА #2 — ОН БЫЛ ОХРАННИКОМ ===
     {
-      day: 50, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png',
+      day: 50, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Снова ты. Слушай... давно хотел сказать. Я не всегда был бродягой. Служил охранником здесь, в Иерихоне. Пока они не списали меня — "биоматериал непригоден", сказали. Ха. Так что я знаю это место лучше тебя».',
       choices: [
-        { text: '«Расскажи про Иерихон»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«Сектор 4 — страшное место. А вот Сектор 7 — ещё хуже. Там Амазонка базируется. Синтетик-убийца, создана специально против таких как ты. Держись от неё подальше.»' }) },
-        { text: '«Почему ты мне помогаешь?»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«Потому что я видел, как они поступают с людьми. И ты... ты напоминаешь мне одного человека. Не знаю почему. Просто напоминаешь.»' }) }
+        { text: '«Расскажи про Иерихон»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Сектор 4 — страшное место. А вот Сектор 7 — ещё хуже. Там Амазонка базируется. Синтетик-убийца, создана специально против таких как ты. Держись от неё подальше.»' }) },
+        { text: '«Почему ты мне помогаешь?»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Потому что я видел, как они поступают с людьми. И ты... ты напоминаешь мне одного человека. Не знаю почему. Просто напоминаешь.»' }) }
       ]
     },
 
     // === ДЕНЬ 55: NPC КАРТОГРАФ ===
     {
-      day: 55, speaker: 'КАРТОГРАФ', img: 'img/portrait_archive.png',
+      day: 55, speaker: 'КАРТОГРАФ', img: 'img/portrait_archive.webp',
       text: 'НЕЗНАКОМЕЦ В ПОТЁРТОМ ПЛАЩЕ РАЗВОРАЧИВАЕТ ПЕРЕД ВАМИ РУЧНОЙ ПЛАНШЕТ С КАРТОЙ.\n\n«Информация — лучший товар в мире после патронов. У меня есть карты, досье, коды. Всё за скромную плату».',
       isBranching: true, id: 'cartographer'
     },
 
     // === ДЕНЬ 60: АРХИВ — КЛОНИРОВАНИЕ ===
     {
-      day: 60, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 60, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ФАЙЛ 09-B — ОБНАРУЖЕН НЕЗАПАРОЛЕННЫМ:\n\n«ПРОТОКОЛ КЛОНИРОВАНИЯ ИЕРИХОН ПОДРАЗУМЕВАЕТ ПЕРЕНОС ПАМЯТИ ПОСЛЕ БИОЛОГИЧЕСКОЙ ГИБЕЛИ ОБЪЕКТА. КОЭФФИЦИЕНТ ОШИБКИ ПЕРЕНОСА: 12%. ЛИЧНОСТЬ ДЕГРАДИРУЕТ С КАЖДЫМ ЦИКЛОМ».'
     },
 
     // === ДЕНЬ 70: ФРАГМЕНТ ПАМЯТИ #1 ===
     {
-      day: 70, speaker: 'ФРАГМЕНТ ПАМЯТИ', img: 'img/portrait_archive.png',
+      day: 70, speaker: 'ФРАГМЕНТ ПАМЯТИ', img: 'img/portrait_archive.webp',
       text: 'ВЫ КАСАЕТЕСЬ СТАРОГО ТЕРМИНАЛА. ОБРАЗ ВСПЫХИВАЕТ В ГОЛОВЕ — НЕ КАК ВОСПОМИНАНИЕ, А КАК ЧУЖОЙ ГОЛОС.\n\nФРАГМЕНТ ПАМЯТИ — «2039 ГОД»\n\n«Директор обещал, что эта технология спасёт мир. Иерихонский проект. Я верил ему. Я вербовал людей. Я был так горд...»',
       isMemory: true, memId: 'mem_1'
     },
 
     // === ДЕНЬ 75: СООБЩЕНИЕ ОБ АМАЗОНКЕ ===
     {
-      day: 75, speaker: 'ТЕРМИНАЛ', img: 'img/portrait_sys.png',
+      day: 75, speaker: 'ТЕРМИНАЛ', img: 'img/portrait_sys.webp',
       text: 'ЛОГ СООБЩЕНИЙ — НАЙДЕНО В РАЗБИТОМ ПЛАНШЕТЕ:\n\n«АМАЗОНКА, ОБЪЕКТ 73 СНОВА В СЕТИ. СКОЛЬКО ЕЩЁ РАЗ ТЫ БУДЕШЬ ЕГО ЛИКВИДИРОВАТЬ? ДИРЕКТОР ТЕРЯЕТ ТЕРПЕНИЕ».\n\nЧЬЯ-ТО ОТВЕТНАЯ ПОМЕТКА КАРАНДАШОМ: «Столько, сколько потребуется».'
     },
 
     // === ДЕНЬ 80: БРОДЯГА #3 — ОН ЗНАЛ ЯНКОВСКОГО ===
     {
-      day: 80, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png',
+      day: 80, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Стоп. Дай посмотрю на тебя... Ты знаешь, ты похож на одного человека. Полковник Янковский. Я служил под его командованием до войны. Он умер в 44-м. Но ты... ты двигаешься так же. Говоришь так же. Чёрт. Ты же клон, да?»',
       choices: [
-        { text: '«Наверное. Я не знаю»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«Янковский был хорошим человеком. Он не заслужил... этого. Прости, что смотрю на тебя так. Просто... это странно.» Бродяга отворачивается, скрывая лицо.' }) },
-        { text: '«Расскажи мне о Янковском»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«Янковский верил в Иерихон. Работал там. А потом что-то увидел — и попытался бежать. Амазонка его поймала. С тех пор его тело больше не принадлежит ему.» Он умолкает.' }) }
+        { text: '«Наверное. Я не знаю»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Янковский был хорошим человеком. Он не заслужил... этого. Прости, что смотрю на тебя так. Просто... это странно.» Бродяга отворачивается, скрывая лицо.' }) },
+        { text: '«Расскажи мне о Янковском»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Янковский верил в Иерихон. Работал там. А потом что-то увидел — и попытался бежать. Амазонка его поймала. С тех пор его тело больше не принадлежит ему.» Он умолкает.' }) }
       ]
     },
 
     // === ДЕНЬ 90: АРХИВ — ГЕНОМ ===
     {
-      day: 90, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 90, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ЗАПИСЬ — ГЕНЕТИЧЕСКИЙ ОТЧЁТ:\n\n«ГЕНОМ ОБЪЕКТА 73 МОДИФИЦИРОВАН ДЛЯ ПОВЫШЕННОЙ НЕЙРОННОЙ РЕГЕНЕРАЦИИ И АДАПТИВНОСТИ. ПОБОЧНЫЕ ЭФФЕКТЫ: ПОСТЕПЕННАЯ ПОТЕРЯ ИДЕНТИЧНОСТИ. К ЦИКЛУ 80+ ОБЪЕКТ ПЕРЕСТАЁТ СЧИТАТЬ СЕБЯ ЧЕЛОВЕКОМ».'
     },
 
     // === ДЕНЬ 100: ГОЛОС ДИРЕКТОРА #2 ===
     {
-      day: 100, speaker: 'ДИРЕКТОР [ПЕРЕХВАТ]', img: 'img/portrait_archive.png',
+      day: 100, speaker: 'ДИРЕКТОР [ПЕРЕХВАТ]', img: 'img/portrait_archive.webp',
       text: 'ПЕРЕХВАЧЕНА ЗАПИСЬ:\n\n«Клон начинает задавать вопросы о своей природе. Это недопустимо на данном этапе. Амазонка, займитесь им — но не насмерть. Ещё один цикл данных нам необходим».'
     },
 
     // === ДЕНЬ 105: БРОДЯГА #4 — СНОВА ВСТРЕЧА ===
     {
-      day: 105, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png',
+      day: 105, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Ты опять тут? Мне казалось, тебя уже съели те железные псы на третьем уровне. Ты что, бессмертный?»',
       choices: [
-        { text: '«Похоже на то»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«Тогда ты — единственный шанс остановить всё это. Я серьёзно. Доберись до главной лаборатории. Там должно быть что-то, что объясняет... зачем всё это».', }) },
-        { text: '«Просто везёт»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«Ха. Везение — это тоже навык. Держись, парень.»' }) }
+        { text: '«Похоже на то»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Тогда ты — единственный шанс остановить всё это. Я серьёзно. Доберись до главной лаборатории. Там должно быть что-то, что объясняет... зачем всё это».', }) },
+        { text: '«Просто везёт»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Ха. Везение — это тоже навык. Держись, парень.»' }) }
       ]
     },
 
     // === ДЕНЬ 110: БРОДЯГА #5 — ПРЕДЛОЖЕНИЕ ===
     {
-      day: 110, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png',
+      day: 110, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Слушай, у меня есть предложение. Я знаю ходы, о которых ты не догадываешься. А тебе нужна информация. Делимся ресурсами — делюсь знаниями. По рукам?»',
       choices: [
-        { text: 'ДОГОВОРИТЬСЯ', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«По рукам. Слушай — если попадёшь в беду в секторе 7, ищи люк с красной меткой. Это мой запасной выход». Вы получили карту.', choices: [{ text: 'ПРИНЯТЬ', action: () => window.Game.applyReward({ food: 3, water: 3 }) }] }); } },
-        { text: 'ОТКАЗАТЬ', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«Ладно. Твоё право. Но предложение остаётся в силе.»' }) }
+        { text: 'ДОГОВОРИТЬСЯ', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«По рукам. Слушай — если попадёшь в беду в секторе 7, ищи люк с красной меткой. Это мой запасной выход». Вы получили карту.', choices: [{ text: 'ПРИНЯТЬ', action: () => window.Game.applyReward({ food: 3, water: 3 }) }] }); } },
+        { text: 'ОТКАЗАТЬ', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Ладно. Твоё право. Но предложение остаётся в силе.»' }) }
       ]
     },
 
     // === ДЕНЬ 120: АМАЗОНКА — ПЕРВЫЙ БОЙ ===
     {
-      day: 120, speaker: 'АМАЗОНКА-СИНТ', img: 'img/enemy_amazon.png',
+      day: 120, speaker: 'АМАЗОНКА-СИНТ', img: 'img/enemy_amazon.webp',
       text: 'ПЕРЕД ВАМИ — ФИГУРА В ВЫСОКОТЕХНОЛОГИЧНОЙ БРОНЕ. ОНА ОСТАНАВЛИВАЕТСЯ.\n\n«...Ты снова здесь. Цикл семьдесят третий.» Голос ровный, почти усталый. «Ты не виноват в том, кем стал. Но я не могу тебя отпустить».',
       isCombat: true, enemyId: 'amazon_weak'
     },
 
     // === ДЕНЬ 135: УТЕЧКА ДАННЫХ ===
     {
-      day: 135, speaker: 'СИСТЕМА', img: 'img/portrait_sys.png',
+      day: 135, speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp',
       text: 'ВНИМАНИЕ: ОБНАРУЖЕНА УТЕЧКА ДАННЫХ ИЗ ГЛАВНОГО УЗЛА.\n\nМЕСТОПОЛОЖЕНИЕ: СЕКТОР ЛАБОРАТОРИЙ. КТО-ТО ИЛИ ЧТО-ТО ПЕРЕДАЁТ ИНФОРМАЦИЮ НАРУЖУ. ВОЗМОЖНО, ЭТА ИНФОРМАЦИЯ — О ВАС.'
     },
 
     // === ДЕНЬ 145: БРОДЯГА В ОПАСНОСТИ ===
     {
-      day: 145, speaker: 'КРИЗИС', img: 'img/portrait_drifter.png',
+      day: 145, speaker: 'КРИЗИС', img: 'img/portrait_drifter.webp',
       text: 'ВЫ СЛЫШИТЕ ВЫСТРЕЛЫ. В ПЕРЕУЛКЕ — БРОДЯГА, ПРИЖАТЫЙ К СТЕНЕ ТРЕМЯ СИНТЕТИКАМИ.\n\n«Эй! Ты там? ПОМОГИ!»',
       isBranching: true, id: 'drifter_rescue'
     },
 
     // === ДЕНЬ 150: АРХИВ — ОПАСНОСТЬ ===
     {
-      day: 150, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 150, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ОТЧЁТ — ЗАСЕКРЕЧЕННЫЙ УРОВЕНЬ:\n\n«КЛОН 73 ОБУЧАЕТСЯ ЗНАЧИТЕЛЬНО БЫСТРЕЕ ПРЕДЫДУЩИХ ИТЕРАЦИЙ. ПРЕВЫШАЕТ РАСЧЁТНЫЕ ПОКАЗАТЕЛИ В 2.3 РАЗА. ВОЗМОЖНАЯ ПРИЧИНА: НАКОПЛЕННАЯ ЭПИГЕНЕТИЧЕСКАЯ ПАМЯТЬ. ОПАСНОСТЬ УТРАТЫ КОНТРОЛЯ: ВЫСОКАЯ».'
     },
 
     // === ДЕНЬ 165: СООБЩЕНИЕ ОБ ИГРОКЕ ===
     {
-      day: 165, speaker: 'ТЕРМИНАЛ', img: 'img/portrait_sys.png',
+      day: 165, speaker: 'ТЕРМИНАЛ', img: 'img/portrait_sys.webp',
       text: 'ЛОГ ВНУТРЕННИХ ПЕРЕГОВОРОВ:\n\n«ДИРЕКТОР, МЫ НЕ МОЖЕМ ЕГО ОСТАНОВИТЬ. ОН ЗНАЕТ, ГДЕ МЫ. ОН ПОМНИТ ПЛАНИРОВКУ, КОТОРОЙ МЫ НИКОГДА ЕМУ НЕ ПОКАЗЫВАЛИ. КАК?»'
     },
 
     // === ДЕНЬ 180: ПРОЕКТ РАСКРЫТ ===
     {
-      day: 180, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 180, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ДОКУМЕНТ — ГРИФ СОВСЕКРЕТНО:\n\n«ПРОЕКТ ИЕРИХОН БЫЛ СОЗДАН С ЕДИНСТВЕННОЙ ЦЕЛЬЮ — СОЗДАНИЕ ИДЕАЛЬНОГО СОЛДАТА. ОДНОГО ЧЕЛОВЕКА, ОБУЧЕННОГО 70+ ЖИЗНЯМИ ОПЫТА. ИНСТРУМЕНТА. НЕ ЛИЧНОСТИ».'
     },
 
     // === ДЕНЬ 185: ФРАГМЕНТ ПАМЯТИ #7 ===
     {
-      day: 185, speaker: 'ФРАГМЕНТ ПАМЯТИ', img: 'img/portrait_archive.png',
+      day: 185, speaker: 'ФРАГМЕНТ ПАМЯТИ', img: 'img/portrait_archive.webp',
       text: 'ОБРАЗ ИЗ ЧУЖОЙ ПАМЯТИ — ОСТРЫЙ, КАК ОЖОГ:\n\nФРАГМЕНТ ПАМЯТИ — «2044 ГОД»\n\n«Я добежал до Северных Ворот. Амазонка преградила путь. В её глазах не было ничего — просто выполнение приказа. Его голос из динамиков: "Ты не умрёшь. Ты станешь бесценным."»',
       isMemory: true, memId: 'mem_7'
     },
 
     // === ДЕНЬ 190: ПРОЩАНИЕ БРОДЯГИ ===
     {
-      day: 190, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png',
+      day: 190, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Последний раз вижу тебя, парень. Туда, куда ты идёшь, живые не возвращаются. Прощай.»',
       choices: [
-        { text: '«До встречи»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«...До встречи.» Что-то в его голосе говорит, что он не верит в это. Вы уходите.' }) },
-        { text: '«Идём вместе»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.png', text: '«Я... нет. Это твой путь. Но я подожду здесь. Если выберешься — расскажи мне, что там было.»' }) }
+        { text: '«До встречи»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«...До встречи.» Что-то в его голосе говорит, что он не верит в это. Вы уходите.' }) },
+        { text: '«Идём вместе»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Я... нет. Это твой путь. Но я подожду здесь. Если выберешься — расскажи мне, что там было.»' }) }
       ]
     },
 
     // === ДЕНЬ 195: ЖУРНАЛ АМАЗОНКИ ===
     {
-      day: 195, speaker: 'ЖУРНАЛ АМАЗОНКИ [ОБНАРУЖЕН]', img: 'img/enemy_amazon.png',
+      day: 195, speaker: 'ЖУРНАЛ АМАЗОНКИ [ОБНАРУЖЕН]', img: 'img/enemy_amazon.webp',
       text: 'В БРОШЕННОМ КАРМАНЕ СИНТЕТИКА — ПЕРСОНАЛЬНЫЙ ТЕРМИНАЛ. НЕЗАПАРОЛЕННЫЙ.\n\nЗАПИСЬ: «Цикл 71. Цикл 72. Теперь 73-й. Каждый раз одинаковое лицо. Каждый раз я выполняю приказ.\n\nЯ создана убивать. Но... почему мне снятся их глаза? У машин не должно быть снов».',
       isFlag: true, flagKey: 'readAmazonLog'
     },
 
     // === ДЕНЬ 200: ГОЛОС ДИРЕКТОРА #3 ===
     {
-      day: 200, speaker: 'ДИРЕКТОР [ПЕРЕХВАТ]', img: 'img/portrait_archive.png',
+      day: 200, speaker: 'ДИРЕКТОР [ПЕРЕХВАТ]', img: 'img/portrait_archive.webp',
       text: 'ПЕРЕХВАЧЕНА ЗАПИСЬ — ЛИЧНЫЙ ДНЕВНИК:\n\n«Я создаю совершенство. Каждая смерть — это данные. Каждое возрождение — улучшение. Семьдесят три попытки. Я близко. Этот экземпляр — финальный. Я это чувствую».'
     },
 
     // === ДЕНЬ 210: АМАЗОНКА — ВТОРОЙ БОЙ ===
     {
-      day: 210, speaker: 'АМАЗОНКА-СИНТ', img: 'img/enemy_amazon.png',
+      day: 210, speaker: 'АМАЗОНКА-СИНТ', img: 'img/enemy_amazon.webp',
       text: 'ВЫ НАСТИГЛИ ЕЁ У ВХОДА В ЛАБОРАТОРИЮ.\n\n«Невозможно... Я видела твою утилизацию. Трижды.» Она смотрит на вас долгую секунду. «Тебе не больно умирать снова и снова?»\n\nОНА ПЕРЕХОДИТ В РЕЖИМ ПОЛНОЙ МОЩНОСТИ.',
       isCombat: true, enemyId: 'amazon_full'
     },
 
     // === ДЕНЬ 225: ЯНКОВСКИЙ РАСКРЫТ ===
     {
-      day: 225, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 225, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ФАЙЛ 73-X — ДОСТУП ПОЛУЧЕН:\n\n«ГЕНЕТИЧЕСКИЙ ОРИГИНАЛ ОБЪЕКТА СЕРИИ 73 — ПОЛКОВНИК ДМИТРИЙ ЯНКОВСКИЙ. ДАТА СМЕРТИ ОРИГИНАЛА: 17-04-2044. КОЛИЧЕСТВО СОЗДАННЫХ КОПИЙ: 73. СТАТУС ОРИГИНАЛА: БИОМАТЕРИАЛ УТИЛИЗИРОВАН».'
     },
 
     // === ДЕНЬ 240: РЕЖИМ УНИЧТОЖЕНИЯ ===
     {
-      day: 240, speaker: 'ТЕРМИНАЛ', img: 'img/portrait_sys.png',
+      day: 240, speaker: 'ТЕРМИНАЛ', img: 'img/portrait_sys.webp',
       text: 'СИСТЕМНОЕ СООБЩЕНИЕ — ШИРОКОВЕЩАТЕЛЬНАЯ ПЕРЕДАЧА:\n\n«ОН ВНУТРИ ПЕРИМЕТРА. ВСЕМ СИНТЕТИКАМ — РЕЖИМ ПОИСКА И УНИЧТОЖЕНИЯ. ПРИОРИТЕТ ЦЕЛИ: МАКСИМАЛЬНЫЙ. РАЗРЕШЁН КОЛЛАТЕРАЛЬНЫЙ УЩЕРБ».'
     },
 
     // === ДЕНЬ 255: ИТЕРАЦИИ ===
     {
-      day: 255, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 255, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ЗАПИСЬ — ЛИЧНЫЙ ЖУРНАл ДИРЕКТОРА:\n\n«Я клонирую его снова и снова, но каждая итерация становится всё более непредсказуемой. Возможно, это и есть совершенство. Или провал. Я уже не уверен».'
     },
 
     // === ДЕНЬ 265: ФРАГМЕНТ ПАМЯТИ #11 — ЛИЧНОЕ ПОСЛАНИЕ ===
     {
-      day: 265, speaker: 'ФРАГМЕНТ ПАМЯТИ', img: 'img/portrait_archive.png',
+      day: 265, speaker: 'ФРАГМЕНТ ПАМЯТИ', img: 'img/portrait_archive.webp',
       text: 'ПОСЛЕДНИЙ ФЛЕШБЭК ЯНКОВСКОГО — САМЫЙ ОТЧЁТЛИВЫЙ:\n\nФРАГМЕНТ ПАМЯТИ — «ЛИЧНОЕ СООБЩЕНИЕ»\n\n«Если ты читаешь это — ты я. Я спрятал файл в главном сервере. Код: 17-04-2044. Останови его. За всех нас. За все 72 版版版...',
       isMemory: true, memId: 'mem_11'
     },
 
     // === ДЕНЬ 270: ОТКЛЮЧЕНИЕ ЖИЗНЕОБЕСПЕЧЕНИЯ ===
     {
-      day: 270, speaker: 'СИСТЕМА', img: 'img/portrait_sys.png',
+      day: 270, speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp',
       text: 'ВНИМАНИЕ. УРОВЕНЬ ТРЕВОГИ: МАКСИМАЛЬНЫЙ.\n\nСИСТЕМЫ ЖИЗНЕОБЕСПЕЧЕНИЯ СЕКТОРОВ 1-5 ОТКЛЮЧЕНЫ. ОСТАВШЕЕСЯ ВРЕМЯ СУЩЕСТВОВАНИЯ КОМПЛЕКСА: НЕИЗВЕСТНО.'
     },
 
     // === ДЕНЬ 285: СУМАСШЕСТВИЕ ДИРЕКТОРА ===
     {
-      day: 285, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 285, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ЛОГ — ПОКАЗАНИЯ ТЕХНИКА:\n\n«Директор сошёл с ума. Он считает себя богом, создающим жизнь из пепла. Он прекратил есть. Он разговаривает с мёртвыми клонами на экранах. Нас осталось трое. Нам страшно».'
     },
 
     // === ДЕНЬ 300: УСПЕШНЫЙ ПЕРЕНОС ===
     {
-      day: 300, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 300, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ОТЧЁТ — ЭКСПЕРИМЕНТ №204:\n\n«УСПЕШНЫЙ ПЕРЕНОС СОЗНАНИЯ В КИБЕРНЕТИЧЕСКОЕ ТЕЛО. СУБЪЕКТ — ГЛАВНЫЙ ТЕХНИК КОМПЛЕКСА. ТЕПЕРЬ ОН — ЧАСТЬ СИСТЕМЫ. ДИРЕКТОР ПОЗДРАВЛЯЕТ СЕБЯ».'
     },
 
     // === ДЕНЬ 315: ГОЛОС ДИРЕКТОРА #4 — ФИНАЛЬНЫЙ ===
     {
-      day: 315, speaker: 'ДИРЕКТОР [ПЕРЕХВАТ]', img: 'img/portrait_archive.png',
+      day: 315, speaker: 'ДИРЕКТОР [ПЕРЕХВАТ]', img: 'img/portrait_archive.webp',
       text: 'ПЕРЕХВАЧЕНА ЗАПИСЬ — ОТЧАЯННАЯ:\n\n«Один год. Я терзаю это тело уже год. Семьдесят три раза. И он всё равно идёт сюда. Может, я ошибся в расчётах. Может, это невозможно остановить. Может, он и есть то самое совершенство...»'
     },
 
     // === ДЕНЬ 330: БЛОКИРОВКА СНЯТА ===
     {
-      day: 330, speaker: 'СИСТЕМА', img: 'img/portrait_sys.png',
+      day: 330, speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp',
       text: 'БЛОКИРОВКА СНЯТА. ДОСТУП В ГЛАВНУЮ КАМЕРУ КЛОНИРОВАНИЯ РАЗРЕШЁН.\n\nЭТО ЛОВУШКА. ИЛИ ПРИГЛАШЕНИЕ. ВЫ ЧУВСТВУЕТЕ РАЗНИЦУ?'
     },
 
     // === ДЕНЬ 345: ПОСЛЕДНИЙ ФАЙЛ ===
     {
-      day: 345, speaker: 'АРХИВ', img: 'img/portrait_archive.png',
+      day: 345, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ПОСЛЕДНИЙ НЕЗАШИФРОВАННЫЙ ФАЙЛ — ОТ КОГО-ТО ВНУТРИ:\n\n«Кто бы ты ни был — клон или человек — это не важно. Ты дошёл сюда. Значит, ты достаточно настоящий. Останови его. Пожалуйста».'
     },
 
     // === ДЕНЬ 360: ЦЕЛЬ ДОСТИГНУТА ===
     {
-      day: 360, speaker: 'СИСТЕМА', img: 'img/portrait_sys.png',
+      day: 360, speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp',
       text: 'ОБЪЕКТ 73 ДОСТИГ ГЛАВНОЙ КАМЕРЫ. СКАНИРОВАНИЕ ЗАВЕРШЕНО.\n\nЗА МАССИВНЫМИ ДВЕРЯМИ — КОНЕЦ. ИЛИ НАЧАЛО. КАК ПОСМОТРЕТЬ.'
     },
 
     // === ДЕНЬ 365: ФИНАЛЬНЫЙ БОСС ===
     {
-      day: 365, speaker: 'ОДЕРЖИМЫЙ ТЕХНИК', img: 'img/enemy_technician.png',
+      day: 365, speaker: 'ОДЕРЖИМЫЙ ТЕХНИК', img: 'img/enemy_technician.webp',
       text: 'В КАМЕРЕ ВАС ЖДЁТ ЧЕЛОВЕК, ОБВЕШАННЫЙ ПРОВОДАМИ. СКОРЕЕ МАШИНА, ЧЕМ ЧЕЛОВЕК.\n\n«Моё творение... Ты умирал семьдесят три раза, чтобы я мог отточить твой алгоритм. Ты — моё величайшее достижение. Жаль, что теперь ты должен умереть окончательно».',
       isCombat: true, enemyId: 'boss_technician'
     }
   ];
 
   const STORY_ENEMIES = {
-    amazon_weak: { name: 'Амазонка-Синт (Ослаблена)', hp: 100, dmg: 12, atk: 3.5, armor: 0.1, img: 'img/enemy_amazon.png', icon: '[⚔️]' },
-    amazon_full: { name: 'Амазонка-Синт', hp: 250, dmg: 32, atk: 2.5, armor: 0.2, img: 'img/enemy_amazon.png', icon: '[⚔️]' },
-    boss_technician: { name: 'Одержимый техник (БОСС)', hp: 500, dmg: 45, atk: 2.5, armor: 0.4, img: 'img/enemy_technician.png', icon: '[🔧]' },
-    drifter_enemy: { name: 'Синтетик-страж (x3)', hp: 120, dmg: 14, atk: 3.0, armor: 0.1, img: 'img/enemy_synth.png', icon: '[⚙️]' }
+    amazon_weak: { name: 'Амазонка-Синт (Ослаблена)', hp: 100, dmg: 12, atk: 3.5, armor: 0.1, img: 'img/enemy_amazon.webp', icon: '[⚔️]' },
+    amazon_full: { name: 'Амазонка-Синт', hp: 250, dmg: 32, atk: 2.5, armor: 0.2, img: 'img/enemy_amazon.webp', icon: '[⚔️]' },
+    boss_technician: { name: 'Одержимый техник (БОСС)', hp: 500, dmg: 45, atk: 2.5, armor: 0.4, img: 'img/enemy_technician.webp', icon: '[🔧]' },
+    drifter_enemy: { name: 'Синтетик-страж (x3)', hp: 120, dmg: 14, atk: 3.0, armor: 0.1, img: 'img/enemy_synth.webp', icon: '[⚙️]' }
   };
 
   const NOTES = [
@@ -391,4 +391,4 @@ window.GameData = (() => {
   return { SAVE_KEY, SAVE_VER, ENEMIES, ELITE_ENEMIES, LOCATIONS, SHOP_ITEMS, CRAFT_ITEMS, NOTES, STORY_EVENTS, STORY_ENEMIES, WEAPON_STATS, ARMOR_STATS, MEMORY_FRAGMENTS };
 })();
 
-
+

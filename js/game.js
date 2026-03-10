@@ -73,6 +73,9 @@
     UI.renderTop();
     UI.show('#defeatModal', true);
 
+    // Показываем рекламу при гибели персонажа
+    if (window.PlaygamaSDK) window.PlaygamaSDK.showInterstitial();
+
     localStorage.removeItem(D.SAVE_KEY);
   };
 
@@ -140,7 +143,7 @@
     };
     const fight = () => {
       st.flags.foughtBarWoman = true;
-      const enemy = { name: 'Вышибала из бара', hp: 55, dmg: 10, atk: 3.5, img: 'img/enemy_scavenger.png', icon: '[👊]' };
+      const enemy = { name: 'Вышибала из бара', hp: 55, dmg: 10, atk: 3.5, img: 'img/enemy_scavenger.webp', icon: '[👊]' };
       st.combat.enemy = { ...enemy, maxHp: enemy.hp };
       st.combat.onWin = () => {
         UI.showDialogue({ speaker: event.speaker, img: event.img, text: '«Хорошо! Ты победил! Прошлый "ты" был связан с Амазонка-Синт. Она где-то в северных лабораториях». ВЫ УЗНАЛИ РАСПОЛОЖЕНИЕ ЦЕЛИ.' });
@@ -285,7 +288,7 @@
       st.flags.amazonImplant = true;
       st.player.armorClass = Math.min(0.9, (st.player.armorClass || 0) + 0.2);
       UI.showDialogue({
-        speaker: 'СИСТЕМА', img: 'img/portrait_sys.png',
+        speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp',
         text: 'ВЫ ИЗВЛЕКАЕТЕ БОЕВОЙ ИМПЛАНТ ИЗ ЕЁ БРОНИ. ЗАЩИТА +20%. ПУТЬ СВОБОДЕН.\n\nЕЁ ГЛАЗА ГАСНУТ. ОНА СМОТРИТ НА ВАС ДО ПОСЛЕДНЕГО. БЕЗ ЗЛОСТИ.'
       });
       S.save();
@@ -342,7 +345,7 @@
   const showEndingChoice = () => {
     const st = S.get();
     UI.showDialogue({
-      speaker: 'ОДЕРЖИМЫЙ ТЕХНИК', img: 'img/enemy_technician.png',
+      speaker: 'ОДЕРЖИМЫЙ ТЕХНИК', img: 'img/enemy_technician.webp',
       text: '«...Ты дошёл. Невероятно.» Техник смотрит на вас долго. «Ты — моё лучшее творение. Не инструмент. Партнёр. Стань со мной. Вместе мы продолжим работу Иерихона. Ты будешь жить вечно».',
       choices: [
         {
@@ -502,6 +505,9 @@
     st.day++; st.phase = 'ИССЛЕДОВАНИЕ'; upkeep();
     window.SoundManager.play('click');
     if (st.player.hp <= 0) return;
+
+    // Показываем рекламу каждые 10 дней
+    if (st.day % 10 === 0 && window.PlaygamaSDK) window.PlaygamaSDK.showInterstitial();
 
     // Обновляем заголовок главы
     updateChapterTitle(st.day);

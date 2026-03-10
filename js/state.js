@@ -78,7 +78,12 @@ window.GameState = (() => {
     state.flags = { ...def.flags, ...(state.flags || {}) };
   };
 
-  const save = () => localStorage.setItem(D.SAVE_KEY, JSON.stringify(state));
+  const save = () => {
+    const json = JSON.stringify(state);
+    localStorage.setItem(D.SAVE_KEY, json);
+    // Playgama cloud save (async, non-blocking)
+    if (window.PlaygamaSDK) window.PlaygamaSDK.save(json);
+  };
   const load = () => {
     try {
       const raw = localStorage.getItem(D.SAVE_KEY);

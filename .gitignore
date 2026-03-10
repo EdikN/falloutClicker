@@ -1,0 +1,14 @@
+# Build output
+build/
+
+# Backup of original images before WebP conversion
+imgOld/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# OS files
+.DS_Store
+Thumbs.db

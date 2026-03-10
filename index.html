@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>СИСТЕМА: ИЕРИХОН</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Playgama Bridge SDK -->
+  <script src="public/playgama-bridge.js"></script>
 </head>
 
 <body class="crt">
@@ -28,7 +30,7 @@
   <main class="app">
     <section class="card center">
       <button id="charBtn" title="СЛЕДУЮЩИЙ ЦИКЛ">
-        <img src="img/person.png" alt="ВЫЖИВШИЙ" onerror="this.style.display='none'" />
+        <img src="img/person.webp" alt="ВЫЖИВШИЙ" onerror="this.style.display='none'" />
       </button>
       <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ЦИКЛ</b></div>
       <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
@@ -159,6 +161,8 @@
 
   <div class="toastWrap" id="toasts" aria-live="polite"></div>
 
+  <script src="public/cookie-loader/cookie-loader.js"></script>
+  <script src="js/playgama.js"></script>
   <script src="js/data.js"></script>
   <script src="js/audio.js"></script>
   <script src="js/state.js"></script>

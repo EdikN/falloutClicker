@@ -24,7 +24,7 @@ body {
   line-height: 1.15;
   color: var(--txt);
   background-color: #030803;
-  background-image: linear-gradient(rgba(3, 8, 3, 0.6), rgba(3, 8, 3, 0.6)), url('img/background.png');
+  background-image: linear-gradient(rgba(3, 8, 3, 0.6), rgba(3, 8, 3, 0.6)), url('img/background.webp');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
