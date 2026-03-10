@@ -2,10 +2,15 @@ import { GameData as D } from './data.js';
 import { GameState as S } from './state.js';
 import { GameUI as UI } from './ui.js';
 import { SoundManager } from './audio.js';
+import { PlaygamaSDK } from './playgama.js';
 
 const rng = () => Math.random();
 const pick = arr => arr[Math.floor(rng() * arr.length)];
-const totalDmg = () => S.get().player.baseDmg + S.get().player.dmgBonus;
+const totalDmg = () => {
+  const st = S.get(), p = st.player;
+  const isAdrenaline = st.adBoosts.adrenaline > Date.now();
+  return (p.baseDmg + p.dmgBonus) * (isAdrenaline ? 1.5 : 1);
+};
 
 const weaponUnlock = id => {
   const st = S.get();
@@ -76,8 +81,12 @@ const defeat = (reason = "ПОТЕРЯ ЖИЗНЕННЫХ ПОКАЗАТЕЛЕЙ
   UI.renderTop();
   UI.show('#defeatModal', true);
 
-  // Показываем рекламу при гибели персонажа
-  if (window.PlaygamaSDK) window.PlaygamaSDK.showInterstitial();
+  // Показываем кнопку возрождения если доступно
+  const reviveBtn = UI.$('#reviveBtn');
+  if (reviveBtn) reviveBtn.style.display = st.reviveAvailable ? 'block' : 'none';
+
+  // Показываем рекламу при гибели персонажа (если нет NoAds)
+  if (PlaygamaSDK && !st.permanentBonuses.noAds) PlaygamaSDK.showInterstitial();
 
   // Сохраняем "труп" (наследие) перед удалением сейва
   const corpse = {
@@ -89,6 +98,8 @@ const defeat = (reason = "ПОТЕРЯ ЖИЗНЕННЫХ ПОКАЗАТЕЛЕЙ
       caps: Math.floor((st.resources.caps || 0) * 0.5)
     }
   };
+  localStorage.setItem('fallout_clicker_corpse', JSON.stringify(corpse));
+
   // Считаем смерти для цикла
   const currentDeaths = parseInt(localStorage.getItem('fallout_clicker_deaths') || '0', 10);
   localStorage.setItem('fallout_clicker_deaths', currentDeaths + 1);
@@ -109,14 +120,12 @@ const checkStoryEvents = () => {
     return false;
   }
 
-  // Обработка флагового события (выставляет флаг и показывает)
   if (event.isFlag) {
     st.flags[event.flagKey] = true;
     UI.showDialogue({ speaker: event.speaker, text: event.text, img: event.img });
     return true;
   }
 
-  // Обработка фрагментов памяти
   if (event.isMemory) {
     UI.showDialogue({ speaker: event.speaker, text: event.text, img: event.img });
     return true;
@@ -138,7 +147,6 @@ const checkStoryEvents = () => {
 
 // === ОБРАБОТЧИКИ СЮЖЕТНЫХ ВЕТВЛЕНИЙ ===
 
-// --- БАР --- (день 45)
 const handleBarWoman = (event) => {
   const st = S.get();
   const negotiate = () => {
@@ -178,7 +186,6 @@ const handleBarWoman = (event) => {
   });
 };
 
-// --- СПАСЕНИЕ БРОДЯГИ --- (день 145)
 const handleDrifterRescue = (event) => {
   const st = S.get();
   const saveHim = () => {
@@ -215,7 +222,6 @@ const handleDrifterRescue = (event) => {
   });
 };
 
-// --- КАРТОГРАФ --- (день 55)
 const handleCartographer = (event) => {
   const st = S.get();
   st.flags.cartographerMet = true;
@@ -231,7 +237,7 @@ const handleCartographer = (event) => {
   const buyFile = () => {
     if (st.resources.caps < 120) return UI.toast('НУЖНО 120 КРЕДИТОВ');
     st.resources.caps -= 120;
-    const mem = D.MEMORY_FRAGMENTS[Math.floor(rng() * 5) + 2]; // случайный ранний фрагмент
+    const mem = D.MEMORY_FRAGMENTS[Math.floor(rng() * 5) + 2];
     UI.showDialogue({
       speaker: 'КАРТОГРАФ', img: event.img,
       text: `«Личное дело Янковского. Копия. Держите.» ВЫ ПОЛУЧИЛИ ФРАГМЕНТ:\n\n${mem.text}`
@@ -261,22 +267,19 @@ const handleCartographer = (event) => {
   });
 };
 
-// --- СЮЖЕТНЫЕ БОИ ---
 const handleStoryCombat = (event) => {
   const st = S.get();
   const enemyData = D.STORY_ENEMIES[event.enemyId];
   let enemyHp = enemyData.hp;
 
-  // Бонус кода обхода: -30% HP врага если куплен
   if (st.flags && st.flags.bypassCode) {
     enemyHp = Math.round(enemyHp * 0.7);
-    st.flags.bypassCode = false; // Одноразовый
+    st.flags.bypassCode = false;
     UI.toast('КОД ОБХОДА СРАБОТАЛ: -30% HP ВРАГА');
   }
 
   st.combat.enemy = { ...enemyData, hp: enemyHp, maxHp: enemyHp };
 
-  // Амазонка #1
   if (event.enemyId === 'amazon_weak') {
     st.combat.onWin = () => {
       UI.showDialogue({
@@ -286,13 +289,11 @@ const handleStoryCombat = (event) => {
       });
     };
   }
-  // Амазонка #2 — выбор
   else if (event.enemyId === 'amazon_full') {
     st.combat.onWin = () => handleAmazonChoice(event);
   }
-  // Финальный Босс
   else if (event.enemyId === 'boss_technician') {
-    st.combat.onWin = () => handleEnding(event);
+    st.combat.onWin = () => handleEnding();
   }
 
   UI.showDialogue({
@@ -301,7 +302,6 @@ const handleStoryCombat = (event) => {
   });
 };
 
-// --- ВЫБОР СУДЬБЫ АМАЗОНКИ --- (после победы день 210)
 const handleAmazonChoice = (event) => {
   const st = S.get();
   const kill = () => {
@@ -339,19 +339,16 @@ const handleAmazonChoice = (event) => {
   });
 };
 
-// === ТРИ ФИНАЛА (ОБНОВЛЕНЫ С УЧЕТОМ ЧЕЛОВЕЧНОСТИ) ===
 const handleEnding = () => {
   const st = S.get();
   const flags = st.flags || {};
   const humanity = st.player.humanity;
 
-  // Если человечность ниже 20, это безусловная Темная концовка (Игрок стал машиной)
   if (humanity < 20) {
-    showEndingChoice(true); // Форсируем выбор слияния
+    showEndingChoice(true);
     return;
   }
 
-  // Концовка A — ИСТИННАЯ: ОСВОБОЖДЕНИЕ (спас Бродягу + пощадил Амазонку + Человечность > 70)
   if (flags.savedDrifter && flags.mercyAmazon && humanity >= 70) {
     showEnding({
       title: '🌅 КОНЦОВКА A — ИСТИННОЕ НАВАСЛЕДИЕ',
@@ -359,11 +356,9 @@ const handleEnding = () => {
       score: `ПОБЕДА: ИСТИННАЯ КОНЦОВКА (ЧЕЛОВЕЧНОСТЬ: ${Math.round(humanity)}) | ЦИКЛ ${st.day}`
     });
   }
-  // Концовка C — СЛИЯНИЕ / ТЁМНАЯ (убил Амазонку, не спас Бродягу)
   else if (!flags.savedDrifter && !flags.mercyAmazon) {
     showEndingChoice(false);
   }
-  // Концовка B — НЕЙТРАЛЬНАЯ / ЦИКЛ
   else {
     showEnding({
       title: '🔄 КОНЦОВКА B — РАЗРУШЕНИЕ',
@@ -373,7 +368,6 @@ const handleEnding = () => {
   }
 };
 
-// Концовка C — Диалог с Техником
 const showEndingChoice = (forced = false) => {
   const st = S.get();
 
@@ -430,7 +424,6 @@ const showEnding = ({ title, text, score }) => {
     UI.show('#storyModal', false);
     UI.show('#endingModal', true);
   } else {
-    // Fallback если модала нет — показываем через storyModal
     UI.showDialogue({ speaker: title, text: text + '\n\n' + score });
   }
 };
@@ -449,8 +442,10 @@ const newEnemy = elite => {
 // --- ЕЖЕДНЕВНЫЕ РАСХОДЫ ---
 const upkeep = () => {
   const st = S.get(), p = st.player;
-  st.resources.food = Math.max(0, st.resources.food - 2);
-  st.resources.water = Math.max(0, st.resources.water - 2);
+  const consumption = st.permanentBonuses.cyberStomach ? 1 : 2;
+
+  st.resources.food = Math.max(0, st.resources.food - consumption);
+  st.resources.water = Math.max(0, st.resources.water - consumption);
 
   if (st.resources.food === 0) {
     p.hp -= 5; p.mood -= 5; UI.toast('ГОЛОД: -5 HP'); UI.triggerDamage();
@@ -460,12 +455,7 @@ const upkeep = () => {
     p.hp -= 8; p.mood -= 8; UI.toast('ЖАЖДА: -8 HP'); UI.triggerDamage();
     if (p.hp <= 0) { defeat("ОБЕЗВОЖИВАНИЕ"); return; }
   }
-
   p.mood = Math.max(0, p.mood - 1);
-  if (p.mood < 20) {
-    p.hp -= 2; UI.triggerDamage();
-    if (p.hp <= 0) { defeat("ОСТРЫЙ ПСИХОЗ"); return; }
-  }
 };
 
 // --- СЛУЧАЙНЫЕ СОБЫТИЯ ---
@@ -473,7 +463,6 @@ const encounterRoll = () => {
   const st = S.get();
   const enemyChance = Math.min(.55, .20 + st.day * 0.005), roll = rng();
 
-  // Проверка на эхо прошлой жизни (шанс 15%)
   if (roll < 0.15) {
     const rawCorpse = localStorage.getItem('fallout_clicker_corpse');
     if (rawCorpse) {
@@ -495,16 +484,15 @@ const applyReward = r => {
   UI.renderTop(); UI.renderMain();
 };
 
-// --- МАГАЗИН ---
 const renderMerchant = () => {
   const st = S.get();
   UI.$('#merchantStock').innerHTML = D.SHOP_ITEMS.map((item, i) =>
     `<div class='shopItem'>
-         <div>${item.label}
-           <div class='sub'>${item.type === 'weapon' ? 'ОРУЖИЕ' : 'РАСХОДНИК'}</div>
-         </div>
-         <button class='btn good' data-buy='${i}'>${item.price} КР</button>
-       </div>`
+     <div>${item.label}
+       <div class='sub'>${item.type === 'weapon' ? 'ОРУЖИЕ' : 'РАСХОДНИК'}</div>
+     </div>
+     <button class='btn good' data-buy='${i}'>${item.price} КР</button>
+   </div>`
   ).join('');
   UI.$('#merchantStock').querySelectorAll('[data-buy]').forEach(btn => btn.onclick = () => {
     const p = D.SHOP_ITEMS[+btn.dataset.buy];
@@ -516,20 +504,17 @@ const renderMerchant = () => {
   });
 };
 
-// --- СИНТЕЗАТОР ---
 const renderCraft = () => {
   const st = S.get();
   UI.$('#craftStock').innerHTML = D.CRAFT_ITEMS.map((item, i) => {
-    const costStr = item.ammo > 0
-      ? `МАТ: ${item.materials} | ПАТР: ${item.ammo}`
-      : `МАТ: ${item.materials}`;
+    const costStr = item.ammo > 0 ? `МАТ: ${item.materials} | ПАТР: ${item.ammo}` : `МАТ: ${item.materials}`;
     return `<div class='shopItem'>
-        <div>${item.label}
-          <div class='sub'>${item.desc}</div>
-          <div class='sub'>СТОИМОСТЬ: ${costStr}</div>
-        </div>
-        <button class='btn good' data-craft='${i}'>СОЗДАТЬ</button>
-      </div>`;
+    <div>${item.label}
+      <div class='sub'>${item.desc}</div>
+      <div class='sub'>СТОИМОСТЬ: ${costStr}</div>
+    </div>
+    <button class='btn good' data-craft='${i}'>СОЗДАТЬ</button>
+  </div>`;
   }).join('');
 
   UI.$('#craftStock').querySelectorAll('[data-craft]').forEach(btn => btn.onclick = () => {
@@ -561,12 +546,11 @@ const startDay = () => {
   SoundManager.play('click');
   if (st.player.hp <= 0) return;
 
-  // Показываем рекламу каждые 10 дней
-  if (st.day % 10 === 0 && window.PlaygamaSDK) window.PlaygamaSDK.showInterstitial();
+  if (st.day % 10 === 0 && PlaygamaSDK && !st.permanentBonuses.noAds) {
+    PlaygamaSDK.showInterstitial();
+  }
 
-  // Обновляем заголовок главы
   updateChapterTitle(st.day);
-
   UI.renderTop(); UI.renderMain();
   if (checkStoryEvents()) return;
 
@@ -574,7 +558,7 @@ const startDay = () => {
 
   if (event.type === 'corpse') {
     const corpse = event.corpse;
-    localStorage.removeItem('fallout_clicker_corpse'); // Труп лутается единожды
+    localStorage.removeItem('fallout_clicker_corpse');
     st.player.humanity = Math.max(0, st.player.humanity - 5);
     UI.toast('[Человечность -5]');
     UI.showDialogue({
@@ -595,7 +579,6 @@ const startDay = () => {
     UI.$('#encounterYes').textContent = 'В БОЙ'; UI.$('#encounterNo').textContent = 'БЕЖАТЬ';
     st.phase = 'КОНТАКТ'; UI.show('#encounterModal', true);
   } else if (event.type === 'location') {
-    // Применяем стоимость рассудка для сюжетных локаций
     if (event.location.moodCost) {
       st.player.mood = Math.max(0, st.player.mood - event.location.moodCost);
       UI.toast(`РАССУДОК -${event.location.moodCost}`);
@@ -611,7 +594,6 @@ const startDay = () => {
   S.save();
 };
 
-// Обновление заголовка цели
 const updateChapterTitle = (day) => {
   const el = UI.$('#currentGoal');
   if (el) {
@@ -623,7 +605,6 @@ const updateChapterTitle = (day) => {
     else if (day < 365) el.textContent = '[ЦЕЛЬ: ДОСТИЧЬ ГЛАВНОГО ЗАЛА]';
     else el.textContent = '[ЦЕЛЬ: СДЕЛАТЬ ВЫБОР]';
   }
-
   const deathCountEl = UI.$('#deathCount');
   if (deathCountEl) {
     const deaths = localStorage.getItem('fallout_clicker_deaths') || '0';
@@ -631,7 +612,6 @@ const updateChapterTitle = (day) => {
   }
 };
 
-// --- БОЙ ---
 const beginFight = () => {
   const st = S.get(), c = st.combat; if (!c.enemy) return;
   UI.show('#encounterModal', false);
@@ -657,9 +637,15 @@ const finishFight = win => {
       const r = { materials: 3 + Math.floor(rng() * 5), caps: Math.max(10, baseCaps) };
       if (rng() < .3) r.food = 1;
       applyReward(r);
+      c.lastReward = r;
+      UI.$('#doubleRewardBtn').style.display = 'block';
       return `ПОБЕДА. МАТЕРИАЛЫ +${r.materials}, КР +${r.caps}`;
     })()
-    : (() => { st.player.mood = Math.max(0, st.player.mood - 15); return 'ВЫ СБЕЖАЛИ. РАССУДОК УПАЛ.'; })();
+    : (() => {
+      st.player.mood = Math.max(0, st.player.mood - 15);
+      UI.$('#doubleRewardBtn').style.display = 'none';
+      return 'ВЫ СБЕЖАЛИ. РАССУДОК УПАЛ.';
+    })();
   UI.$('#rewardText').textContent = txt; UI.show('#rewardModal', true); S.save(); UI.renderTop(); UI.renderMain();
 };
 
@@ -690,20 +676,16 @@ const tick = ts => {
 const actAttack = () => {
   const st = S.get(), c = st.combat, p = st.player;
   if (!c.active || p.hp <= 0 || p.atkCd > 0) return;
-
   const isGun = p.isGun;
   if (isGun && st.resources.ammo <= 0) return UI.toast('НЕТ ПАТРОНОВ!');
-
   p.atkCd = p.atkCdMax || 1;
   if (isGun) { st.resources.ammo--; SoundManager.play('shoot'); }
   else { SoundManager.play('punch'); }
-
   let dmg = totalDmg() + Math.floor(rng() * 4);
   const e = c.enemy;
   if (rng() < 0.1) { dmg = Math.round(dmg * 1.5); UI.toast('КРИТ!'); }
   if (e.armor) dmg = Math.round(dmg * (1 - e.armor));
   e.hp -= Math.max(1, dmg);
-
   UI.triggerEnemyHit(); UI.renderTop(); UI.renderBattle();
 };
 
@@ -718,7 +700,12 @@ const actMed = () => {
 
 /* ---------- ПРИВЯЗКА СОБЫТИЙ ---------- */
 UI.$('#charBtn').onclick = startDay;
-UI.$('#merchantBtn').onclick = () => { renderMerchant(); UI.show('#merchantModal', true); };
+UI.$('#merchantBtn').onclick = () => {
+  UI.renderShop((id) => {
+    PlaygamaSDK.buyProduct(id, () => applyPurchase(id), (err) => UI.toast(`ОШИБКА: ${err}`));
+  });
+  UI.show('#merchantModal', true);
+};
 UI.$('#merchantClose').onclick = () => UI.show('#merchantModal', false);
 UI.$('#equipBtn').onclick = () => { UI.renderEquipment(switchWeapon, switchArmor); UI.show('#equipModal', true); };
 UI.$('#equipClose').onclick = () => UI.show('#equipModal', false);
@@ -726,16 +713,51 @@ UI.$('#craftBtn').onclick = () => { renderCraft(); UI.show('#craftModal', true);
 UI.$('#craftClose').onclick = () => UI.show('#craftModal', false);
 UI.$('#storyOk').onclick = () => UI.show('#storyModal', false);
 
+UI.$('#reviveBtn').onclick = () => {
+  PlaygamaSDK.showRewarded('revive', () => {
+    const st = S.get();
+    if (!st.dead) return;
+    st.dead = false; st.reviveAvailable = false;
+    st.player.hp = Math.round(st.player.maxHp * 0.5);
+    UI.show('#defeatModal', false);
+    UI.toast('СИСТЕМА: РЕЗЕРВНАЯ КОПИЯ ЗАГРУЖЕНА');
+    UI.renderTop(); UI.renderMain(); S.save();
+    if (st.combat.enemy) beginFight();
+  });
+};
+
+UI.$('#doubleRewardBtn').onclick = () => {
+  PlaygamaSDK.showRewarded('double_loot', () => {
+    const r = S.get().combat.lastReward;
+    if (r) { applyReward(r); UI.toast('ДОБЫЧА УДВОЕНА!'); UI.$('#doubleRewardBtn').style.display = 'none'; }
+  });
+};
+
+UI.$('#airdropBtn').onclick = () => {
+  PlaygamaSDK.showRewarded('airdrop', () => {
+    const st = S.get(); st.adBoosts.airdropLastTime = Date.now();
+    applyReward({ materials: 5, caps: 5, food: 3, water: 3, ammo: 10 });
+    UI.toast('ДРОН СБРОСИЛ ПРИПАСЫ!'); S.save(); UI.renderMain();
+  });
+};
+
+UI.$('#adrenalineBtn').onclick = () => {
+  PlaygamaSDK.showRewarded('adrenaline', () => {
+    const st = S.get(); st.adBoosts.adrenaline = Date.now() + 900000;
+    UI.toast('АДРЕНАЛИН: +50% УРОНА НА 15 МИНУТ!'); UI.renderTop(); UI.renderMain(); S.save();
+  });
+};
+
+UI.$('#emergencyBtn').onclick = () => {
+  PlaygamaSDK.showRewarded('emergency_ration', () => {
+    applyReward({ food: 6, water: 6 }); UI.toast('АВАРИЙНЫЙ ПАЁК ПОЛУЧЕН!'); S.save(); UI.renderMain();
+  });
+};
+
 UI.$('#encounterYes').onclick = () => {
   const st = S.get(), enc = st.encounter; if (!enc) return;
   if (enc.type === 'enemy') { st.combat.enemy = enc.enemy; st.encounter = null; beginFight(); }
-  else {
-    applyReward(enc.location.reward);
-    UI.toast(`ПОЛУЧЕНО: ${enc.location.name}`);
-    st.encounter = null;
-    UI.show('#encounterModal', false);
-    S.save(); UI.renderTop(); UI.renderMain();
-  }
+  else { applyReward(enc.location.reward); UI.toast(`ПОЛУЧЕНО: ${enc.location.name}`); st.encounter = null; UI.show('#encounterModal', false); S.save(); UI.renderTop(); UI.renderMain(); }
 };
 
 UI.$('#encounterNo').onclick = () => {
@@ -748,35 +770,30 @@ UI.$('#med').onclick = actMed;
 UI.$('#retreat').onclick = () => finishFight(false);
 UI.$('#rewardOk').onclick = () => { UI.show('#rewardModal', false); S.save(); UI.renderMain(); };
 
-// Кнопка финального экрана "Новая партия"
-const endingNewRun = UI.$('#endingNewRun');
-if (endingNewRun) {
-  endingNewRun.onclick = () => {
-    SoundManager.play('click');
-    S.set(S.fresh());
-    UI.show('#endingModal', false);
-    UI.renderTop(); UI.renderMain();
-    S.save();
-    UI.toast('НОВЫЙ ЦИКЛ ИНИЦИАЛИЗИРОВАН');
-  };
-}
+const applyPurchase = (id) => {
+  const st = S.get(); UI.toast(`ПОКУПКА АКТИВИРОВАНА: ${id.toUpperCase()}`);
+  switch (id) {
+    case 'no_ads': st.permanentBonuses.noAds = true; break;
+    case 'cyber_stomach': st.permanentBonuses.cyberStomach = true; break;
+    case 'dlc_sector7': st.permanentBonuses.dlcSector7 = true; break;
+    case 'premium_caps': st.resources.caps += 200; break;
+    case 'mega_pack': st.resources.caps += 500; st.resources.ammo += 15; st.resources.medkits += 5; break;
+    case 'starter_pack': st.resources.caps += 50; applyReward({ food: 10, water: 10 }); weaponUnlock('pickaxe'); break;
+    case 'iron_arsenal': weaponUnlock('shotgun'); st.resources.ammo += 30; break;
+    case 'heavy_armor': armorUnlock('heavy'); break;
+  }
+  S.save(); UI.renderTop(); UI.renderMain();
+};
 
-// Кнопка рестарта после поражения
 UI.$('#newRun').onclick = () => {
-  SoundManager.play('click');
-  S.set(S.fresh());
-  UI.show('#defeatModal', false);
-  UI.renderTop(); UI.renderMain();
-  S.save();
-  UI.toast('НОВЫЙ ЦИКЛ ИНИЦИАЛИЗИРОВАН');
+  SoundManager.play('click'); S.set(S.fresh()); UI.show('#defeatModal', false); UI.renderTop(); UI.renderMain(); S.save(); UI.toast('НОВЫЙ ЦИКЛ ИНИЦИАЛИЗИРОВАН');
 };
 
 UI.$('#res').addEventListener('click', e => {
   const btn = e.target.closest('[data-use]'); if (!btn) return;
   const type = btn.dataset.use, st = S.get(), p = st.player;
   if (st.resources[type] < 1) { SoundManager.play('error'); return UI.toast('НЕТ ПРЕДМЕТА'); }
-  st.resources[type]--;
-  SoundManager.play('heal');
+  st.resources[type]--; SoundManager.play('heal');
   if (type === 'food') { p.hp = Math.min(p.maxHp, p.hp + 6); p.mood = Math.min(p.maxMood, p.mood + 10); UI.toast('+6 HP, +10 РАССУДОК'); }
   if (type === 'water') { p.hp = Math.min(p.maxHp, p.hp + 4); p.mood = Math.min(p.maxMood, p.mood + 15); UI.toast('+4 HP, +15 РАССУДОК'); }
   if (type === 'medkits') { const h = p.healPower || 30; p.hp = Math.min(p.maxHp, p.hp + h); UI.toast(`+${h} HP`); }
@@ -784,24 +801,22 @@ UI.$('#res').addEventListener('click', e => {
 });
 
 UI.$('#muteBtn').onclick = () => {
-  SoundManager.toggle(!SoundManager.isEnabled());
-  UI.$('#muteBtn').textContent = SoundManager.isEnabled() ? '🔊 ЗВУК' : '🔇 ТИШИНА';
+  SoundManager.toggle(!SoundManager.isEnabled()); UI.$('#muteBtn').textContent = SoundManager.isEnabled() ? '🔊 ЗВУК' : '🔇 ТИШИНА';
 };
 
-/* ---------- ЗАПУСК ---------- */
+// --- ЗАПУСК ---
 if (!S.load()) S.set(S.fresh());
 S.normalize();
-updateChapterTitle(S.get().day);
-UI.renderTop(); UI.renderMain(); renderMerchant(); renderCraft(); S.save();
 
-if (S.get().day === 1 && !S.get().initialized) {
-  checkStoryEvents();
-  S.get().initialized = true;
-  S.save();
+if (PlaygamaSDK) {
+  PlaygamaSDK.checkPurchases((purchases) => purchases.forEach(p => applyPurchase(p.productId)));
 }
 
-// Экспорт для диалогов из data.js (если нужно, хотя лучше передавать как коллбеки). 
-// Мы экспортируем Game, чтобы main.js мог привязать его к window для data.js, 
-// или исправить логику коллбеков в data.js
-export const Game = { applyReward, switchWeapon, switchArmor, weaponUnlock, armorUnlock };
+updateChapterTitle(S.get().day);
+UI.renderTop(); UI.renderMain(); renderCraft(); S.save();
 
+if (S.get().day === 1 && !S.get().initialized) {
+  checkStoryEvents(); st = S.get(); st.initialized = true; S.save();
+}
+
+export const Game = { applyReward, switchWeapon, switchArmor, weaponUnlock, armorUnlock };

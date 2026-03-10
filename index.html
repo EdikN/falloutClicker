@@ -35,6 +35,11 @@
       <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
       <div class="statusBars" id="statusBars"></div>
       <div class="res" id="res"></div>
+      <div class="actionsRow" id="adActions" style="margin-bottom: 0.5rem; display: none;">
+        <button class="pill pill-btn ad-btn" id="airdropBtn" style="display:none;">📦 ДРОН СНАБЖЕНИЯ</button>
+        <button class="pill pill-btn ad-btn" id="adrenalineBtn">⚡ АДРЕНАЛИН</button>
+        <button class="pill pill-btn ad-btn bad" id="emergencyBtn" style="display:none;">🚨 АВАРИЙНЫЙ ПАЁК</button>
+      </div>
       <div class="actionsRow" id="actionsRow">
         <button class="pill pill-btn" id="merchantBtn">СЕТЬ ТОРГОВЛИ</button>
         <button class="pill pill-btn" id="equipBtn">ИНВЕНТАРЬ</button>
@@ -102,7 +107,11 @@
   <div class="overlay" id="rewardModal">
     <div class="card modal">
       <h2>СИСТЕМНОЕ СООБЩЕНИЕ</h2>
-      <div id="rewardText" class="scrollable"></div><button class="btn good" id="rewardOk">ПРИНЯТЬ</button>
+      <div id="rewardText" class="scrollable"></div>
+      <div class="row" style="gap:0.5rem;">
+        <button class="btn good" id="rewardOk">ПРИНЯТЬ</button>
+        <button class="btn warn" id="doubleRewardBtn">✖2 ТРОФЕИ</button>
+      </div>
     </div>
   </div>
   <div class="overlay" id="merchantModal">
@@ -139,7 +148,10 @@
         <div id="defeatDays" style="font-size: 1.2em; margin-top: 0.5rem; color:var(--warn)">ПРОЖИТО ЦИКЛОВ: 0</div>
       </div>
       <div class="defeat-msg" id="defeatMsg">"СИСТЕМА ОЧИЩЕНА. ЗАГРУЗКА НОВОГО КЛОНА..."</div>
-      <button class="btn bad" id="newRun" style="margin-top: 1rem; padding: 1rem;">ИНИЦИАЛИЗАЦИЯ НОВОГО ЦИКЛА</button>
+      <div class="row" style="flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+        <button class="btn warn" id="reviveBtn" style="padding: 1rem;">⚡ ЗАГРУЗИТЬ РЕЗЕРВ (REVIVE)</button>
+        <button class="btn bad" id="newRun" style="padding: 1rem;">ИНИЦИАЛИЗАЦИЯ НОВОГО ЦИКЛА</button>
+      </div>
     </div>
   </div>
 

@@ -35,11 +35,9 @@ export const PlaygamaSDK = (() => {
       window.bridge.storage.get('fallout_save')
         .then(data => {
           if (data) {
-            // Обновляем и localStorage тоже
             try { localStorage.setItem('fallout_save', data); } catch (_) { }
             callback(data);
           } else {
-            // Fallback на localStorage
             callback(localStorage.getItem('fallout_save') || null);
           }
         })
@@ -51,7 +49,7 @@ export const PlaygamaSDK = (() => {
     }
   };
 
-  // --- Реклама ---
+  // --- Межстраничная реклама ---
   const showInterstitial = () => {
     if (!bridgeReady || !window.bridge) return;
     const now = Date.now() / 1000;
@@ -60,6 +58,84 @@ export const PlaygamaSDK = (() => {
     try {
       window.bridge.advertisement.showInterstitial();
     } catch (_) { }
+  };
+
+  // --- Реклама за награду ---
+  // onRewarded вызывается ТОЛЬКО когда state === 'rewarded'
+  const showRewarded = (placement, onRewarded) => {
+    if (!bridgeReady || !window.bridge) {
+      // В dev-режиме без моста — всегда даём награду
+      if (onRewarded) onRewarded();
+      return;
+    }
+
+    if (!window.bridge.advertisement.isRewardedSupported) {
+      if (onRewarded) onRewarded();
+      return;
+    }
+
+    const handler = (state) => {
+      if (state === 'rewarded') {
+        if (onRewarded) onRewarded();
+      }
+      if (state === 'closed' || state === 'failed') {
+        try {
+          window.bridge.advertisement.off(window.bridge.EVENT_NAME.REWARDED_STATE_CHANGED, handler);
+        } catch (_) { }
+        _resumeSound();
+      }
+    };
+
+    try {
+      window.bridge.advertisement.on(window.bridge.EVENT_NAME.REWARDED_STATE_CHANGED, handler);
+      _muteSound();
+      window.bridge.advertisement.showRewarded(placement || 'default');
+    } catch (_) {
+      _resumeSound();
+    }
+  };
+
+  // --- IAP: покупка ---
+  const buyProduct = (productId, onSuccess, onError) => {
+    if (!bridgeReady || !window.bridge) {
+      if (onError) onError('SDK не инициализирован');
+      return;
+    }
+    if (!window.bridge.payments.isSupported) {
+      if (onError) onError('Покупки не поддерживаются на этой платформе');
+      return;
+    }
+    window.bridge.payments.purchase(productId)
+      .then((purchase) => {
+        console.log('[PlaygamaSDK] Покупка завершена:', purchase);
+        if (onSuccess) onSuccess(purchase);
+      })
+      .catch((err) => {
+        console.warn('[PlaygamaSDK] Ошибка покупки:', err);
+        if (onError) onError(err);
+      });
+  };
+
+  // --- IAP: восстановление незавершённых покупок ---
+  const checkPurchases = (onResult) => {
+    if (!bridgeReady || !window.bridge || !window.bridge.payments.isSupported) return;
+    try {
+      window.bridge.payments.getPurchases()
+        .then((purchases) => {
+          if (onResult && purchases && purchases.length > 0) onResult(purchases);
+        })
+        .catch(() => { });
+    } catch (_) { }
+  };
+
+  const isBridgeReady = () => bridgeReady;
+
+  // --- Хелперы паузы звука во время рекламы ---
+  const _muteSound = () => {
+    try { if (window.SoundManager) window.SoundManager.toggle(false); } catch (_) { }
+  };
+  const _resumeSound = () => {
+    try { if (window.SoundManager) window.SoundManager.toggle(true); } catch (_) { }
   };
 
   // --- Инициализация ---
@@ -78,6 +154,22 @@ export const PlaygamaSDK = (() => {
       .then(() => {
         bridgeReady = true;
         setSplash(80);
+
+        // Устанавливаем минимальный интервал между интерстишалами через SDK
+        try {
+          window.bridge.advertisement.setMinimumDelayBetweenInterstitial(180);
+        } catch (_) { }
+
+        // Подписка на события интерстишала — мьютим игру
+        try {
+          window.bridge.advertisement.on(
+            window.bridge.EVENT_NAME.INTERSTITIAL_STATE_CHANGED,
+            (state) => {
+              if (state === 'opened') _muteSound();
+              if (state === 'closed' || state === 'failed') _resumeSound();
+            }
+          );
+        } catch (_) { }
 
         // Сообщаем платформе что игра готова
         try {
@@ -101,5 +193,5 @@ export const PlaygamaSDK = (() => {
     init();
   }
 
-  return { save, load, showInterstitial };
+  return { save, load, showInterstitial, showRewarded, buyProduct, checkPurchases, isBridgeReady };
 })();

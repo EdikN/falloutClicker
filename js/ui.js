@@ -19,12 +19,18 @@ export const GameUI = (() => {
     $('#day').textContent = `ДЕНЬ ${st.day}`;
     $('#phase').textContent = `СТАТУС: ${st.phase.toUpperCase()}`;
     $('#capsTop').textContent = `КРЕДИТЫ: ${st.resources.caps}`;
-    $('#weaponPill').textContent = `ОРУЖИЕ: ${st.player.weaponName.toUpperCase()}`;
+
+    // Индикация баффа адреналина
+    const weaponText = st.player.weaponName.toUpperCase();
+    const isAdrenaline = st.adBoosts.adrenaline > Date.now();
+    $('#weaponPill').textContent = `ОРУЖИЕ: ${weaponText}${isAdrenaline ? ' [⚡]' : ''}`;
+    $('#weaponPill').classList.toggle('highlight-text', isAdrenaline);
   };
 
   const renderMain = () => {
     const st = S.get(), p = st.player;
-    const dmg = p.baseDmg + p.dmgBonus;
+    const isAdrenaline = st.adBoosts.adrenaline > Date.now();
+    const dmg = (p.baseDmg + p.dmgBonus) * (isAdrenaline ? 1.5 : 1);
 
     $('#statusBars').innerHTML = `
       <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='transform:scaleX(${clamp(p.hp / p.maxHp, 0, 1)})'></div></div></div>
@@ -36,7 +42,26 @@ export const GameUI = (() => {
       <button class='pill pill-btn' data-use='medkits'>✚ АПТ: ${st.resources.medkits}</button>
       <div class='pill'>⚙️ МАТ: ${st.resources.materials}</div>
       <div class='pill'>⚡ ПАТР: ${st.resources.ammo}</div>
-      <div class='pill'>⚔️ УРОН: ${dmg}</div>`;
+      <div class='pill'>⚔️ УРОН: ${Math.round(dmg)}</div>`;
+
+    // Обновляем видимость кнопок рекламы
+    renderAdButtons();
+  };
+
+  const renderAdButtons = () => {
+    const st = S.get();
+    const adRow = $('#adActions');
+    if (!adRow) return;
+
+    const showEmergency = st.resources.food < 3 || st.resources.water < 3;
+    const showAirdrop = Date.now() > st.adBoosts.airdropLastTime + 600000; // 10 мин
+    const showAdrenaline = Date.now() > st.adBoosts.adrenaline;
+
+    $('#emergencyBtn').style.display = showEmergency ? 'block' : 'none';
+    $('#airdropBtn').style.display = showAirdrop ? 'block' : 'none';
+    $('#adrenalineBtn').style.display = showAdrenaline ? 'block' : 'none';
+
+    adRow.style.display = (showEmergency || showAirdrop || showAdrenaline) ? 'grid' : 'none';
   };
 
   const renderBattle = () => {
@@ -189,8 +214,64 @@ export const GameUI = (() => {
     });
   };
 
-  // Отключаем немедленный вызов инициализации: экспортируем её, чтобы main.js вызвал сам.
-  // SoundManager.init() will happen via main.js or within the Game init
+  const renderShop = (onBuyInApp) => {
+    const merchantCont = $('#merchantStock');
+    merchantCont.innerHTML = `
+      <div class="row" style="margin-bottom:1rem; border-bottom:1px solid var(--line);">
+        <button class="pill active" id="tabItems">ТОВАРЫ</button>
+        <button class="pill" id="tabDirector">ДИРЕКТОР (IAP)</button>
+      </div>
+      <div id="shopContent"></div>
+    `;
 
-  return { $, toast, clamp, renderTop, renderMain, renderBattle, setEncounterCard, show, triggerDamage, triggerEnemyHit, typeText, showDialogue, renderEquipment };
+    const content = $('#shopContent');
+    const tabItems = $('#tabItems');
+    const tabDirector = $('#tabDirector');
+
+    const showItems = () => {
+      tabItems.classList.add('active');
+      tabDirector.classList.remove('active');
+      content.innerHTML = D.SHOP_ITEMS.map((item, i) =>
+        `<div class='shopItem'>
+             <div>${item.label}
+               <div class='sub'>${item.type === 'weapon' ? 'ОРУЖИЕ' : 'РАСХОДНИК'}</div>
+             </div>
+             <button class='btn good' data-buy='${i}'>${item.price} КР</button>
+           </div>`
+      ).join('');
+      // Привязка в game.js
+    };
+
+    const showDirector = () => {
+      tabItems.classList.remove('active');
+      tabDirector.classList.add('active');
+      content.innerHTML = `<div class="sub" style="margin-bottom:1rem;">Эксклюзивные предложения от Иерихона.</div>`;
+
+      const ITEMS = [
+        { id: 'no_ads', price: '99 GAM', name: 'БЕЗ РЕКЛАМЫ', desc: 'Убирает межстраничную рекламу.' },
+        { id: 'starter_pack', price: '49 GAM', name: 'СТАРТОВЫЙ НАБОР', desc: 'Оружие + Ресурсы.' },
+        { id: 'premium_caps', price: '29 GAM', name: '200 КРЕДИТОВ', desc: 'Мгновенное пополнение.' },
+        { id: 'cyber_stomach', price: '59 GAM', name: 'КИБЕР-ЖЕЛУДОК', desc: '-50% расход еды/воды.' }
+      ];
+
+      ITEMS.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'shopItem';
+        div.innerHTML = `
+          <div>${item.name} <div class="sub">${item.desc}</div></div>
+          <button class="btn good" style="min-width:80px;">${item.price}</button>
+        `;
+        div.querySelector('button').onclick = () => {
+          if (onBuyInApp) onBuyInApp(item.id);
+        };
+        content.appendChild(div);
+      });
+    };
+
+    tabItems.onclick = showItems;
+    tabDirector.onclick = showDirector;
+    showItems();
+  };
+
+  return { $, toast, clamp, renderTop, renderMain, renderBattle, setEncounterCard, show, triggerDamage, triggerEnemyHit, typeText, showDialogue, renderEquipment, renderShop };
 })();

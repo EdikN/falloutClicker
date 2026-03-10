@@ -1,7 +1,60 @@
 {
     "advertisement": {
-        "useBuiltInErrorPopup": true
+        "useBuiltInErrorPopup": true,
+        "interstitial": {
+            "minimumDelay": 180
+        }
     },
     "sendAnalyticsEvents": false,
-    "disableLoadingLogo": true
+    "disableLoadingLogo": true,
+    "payments": [
+        {
+            "id": "no_ads",
+            "playgama": {
+                "amount": 99
+            }
+        },
+        {
+            "id": "starter_pack",
+            "playgama": {
+                "amount": 49
+            }
+        },
+        {
+            "id": "premium_caps",
+            "playgama": {
+                "amount": 29
+            }
+        },
+        {
+            "id": "mega_pack",
+            "playgama": {
+                "amount": 79
+            }
+        },
+        {
+            "id": "cyber_stomach",
+            "playgama": {
+                "amount": 59
+            }
+        },
+        {
+            "id": "iron_arsenal",
+            "playgama": {
+                "amount": 49
+            }
+        },
+        {
+            "id": "heavy_armor",
+            "playgama": {
+                "amount": 69
+            }
+        },
+        {
+            "id": "dlc_sector7",
+            "playgama": {
+                "amount": 99
+            }
+        }
+    ]
 }

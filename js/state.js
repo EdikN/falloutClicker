@@ -27,6 +27,18 @@ export const GameState = (() => {
       endingReached: false      // Финал достигнут
     },
 
+    // === МОНЕТИЗАЦИЯ ===
+    adBoosts: {
+      adrenaline: 0,        // timestamp окончания баффа урона (+50%)
+      airdropLastTime: 0,   // timestamp последнего дропа
+    },
+    permanentBonuses: {
+      noAds: false,
+      cyberStomach: false,  // x0.5 расход еды/воды
+      dlcSector7: false,
+    },
+    reviveAvailable: true,   // Доступно ли возрождение за рекламу в этом цикле
+
     resources: { food: 15, water: 15, materials: 0, ammo: 0, medkits: 1, caps: 0 },
 
     // Статы игрока
@@ -69,15 +81,21 @@ export const GameState = (() => {
 
   const normalize = () => {
     const def = fresh();
-    // Мягкое слияние объектов, чтобы не терять прогресс при обновлении версии
-    if (state.v !== D.SAVE_VER) return state = fresh(); // Сброс при смене версии
 
-    state.resources = { ...def.resources, ...state.resources };
-    state.player = { ...def.player, ...state.player };
-    state.weapons = { ...def.weapons, ...state.weapons };
-    state.armors = { ...def.armors, ...state.armors };
-    state.combat = { ...def.combat, ...state.combat };
+    // Мягкое слияние объектов, чтобы не терять прогресс при обновлении версии
+    state.resources = { ...def.resources, ...(state.resources || {}) };
+    state.player = { ...def.player, ...(state.player || {}) };
+    state.weapons = { ...def.weapons, ...(state.weapons || {}) };
+    state.armors = { ...def.armors, ...(state.armors || {}) };
+    state.combat = { ...def.combat, ...(state.combat || {}) };
     state.flags = { ...def.flags, ...(state.flags || {}) };
+
+    // Новые поля для монетизации
+    state.adBoosts = { ...def.adBoosts, ...(state.adBoosts || {}) };
+    state.permanentBonuses = { ...def.permanentBonuses, ...(state.permanentBonuses || {}) };
+    if (state.reviveAvailable === undefined) state.reviveAvailable = def.reviveAvailable;
+
+    state.v = D.SAVE_VER;
   };
 
   const save = () => {

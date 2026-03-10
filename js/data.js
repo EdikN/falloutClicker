@@ -1,6 +1,6 @@
 export const GameData = (() => {
   const SAVE_KEY = 'fallout_clicker_save';
-  const SAVE_VER = 1.5;
+  const SAVE_VER = 1.6;
 
   const WEAPON_STATS = {
     fists: { dmg: 4, cd: 0.2, name: 'КУЛАКИ', isGun: false },
