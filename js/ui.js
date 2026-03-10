@@ -1,5 +1,8 @@
-window.GameUI = (() => {
-  const S = window.GameState;
+import { GameState as S } from './state.js';
+import { GameData as D } from './data.js';
+import { SoundManager } from './audio.js';
+
+export const GameUI = (() => {
   const $ = sel => document.querySelector(sel);
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
@@ -13,7 +16,7 @@ window.GameUI = (() => {
 
   const renderTop = () => {
     const st = S.get();
-    $('#day').textContent = `ЦИКЛ ${st.day}`;
+    $('#day').textContent = `ДЕНЬ ${st.day}`;
     $('#phase').textContent = `СТАТУС: ${st.phase.toUpperCase()}`;
     $('#capsTop').textContent = `КРЕДИТЫ: ${st.resources.caps}`;
     $('#weaponPill').textContent = `ОРУЖИЕ: ${st.player.weaponName.toUpperCase()}`;
@@ -24,8 +27,8 @@ window.GameUI = (() => {
     const dmg = p.baseDmg + p.dmgBonus;
 
     $('#statusBars').innerHTML = `
-      <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>
-      <div>🧠 РАССУДОК ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill bg-ok' style='width:${clamp(p.mood / p.maxMood * 100, 0, 100)}%'></div></div></div>`;
+      <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='transform:scaleX(${clamp(p.hp / p.maxHp, 0, 1)})'></div></div></div>
+      <div>🧠 РАССУДОК ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill bg-ok' style='transform:scaleX(${clamp(p.mood / p.maxMood, 0, 1)})'></div></div></div>`;
 
     $('#res').innerHTML = `
       <button class='pill pill-btn' data-use='food'>🍖 ЕДА: ${st.resources.food}</button>
@@ -42,22 +45,28 @@ window.GameUI = (() => {
     $('#battleTimer').textContent = `T-${c.time.toFixed(1)}s`;
 
     $('#pBars').innerHTML = `
-      <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='width:${clamp(p.hp / p.maxHp * 100, 0, 100)}%'></div></div></div>`;
+      <div>♥ ЗДОРОВЬЕ ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='transform:scaleX(${clamp(p.hp / p.maxHp, 0, 1)})'></div></div></div>`;
 
     $('#enemyName').textContent = `${e.icon} ${e.name}`;
 
     const imgEl = $('#enemyImg');
-    if (e.img) { imgEl.src = e.img; imgEl.style.display = 'block'; } else { imgEl.style.display = 'none'; }
+    if (e.img) {
+      if (imgEl.getAttribute('src') !== e.img) imgEl.src = e.img;
+      imgEl.style.display = 'block';
+    } else {
+      imgEl.removeAttribute('src');
+      imgEl.style.display = 'none';
+    }
 
-    $('#eHp').style.width = `${clamp(e.hp / e.maxHp * 100, 0, 100)}%`;
+    $('#eHp').style.transform = `scaleX(${clamp(e.hp / e.maxHp, 0, 1)})`;
     $('#telegraph').textContent = `[УГРОЗА] АТАКА ЧЕРЕЗ ${Math.max(0, c.enemyAtk).toFixed(1)}s`;
-    $('#teleFill').style.width = `${clamp((1 - c.enemyAtk / e.atk) * 100, 0, 100)}%`;
+    $('#teleFill').style.transform = `scaleX(${clamp(1 - c.enemyAtk / e.atk, 0, 1)})`;
 
     // КД Игрока
     const atkFill = $('#atkFill');
     if (atkFill) {
-      const cdPerc = p.atkCd > 0 ? (1 - p.atkCd / p.atkCdMax) * 100 : 100;
-      atkFill.style.width = `${clamp(cdPerc, 0, 100)}%`;
+      const cdPerc = p.atkCd > 0 ? (1 - p.atkCd / p.atkCdMax) : 1;
+      atkFill.style.transform = `scaleX(${clamp(cdPerc, 0, 1)})`;
       $('#atk').disabled = p.atkCd > 0;
     }
 
@@ -68,15 +77,15 @@ window.GameUI = (() => {
 
   const setEncounterCard = ({ icon, title, desc }) => $('#encounterText').innerHTML = `<div class='pill'>${icon} ${title}</div><div style='margin-top:0.6rem;'>${desc}</div>`;
   const show = (id, on) => { $(id).classList.toggle('show', on); };
-  const triggerDamage = () => { window.SoundManager.play('damage'); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); const modal = $('#battleModal .card'); if (modal) { modal.classList.remove('flash-red'); void modal.offsetWidth; modal.classList.add('flash-red'); } };
-  const triggerEnemyHit = () => { window.SoundManager.play('click'); const el = $('.enemy'); if (!el) return; el.style.transform = 'translate(4px, 2px)'; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--line)'; setTimeout(() => { el.style.transform = ''; el.style.borderColor = ''; el.style.background = ''; }, 80); };
+  const triggerDamage = () => { SoundManager.play('damage'); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); const modal = $('#battleModal .card'); if (modal) { modal.classList.remove('flash-red'); void modal.offsetWidth; modal.classList.add('flash-red'); } };
+  const triggerEnemyHit = () => { SoundManager.play('click'); const el = $('.enemy'); if (!el) return; el.style.transform = 'translate(4px, 2px)'; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--line)'; setTimeout(() => { el.style.transform = ''; el.style.borderColor = ''; el.style.background = ''; }, 80); };
 
   const typeText = (el, text, speed = 25, onComplete = null) => {
     el.innerHTML = ''; let i = 0;
     const t = () => {
       if (i < text.length) {
         el.innerHTML += text.charAt(i); i++;
-        if (i % 3 === 0) window.SoundManager.play('hover');
+        if (i % 3 === 0) SoundManager.play('hover');
         setTimeout(t, speed);
       } else if (onComplete) onComplete();
     };
@@ -105,7 +114,7 @@ window.GameUI = (() => {
           btn.className = 'btn';
           btn.textContent = c.text;
           btn.onclick = () => {
-            window.SoundManager.play('click');
+            SoundManager.play('click');
             show('#storyModal', false);
             if (c.action) c.action();
           };
@@ -116,9 +125,13 @@ window.GameUI = (() => {
   };
 
   const renderEquipment = (onSwitchWeapon, onSwitchArmor) => {
-    const st = S.get(), D = window.GameData;
+    const st = S.get();
     const listCont = $('#equipList');
-    listCont.innerHTML = '<h3>ОРУЖИЕ</h3>';
+    listCont.innerHTML = '';
+
+    const wTitle = document.createElement('h3');
+    wTitle.textContent = 'ОРУЖИЕ';
+    listCont.appendChild(wTitle);
 
     Object.keys(st.weapons).forEach(id => {
       if (!st.weapons[id]) return;
@@ -135,16 +148,21 @@ window.GameUI = (() => {
           ${st.player.weaponName === w.name ? 'ВЫБРАНО' : 'ВЫБРАТЬ'}
         </button>
       `;
-      div.querySelector('[data-equip-w]').onclick = () => {
+      const btn = div.querySelector('[data-equip-w]');
+      btn.onclick = () => {
         if (st.player.weaponName === w.name) return;
-        window.SoundManager.play('click');
+        SoundManager.play('click');
         if (onSwitchWeapon) onSwitchWeapon(id);
         renderEquipment(onSwitchWeapon, onSwitchArmor);
       };
       listCont.appendChild(div);
     });
 
-    listCont.innerHTML += '<h3 style="margin-top:1rem;">БРОНЯ</h3>';
+    const aTitle = document.createElement('h3');
+    aTitle.textContent = 'БРОНЯ';
+    aTitle.style.marginTop = '1rem';
+    listCont.appendChild(aTitle);
+
     Object.keys(st.armors).forEach(id => {
       if (!st.armors[id]) return;
       const a = D.ARMOR_STATS[id];
@@ -160,9 +178,10 @@ window.GameUI = (() => {
           ${st.player.armorName === a.name ? 'ВЫБРАНО' : 'ВЫБРАТЬ'}
         </button>
       `;
-      div.querySelector('[data-equip-a]').onclick = () => {
+      const btn = div.querySelector('[data-equip-a]');
+      btn.onclick = () => {
         if (st.player.armorName === a.name) return;
-        window.SoundManager.play('click');
+        SoundManager.play('click');
         if (onSwitchArmor) onSwitchArmor(id);
         renderEquipment(onSwitchWeapon, onSwitchArmor);
       };
@@ -170,8 +189,8 @@ window.GameUI = (() => {
     });
   };
 
-  // Инициализация звука
-  window.SoundManager.init();
+  // Отключаем немедленный вызов инициализации: экспортируем её, чтобы main.js вызвал сам.
+  // SoundManager.init() will happen via main.js or within the Game init
 
   return { $, toast, clamp, renderTop, renderMain, renderBattle, setEncounterCard, show, triggerDamage, triggerEnemyHit, typeText, showDialogue, renderEquipment };
 })();

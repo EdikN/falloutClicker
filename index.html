@@ -5,22 +5,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>СИСТЕМА: ИЕРИХОН</title>
-  <link rel="stylesheet" href="styles.css" />
   <!-- Playgama Bridge SDK -->
-  <script src="public/playgama-bridge.js"></script>
+  <script src="playgama-bridge.js"></script>
 </head>
 
 <body class="crt">
   <header class="hud card">
     <div class="hud-top">
       <div class="titleBlock">
-        <h1>[КОМПЛЕКС ИЕРИХОН]</h1>
-        <div class="sub highlight-text" id="storyChapter">SYS_LOG_01: ПРОБУЖДЕНИЕ</div>
+        <h1 id="currentGoal">[ТЕКУЩАЯ ЦЕЛЬ: ВЫЖИТЬ]</h1>
+        <div class="sub highlight-text" id="deathCount">ЦИКЛОВ (СМЕРТЕЙ): 0</div>
       </div>
       <div class="capsTop" id="capsTop">[КРЕДИТЫ]: 0</div>
     </div>
     <div class="row">
-      <div class="pill" id="day">ЦИКЛ 1</div>
+      <div class="pill" id="day">ДЕНЬ 1</div>
       <div class="pill" id="phase">СТАТУС: ИССЛЕДОВАНИЕ</div>
       <div class="pill" id="weaponPill">ОРУЖИЕ: КУЛАКИ</div>
       <button class="pill btn-mini" id="muteBtn" title="ЗВУК ВКЛ/ВЫКЛ">🔊 ЗВУК</button>
@@ -29,10 +28,10 @@
 
   <main class="app">
     <section class="card center">
-      <button id="charBtn" title="СЛЕДУЮЩИЙ ЦИКЛ">
+      <button id="charBtn" title="СЛЕДУЮЩИЙ ДЕНЬ">
         <img src="img/person.webp" alt="ВЫЖИВШИЙ" onerror="this.style.display='none'" />
       </button>
-      <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ЦИКЛ</b></div>
+      <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ДЕНЬ</b></div>
       <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
       <div class="statusBars" id="statusBars"></div>
       <div class="res" id="res"></div>
@@ -161,13 +160,8 @@
 
   <div class="toastWrap" id="toasts" aria-live="polite"></div>
 
-  <script src="public/cookie-loader/cookie-loader.js"></script>
-  <script src="js/playgama.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/audio.js"></script>
-  <script src="js/state.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/game.js"></script>
+  <script src="cookie-loader/cookie-loader.js"></script>
+  <script type="module" src="/js/main.js"></script>
 </body>
 
 </html>

@@ -1,4 +1,4 @@
-window.SoundManager = (() => {
+export const SoundManager = (() => {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   let enabled = true;
 

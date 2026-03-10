@@ -51,6 +51,7 @@ body::before {
 
 .crt {
   animation: crtFlicker 0.15s infinite;
+  will-change: opacity;
 }
 
 @keyframes crtFlicker {
@@ -269,8 +270,12 @@ h2 {
 
 .fill {
   height: 100%;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(0);
   box-shadow: 0 0 5px currentColor;
-  transition: width 0.3s;
+  transition: transform 0.3s;
+  will-change: transform;
 }
 
 .bg-bad {
@@ -482,10 +487,13 @@ h2 {
 
 #atkFill {
   height: 100%;
-  width: 0%;
+  width: 100%;
+  transform-origin: left;
+  transform: scaleX(0);
   background: var(--line);
   box-shadow: 0 0 10px var(--line);
-  transition: width 0.05s linear;
+  transition: transform 0.05s linear;
+  will-change: transform;
 }
 
 .enemy {

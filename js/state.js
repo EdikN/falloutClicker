@@ -1,5 +1,6 @@
-window.GameState = (() => {
-  const D = window.GameData;
+import { GameData as D } from './data.js';
+
+export const GameState = (() => {
   const fresh = () => ({
     v: D.SAVE_VER,
     day: 1,
@@ -32,6 +33,7 @@ window.GameState = (() => {
     player: {
       maxHp: 100, hp: 100,
       maxMood: 100, mood: 100,
+      maxHumanity: 100, humanity: 50,
       baseDmg: 3,
       dmgBonus: 0,
       weaponName: 'КУЛАКИ',

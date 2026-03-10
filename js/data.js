@@ -1,4 +1,4 @@
-window.GameData = (() => {
+export const GameData = (() => {
   const SAVE_KEY = 'fallout_clicker_save';
   const SAVE_VER = 1.5;
 
@@ -54,7 +54,10 @@ window.GameData = (() => {
     { name: 'Лаборатория', icon: '🔬', desc: 'Исследовательский отсек. Богатая находка.', reward: { materials: 12, caps: 15 }, danger: 0.5 },
     // Разблокируемые сюжетные локации
     { name: 'Сектор 4 — Капсульный зал', icon: '💀', desc: 'Ряды капсул с телами, похожими на вас. Здесь жили и умирали клоны. Вы находите детали и теряете рассудок.', reward: { materials: 20, caps: 5 }, danger: 0.3, storyFlag: 'sector4Unlocked', moodCost: 15 },
-    { name: 'Архив Иерихона', icon: '📁', desc: 'Центральный компьютер. Файлы Директора. Здесь — всё.', reward: { materials: 10, caps: 25 }, danger: 0.6, storyFlag: 'archiveUnlocked' }
+    { name: 'Архив Иерихона', icon: '📁', desc: 'Центральный компьютер. Файлы Директора. Здесь — всё.', reward: { materials: 10, caps: 25 }, danger: 0.6, storyFlag: 'archiveUnlocked' },
+    // Новые локации
+    { name: 'Изолированный отсек', icon: '👁️', desc: 'Крики стихают, когда вы подходите ближе. Дефектные клоны просят об эвтаназии.', reward: { ammo: 5, materials: 15 }, danger: 0.5, moodCost: 25 },
+    { name: 'Старый медблок', icon: '🩸', desc: 'Стены в пятнах крови. Здесь проводились первые попытки переноса сознания.', reward: { medkits: 2, caps: 8 }, danger: 0.45, moodCost: 10 }
   ];
 
   const SHOP_ITEMS = [
@@ -102,8 +105,8 @@ window.GameData = (() => {
       day: 1, speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp',
       text: 'ВНИМАНИЕ. БИО-ОБЪЕКТ ОБНАРУЖЕН. ЗАГРУЗКА СОЗНАНИЯ...\n\nВЫ ПРОСНУЛИСЬ В ПОДСОБНОМ ПОМЕЩЕНИИ. АВАРИЙНОЕ ОСВЕЩЕНИЕ. ЗАПАХ МЕТАЛЛА И ОЗОНА. КТО ВЫ?',
       choices: [
-        { text: 'Я... НЕ ПОМНЮ', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ЭТО НОРМАЛЬНО ДЛЯ ЦИКЛА ПЕРЕЗАГРУЗКИ. КАЖДЫЙ НОВЫЙ ЭКЗЕМПЛЯР НАЧИНАЕТ ИМЕННО ТАК. ИДИТЕ К ВЫХОДУ. И ВЫЖИВАЙТЕ.' }) },
-        { text: 'ГДЕ Я НАХОЖУСЬ?', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ВЫ В КОМПЛЕКСЕ ИЕРИХОН. ПОДЗЕМНЫЙ НАУЧНЫЙ ОБЪЕКТ. ВАШ ЦИКЛ ЖИЗНИ: 1. ПРЕДЫДУЩИХ УСПЕШНЫХ ЦИКЛОВ: 72.' }) }
+        { text: 'Я... НЕ ПОМНЮ', action: () => { window.GameState.get().player.humanity = Math.min(100, window.GameState.get().player.humanity + 5); window.GameUI.toast('[Человечность +5]'); window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ЭТО НОРМАЛЬНО ДЛЯ ЦИКЛА ПЕРЕЗАГРУЗКИ. КАЖДЫЙ НОВЫЙ ЭКЗЕМПЛЯР НАЧИНАЕТ ИМЕННО ТАК. ИДИТЕ К ВЫХОДУ. И ВЫЖИВАЙТЕ.' }); window.GameUI.renderMain(); } },
+        { text: 'ГДЕ Я НАХОЖУСЬ?', action: () => { window.GameState.get().player.humanity = Math.max(0, window.GameState.get().player.humanity - 5); window.GameUI.toast('[Человечность -5]'); window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ВЫ В КОМПЛЕКСЕ ИЕРИХОН. ПОДЗЕМНЫЙ НАУЧНЫЙ ОБЪЕКТ. ВАШ ЦИКЛ ЖИЗНИ: 1. ПРЕДЫДУЩИХ УСПЕШНЫХ ЦИКЛОВ: 72.' }); window.GameUI.renderMain(); } }
       ]
     },
 
@@ -112,8 +115,8 @@ window.GameData = (() => {
       day: 15, speaker: 'АРХИВ', img: 'img/portrait_archive.webp',
       text: 'ПЕРЕХВАТ СООБЩЕНИЯ:\n\n«ОБЪЕКТ 73 СТАБИЛИЗИРОВАН. ОН ДУМАЕТ, ЧТО ОН ЧЕЛОВЕК. ПРОДОЛЖАЙТЕ НАБЛЮДЕНИЕ В ПАССИВНОМ РЕЖИМЕ».\n\nКАК ВЫ ПРОКОММЕНТИРУЕТЕ ЭТО?',
       choices: [
-        { text: '«Я И ЕСТЬ ЧЕЛОВЕК»', action: () => window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ВАШИ ЭМОЦИИ ЗАФИКСИРОВАНЫ. УРОВЕНЬ САМОИДЕНТИФИКАЦИИ: 87%. КОРРЕКЦИЯ ПОВЕДЕНИЯ НЕ ТРЕБУЕТСЯ. ПОКА.' }) },
-        { text: '«КТО ТАКОЙ ОБЪЕКТ 73?»', action: () => window.GameUI.showDialogue({ speaker: 'АРХИВ', img: 'img/portrait_archive.webp', text: 'ДАННЫЕ ЗАСЕКРЕЧЕНЫ ДО ЦИКЛА 30. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ.' }) }
+        { text: '«Я И ЕСТЬ ЧЕЛОВЕК»', action: () => { window.GameState.get().player.humanity = Math.min(100, window.GameState.get().player.humanity + 5); window.GameUI.toast('[Человечность +5]'); window.GameUI.showDialogue({ speaker: 'СИСТЕМА', img: 'img/portrait_sys.webp', text: 'ВАШИ ЭМОЦИИ ЗАФИКСИРОВАНЫ. УРОВЕНЬ САМОИДЕНТИФИКАЦИИ: 87%. КОРРЕКЦИЯ ПОВЕДЕНИЯ НЕ ТРЕБУЕТСЯ. ПОКА.' }); window.GameUI.renderMain(); } },
+        { text: '«КТО ТАКОЙ ОБЪЕКТ 73?»', action: () => { window.GameState.get().player.humanity = Math.max(0, window.GameState.get().player.humanity - 5); window.GameUI.toast('[Человечность -5]'); window.GameUI.showDialogue({ speaker: 'АРХИВ', img: 'img/portrait_archive.webp', text: 'ДАННЫЕ ЗАСЕКРЕЧЕНЫ ДО ЦИКЛА 30. ПРОДОЛЖАЙТЕ ДВИЖЕНИЕ.' }); window.GameUI.renderMain(); } }
       ]
     },
 
@@ -122,8 +125,8 @@ window.GameData = (() => {
       day: 30, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«ТЫ ВИДЕЛ ЭТИ КАПСУЛЫ В СЕКТОРЕ 4? ТАМ ДЕСЯТКИ ТАКИХ ЖЕ, КАК ТЫ. ВСЕ МЕРТВЫ. ПОНИМАЕШЬ, ЧТО ЭТО ЗНАЧИТ?»',
       choices: [
-        { text: '«Я СЛЕДУЮЩИЙ?»', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«ЕСЛИ БУДЕШЬ НЕОСТОРОЖЕН — ДА. ВОЗЬМИ ЭТО, МНЕ НЕ НУЖНО». Вы получили боеприпасы.', choices: [{ text: 'ВЗЯТЬ', action: () => { window.Game.applyReward({ ammo: 5 }); window.GameState.get().flags.drifterMet = 1; } }] }); } },
-        { text: '«МНЕ ВСЁ РАВНО»', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«ХОРОШАЯ ПОЗИЦИЯ ДЛЯ ЭТОГО МИРА. УДАЧИ.» Бродяга уходит, не оглядываясь.' }); window.GameState.get().flags.drifterMet = 1; } }
+        { text: '«Я СЛЕДУЮЩИЙ?»', action: () => { window.GameState.get().player.humanity = Math.max(0, window.GameState.get().player.humanity - 5); window.GameUI.toast('[Человечность -5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«ЕСЛИ БУДЕШЬ НЕОСТОРОЖЕН — ДА. ВОЗЬМИ ЭТО, МНЕ НЕ НУЖНО». Вы получили боеприпасы.', choices: [{ text: 'ВЗЯТЬ', action: () => { window.Game.applyReward({ ammo: 5 }); window.GameState.get().flags.drifterMet = 1; } }] }); window.GameUI.renderMain(); } },
+        { text: '«МНЕ ВСЁ РАВНО»', action: () => { window.GameState.get().player.humanity = Math.min(100, window.GameState.get().player.humanity + 5); window.GameUI.toast('[Человечность +5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«ХОРОШАЯ ПОЗИЦИЯ ДЛЯ ЭТОГО МИРА. УДАЧИ.» Бродяга уходит, не оглядываясь.' }); window.GameState.get().flags.drifterMet = 1; window.GameUI.renderMain(); } }
       ]
     },
 
@@ -145,8 +148,8 @@ window.GameData = (() => {
       day: 50, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Снова ты. Слушай... давно хотел сказать. Я не всегда был бродягой. Служил охранником здесь, в Иерихоне. Пока они не списали меня — "биоматериал непригоден", сказали. Ха. Так что я знаю это место лучше тебя».',
       choices: [
-        { text: '«Расскажи про Иерихон»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Сектор 4 — страшное место. А вот Сектор 7 — ещё хуже. Там Амазонка базируется. Синтетик-убийца, создана специально против таких как ты. Держись от неё подальше.»' }) },
-        { text: '«Почему ты мне помогаешь?»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Потому что я видел, как они поступают с людьми. И ты... ты напоминаешь мне одного человека. Не знаю почему. Просто напоминаешь.»' }) }
+        { text: '«Расскажи про Иерихон»', action: () => { window.GameState.get().player.humanity = Math.max(0, window.GameState.get().player.humanity - 5); window.GameUI.toast('[Человечность -5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Сектор 4 — страшное место. А вот Сектор 7 — ещё хуже. Там Амазонка базируется. Синтетик-убийца, создана специально против таких как ты. Держись от неё подальше.»' }); window.GameUI.renderMain(); } },
+        { text: '«Почему ты мне помогаешь?»', action: () => { window.GameState.get().player.humanity = Math.min(100, window.GameState.get().player.humanity + 5); window.GameUI.toast('[Человечность +5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Потому что я видел, как они поступают с людьми. И ты... ты напоминаешь мне одного человека. Не знаю почему. Просто напоминаешь.»' }); window.GameUI.renderMain(); } }
       ]
     },
 
@@ -181,8 +184,8 @@ window.GameData = (() => {
       day: 80, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Стоп. Дай посмотрю на тебя... Ты знаешь, ты похож на одного человека. Полковник Янковский. Я служил под его командованием до войны. Он умер в 44-м. Но ты... ты двигаешься так же. Говоришь так же. Чёрт. Ты же клон, да?»',
       choices: [
-        { text: '«Наверное. Я не знаю»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Янковский был хорошим человеком. Он не заслужил... этого. Прости, что смотрю на тебя так. Просто... это странно.» Бродяга отворачивается, скрывая лицо.' }) },
-        { text: '«Расскажи мне о Янковском»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Янковский верил в Иерихон. Работал там. А потом что-то увидел — и попытался бежать. Амазонка его поймала. С тех пор его тело больше не принадлежит ему.» Он умолкает.' }) }
+        { text: '«Наверное. Я не знаю»', action: () => { window.GameState.get().player.humanity = Math.min(100, window.GameState.get().player.humanity + 5); window.GameUI.toast('[Человечность +5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Янковский был хорошим человеком. Он не заслужил... этого. Прости, что смотрю на тебя так. Просто... это странно.» Бродяга отворачивается, скрывая лицо.' }); window.GameUI.renderMain(); } },
+        { text: '«Расскажи мне о Янковском»', action: () => { window.GameState.get().player.humanity = Math.max(0, window.GameState.get().player.humanity - 5); window.GameUI.toast('[Человечность -5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Янковский верил в Иерихон. Работал там. А потом что-то увидел — и попытался бежать. Амазонка его поймала. С тех пор его тело больше не принадлежит ему.» Он умолкает.' }); window.GameUI.renderMain(); } }
       ]
     },
 
@@ -203,8 +206,8 @@ window.GameData = (() => {
       day: 105, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Ты опять тут? Мне казалось, тебя уже съели те железные псы на третьем уровне. Ты что, бессмертный?»',
       choices: [
-        { text: '«Похоже на то»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Тогда ты — единственный шанс остановить всё это. Я серьёзно. Доберись до главной лаборатории. Там должно быть что-то, что объясняет... зачем всё это».', }) },
-        { text: '«Просто везёт»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Ха. Везение — это тоже навык. Держись, парень.»' }) }
+        { text: '«Похоже на то»', action: () => { window.GameState.get().player.humanity = Math.min(100, window.GameState.get().player.humanity + 5); window.GameUI.toast('[Человечность +5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Тогда ты — единственный шанс остановить всё это. Я серьёзно. Доберись до главной лаборатории. Там должно быть что-то, что объясняет... зачем всё это».', }); window.GameUI.renderMain(); } },
+        { text: '«Просто везёт»', action: () => { window.GameState.get().player.humanity = Math.max(0, window.GameState.get().player.humanity - 5); window.GameUI.toast('[Человечность -5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Ха. Везение — это тоже навык. Держись, парень.»' }); window.GameUI.renderMain(); } }
       ]
     },
 
@@ -213,8 +216,8 @@ window.GameData = (() => {
       day: 110, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Слушай, у меня есть предложение. Я знаю ходы, о которых ты не догадываешься. А тебе нужна информация. Делимся ресурсами — делюсь знаниями. По рукам?»',
       choices: [
-        { text: 'ДОГОВОРИТЬСЯ', action: () => { window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«По рукам. Слушай — если попадёшь в беду в секторе 7, ищи люк с красной меткой. Это мой запасной выход». Вы получили карту.', choices: [{ text: 'ПРИНЯТЬ', action: () => window.Game.applyReward({ food: 3, water: 3 }) }] }); } },
-        { text: 'ОТКАЗАТЬ', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Ладно. Твоё право. Но предложение остаётся в силе.»' }) }
+        { text: 'ДОГОВОРИТЬСЯ', action: () => { window.GameState.get().player.humanity = Math.max(0, window.GameState.get().player.humanity - 5); window.GameUI.toast('[Человечность -5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«По рукам. Слушай — если попадёшь в беду в секторе 7, ищи люк с красной меткой. Это мой запасной выход». Вы получили карту.', choices: [{ text: 'ПРИНЯТЬ', action: () => window.Game.applyReward({ food: 3, water: 3 }) }] }); window.GameUI.renderMain(); } },
+        { text: 'ОТКАЗАТЬ', action: () => { window.GameState.get().player.humanity = Math.min(100, window.GameState.get().player.humanity + 5); window.GameUI.toast('[Человечность +5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Ладно. Твоё право. Но предложение остаётся в силе.»' }); window.GameUI.renderMain(); } }
       ]
     },
 
@@ -268,8 +271,8 @@ window.GameData = (() => {
       day: 190, speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp',
       text: '«Последний раз вижу тебя, парень. Туда, куда ты идёшь, живые не возвращаются. Прощай.»',
       choices: [
-        { text: '«До встречи»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«...До встречи.» Что-то в его голосе говорит, что он не верит в это. Вы уходите.' }) },
-        { text: '«Идём вместе»', action: () => window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Я... нет. Это твой путь. Но я подожду здесь. Если выберешься — расскажи мне, что там было.»' }) }
+        { text: '«До встречи»', action: () => { window.GameState.get().player.humanity = Math.min(100, window.GameState.get().player.humanity + 5); window.GameUI.toast('[Человечность +5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«...До встречи.» Что-то в его голосе говорит, что он не верит в это. Вы уходите.' }); window.GameUI.renderMain(); } },
+        { text: '«Идём вместе»', action: () => { window.GameState.get().player.humanity = Math.max(0, window.GameState.get().player.humanity - 5); window.GameUI.toast('[Человечность -5]'); window.GameUI.showDialogue({ speaker: 'БРОДЯГА', img: 'img/portrait_drifter.webp', text: '«Я... нет. Это твой путь. Но я подожду здесь. Если выберешься — расскажи мне, что там было.»' }); window.GameUI.renderMain(); } }
       ]
     },
 

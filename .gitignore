@@ -6,6 +6,10 @@ imgOld/
 
 # Python cache
 __pycache__/
+
+# Vite
+node_modules/
+dist/
 *.pyc
 *.pyo
 

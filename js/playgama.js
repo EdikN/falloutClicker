@@ -1,9 +1,4 @@
-/**
- * playgama.js — Обёртка Playgama Bridge SDK для falloutClicker
- * Инициализация, хранилище и реклама.
- */
-
-window.PlaygamaSDK = (() => {
+export const PlaygamaSDK = (() => {
   // Минимальный интервал между интерстишалами (секунды)
   const AD_COOLDOWN_SEC = 180;
   let lastAdTime = 0;
@@ -24,13 +19,13 @@ window.PlaygamaSDK = (() => {
   const save = (data) => {
     const json = typeof data === 'string' ? data : JSON.stringify(data);
     // Всегда сохраняем в localStorage как fallback
-    try { localStorage.setItem('fallout_save', json); } catch (_) {}
+    try { localStorage.setItem('fallout_save', json); } catch (_) { }
 
     // Playgama storage (async, не блокируем)
     if (bridgeReady && window.bridge) {
       try {
-        window.bridge.storage.set('fallout_save', json).catch(() => {});
-      } catch (_) {}
+        window.bridge.storage.set('fallout_save', json).catch(() => { });
+      } catch (_) { }
     }
   };
 
@@ -41,7 +36,7 @@ window.PlaygamaSDK = (() => {
         .then(data => {
           if (data) {
             // Обновляем и localStorage тоже
-            try { localStorage.setItem('fallout_save', data); } catch (_) {}
+            try { localStorage.setItem('fallout_save', data); } catch (_) { }
             callback(data);
           } else {
             // Fallback на localStorage
@@ -64,7 +59,7 @@ window.PlaygamaSDK = (() => {
     lastAdTime = now;
     try {
       window.bridge.advertisement.showInterstitial();
-    } catch (_) {}
+    } catch (_) { }
   };
 
   // --- Инициализация ---
@@ -87,7 +82,7 @@ window.PlaygamaSDK = (() => {
         // Сообщаем платформе что игра готова
         try {
           window.bridge.game.happyTime();
-        } catch (_) {}
+        } catch (_) { }
 
         setSplash(100);
         hideSplash();
