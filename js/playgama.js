@@ -132,15 +132,15 @@ export const PlaygamaSDK = (() => {
   // --- Игровое состояние ---
   const gameReady = () => {
     if (bridgeReady && window.bridge) {
-      try { window.bridge.game.gameReady(); } catch (_) { }
+      try { window.bridge.platform.sendMessage('game_ready'); } catch (_) { }
     }
   };
 
   const setGameplayState = (state) => {
     if (!bridgeReady || !window.bridge) return;
     try {
-      if (state === 'start') window.bridge.game.gameplayStart();
-      else if (state === 'stop') window.bridge.game.gameplayStop();
+      if (state === 'start') window.bridge.platform.sendMessage('gameplay_started');
+      else if (state === 'stop') window.bridge.platform.sendMessage('gameplay_stopped');
     } catch (_) { }
   };
 
@@ -171,13 +171,16 @@ export const PlaygamaSDK = (() => {
 
   const isBridgeReady = () => bridgeReady;
 
-  // --- Хелперы паузы звука во время рекламы ---
+  // --- Хелперы паузы звука во время рекламы и сворачивания ---
   let isAdShowing = false;
+  let isPlatformHidden = false;
+  let isAudioMutedByPlatform = false;
 
   const updateAudioState = () => {
     try {
       if (window.SoundManager && window.SoundManager.systemMute) {
-        const shouldMute = isAdShowing || (typeof document !== 'undefined' && document.hidden);
+        const isDocumentHidden = typeof document !== 'undefined' && document.hidden;
+        const shouldMute = isAdShowing || isPlatformHidden || isDocumentHidden || isAudioMutedByPlatform;
         window.SoundManager.systemMute(shouldMute);
       }
     } catch (_) { }
@@ -227,6 +230,36 @@ export const PlaygamaSDK = (() => {
               if (state === 'closed' || state === 'failed') _resumeSound();
             }
           );
+        } catch (_) { }
+
+        // Подписка на изменение состояния видимости игры (вкладки)
+        try {
+          if (window.bridge.game && window.bridge.EVENT_NAME.VISIBILITY_STATE_CHANGED) {
+            window.bridge.game.on(window.bridge.EVENT_NAME.VISIBILITY_STATE_CHANGED, state => {
+              isPlatformHidden = (state === 'hidden');
+              updateAudioState();
+            });
+          }
+        } catch (_) { }
+
+        // Подписка на изменение звука платформы
+        try {
+          if (window.bridge.platform && window.bridge.EVENT_NAME.AUDIO_STATE_CHANGED) {
+            window.bridge.platform.on(window.bridge.EVENT_NAME.AUDIO_STATE_CHANGED, isEnabled => {
+              isAudioMutedByPlatform = !isEnabled;
+              updateAudioState();
+            });
+          }
+        } catch (_) { }
+
+        // Подписка на состояние паузы от платформы
+        try {
+          if (window.bridge.platform && window.bridge.EVENT_NAME.PAUSE_STATE_CHANGED) {
+            window.bridge.platform.on(window.bridge.EVENT_NAME.PAUSE_STATE_CHANGED, isPaused => {
+              isPlatformHidden = isPaused; // Используем как скрытие окна
+              updateAudioState();
+            });
+          }
         } catch (_) { }
 
         setSplash(100);

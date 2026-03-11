@@ -481,7 +481,7 @@ const checkAdEvents = () => {
         text_en: 'CRITICAL SUPPLY SHORTAGE DETECTED. SUPPLY DRONE AVAILABLE.',
         choices: [
           {
-            text: UI.t('btn_airdrop') + (UI.t('lang') === 'ru' ? ' (РЕКЛАМА)' : ' (AD)'), action: () => {
+            text: UI.t('btn_airdrop') + (UI.t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
               window.PlaygamaSDK.showRewarded('airdrop', () => {
                 applyReward({ materials: 5, caps: 5, food: 3, water: 3, ammo: 10 });
                 UI.toast(UI.t('toast_airdrop')); S.save(); UI.renderMain();
@@ -505,7 +505,7 @@ const checkAdEvents = () => {
         text_en: 'CRITICAL VITAL SIGNS DROP. RECEIVE EMERGENCY RATION?',
         choices: [
           {
-            text: UI.t('btn_emergency') + (UI.t('lang') === 'ru' ? ' (РЕКЛАМА)' : ' (AD)'), action: () => {
+            text: UI.t('btn_emergency') + (UI.t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
               window.PlaygamaSDK.showRewarded('emergency_ration', () => {
                 const st = S.get();
                 st.player.hp = st.player.maxHp;
@@ -532,7 +532,7 @@ const checkAdEvents = () => {
         text_en: 'COMBAT STIMULANT FOUND. ACTIVATE ADRENALINE (+50% DAMAGE FOR 15 MIN)?',
         choices: [
           {
-            text: UI.t('btn_adrenaline') + (UI.t('lang') === 'ru' ? ' (РЕКЛАМА)' : ' (AD)'), action: () => {
+            text: UI.t('btn_adrenaline') + (UI.t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
               window.PlaygamaSDK.showRewarded('adrenaline', () => {
                 st.adBoosts.adrenaline = Date.now() + 900000;
                 UI.toast(UI.t('toast_adrenaline')); UI.renderTop(); UI.renderMain(); S.save();
