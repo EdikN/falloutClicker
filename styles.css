@@ -319,7 +319,8 @@ h2 {
   text-transform: uppercase;
   transition: all 0.2s;
   flex: 1 1 auto;
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
   backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
@@ -756,6 +757,16 @@ h2 {
 
   #retreat {
     grid-column: span 3;
+  }
+
+  .actionsRow .pill-btn {
+    white-space: normal;
+    font-size: 0.85em;
+    padding: 0.2rem;
+    line-height: 1.1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .res {

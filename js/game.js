@@ -456,10 +456,10 @@ const checkAdEvents = () => {
   st.adBoosts.lastEmergencyDay = st.adBoosts.lastEmergencyDay || 0;
   st.adBoosts.lastAdrenalineDay = st.adBoosts.lastAdrenalineDay || 0;
 
-  if (st.day - st.adBoosts.lastAdShownDay < 10) return false;
+  if (st.day - st.adBoosts.lastAdShownDay < 3) return false;
 
-  if ((st.resources.food === 0 || st.resources.water === 0) && (st.day - st.adBoosts.lastDroneDay >= 25)) {
-    if (rng() < 0.5) {
+  if ((st.resources.food < 5 || st.resources.water < 5) && (st.day - st.adBoosts.lastDroneDay >= 10)) {
+    if (rng() < 0.4) {
       st.adBoosts.lastDroneDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
       UI.showDialogue({
@@ -482,8 +482,8 @@ const checkAdEvents = () => {
     }
   }
 
-  if ((st.player.hp / st.player.maxHp < 0.3) && (st.day - st.adBoosts.lastEmergencyDay >= 25)) {
-    if (rng() < 0.5) {
+  if ((st.player.hp / st.player.maxHp < 0.5) && (st.day - st.adBoosts.lastEmergencyDay >= 10)) {
+    if (rng() < 0.4) {
       st.adBoosts.lastEmergencyDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
       UI.showDialogue({
@@ -505,8 +505,8 @@ const checkAdEvents = () => {
     }
   }
 
-  if (st.day - st.adBoosts.lastAdrenalineDay >= 50) {
-    if (rng() < 0.2) {
+  if (st.day - st.adBoosts.lastAdrenalineDay >= 15) {
+    if (rng() < 0.3) {
       st.adBoosts.lastAdrenalineDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
       UI.showDialogue({
@@ -641,10 +641,13 @@ const renderMerchant = async () => {
     content.innerHTML = `<div class="sub" style="margin-bottom:1rem;">${UI.t('shop_desc')}</div>`;
 
     const DEFAULT_ITEMS = [
-      { id: 'no_ads', price: '99 GAM', name: 'БЕЗ РЕКЛАМЫ', desc: 'Убирает межстраничную рекламу.' },
-      { id: 'starter_pack', price: '49 GAM', name: 'СТАРТОВЫЙ НАБОР', desc: 'Оружие + Ресурсы.' },
-      { id: 'premium_caps', price: '29 GAM', name: '200 КРЕДИТОВ', desc: 'Мгновенное пополнение.' },
-      { id: 'cyber_stomach', price: '59 GAM', name: 'КИБЕР-ЖЕЛУДОК', desc: '-50% расход еды/воды.' }
+      { id: 'no_ads', price: '99 GAM', name: 'БЕЗ РЕКЛАМЫ', desc: 'Навсегда убирает межстраничную рекламу. Никаких прерываний во время игры.' },
+      { id: 'starter_pack', price: '49 GAM', name: 'СТАРТОВЫЙ НАБОР', desc: 'Надежный старт: 50 кредитов, Кирка, по 10 еды и воды.' },
+      { id: 'premium_caps', price: '29 GAM', name: 'КОШЕЛЕК: 200 КРЕДИТОВ', desc: 'Мгновенное пополнение баланса на 200 кредитов для любых покупок.' },
+      { id: 'mega_pack', price: '89 GAM', name: 'МЕГА-ЯЩИК ПРИПАСОВ', desc: 'Крупная поставка: 500 кредитов, 15 патронов и 5 аптечек сразу.' },
+      { id: 'cyber_stomach', price: '59 GAM', name: 'ИМПЛАНТ "КИБЕР-ЖЕЛУДОК"', desc: 'Постоянный эффект: снижает ежедневный расход еды и воды на 50%.' },
+      { id: 'iron_arsenal', price: '79 GAM', name: 'ЖЕЛЕЗНЫЙ АРСЕНАЛ', desc: 'Мощное вооружение: открывает Дробовик и дает 30 патронов к нему.' },
+      { id: 'heavy_armor', price: '119 GAM', name: 'СИЛОВОЙ КАРКАС', desc: 'Элитная защита: мгновенно дает доступ к тяжелой силовой броне.' }
     ];
 
     const items = DEFAULT_ITEMS.map(item => {
@@ -660,11 +663,25 @@ const renderMerchant = async () => {
       return item;
     });
 
+    const ICONS = {
+      'no_ads': '🚫',
+      'starter_pack': '🎒',
+      'premium_caps': '💰',
+      'mega_pack': '📦',
+      'cyber_stomach': '🤖',
+      'iron_arsenal': '🔫',
+      'heavy_armor': '🛡️'
+    };
+
     items.forEach(item => {
       const div = document.createElement('div');
       div.className = 'shopItem';
+      const icon = ICONS[item.id] || '🛒';
       div.innerHTML = `
-        <div>${item.name} <div class="sub">${item.desc}</div></div>
+        <div style="display:flex; gap:0.4rem; align-items:center;">
+          <span style="font-size:1.5em">${icon}</span>
+          <div>${item.name} <div class="sub">${item.desc}</div></div>
+        </div>
         <button class="btn good" style="min-width:80px;">${item.price}</button>
       `;
       div.querySelector('button').onclick = () => {
@@ -742,8 +759,14 @@ const startDay = () => {
   SoundManager.play('click');
   if (st.player.hp <= 0) return;
 
-  if (st.day % 10 === 0 && window.PlaygamaSDK && !st.permanentBonuses.noAds) {
-    window.PlaygamaSDK.showInterstitial();
+  if (window.PlaygamaSDK && !st.permanentBonuses.noAds) {
+    if (!st.adBoosts.nextInterstitialDay) {
+      st.adBoosts.nextInterstitialDay = st.day + 10 + Math.floor(rng() * 11);
+    }
+    if (st.day >= st.adBoosts.nextInterstitialDay) {
+      window.PlaygamaSDK.showInterstitial();
+      st.adBoosts.nextInterstitialDay = st.day + 10 + Math.floor(rng() * 11);
+    }
   }
 
   updateChapterTitle(st.day);

@@ -73,16 +73,25 @@ export const GameUI = (() => {
     $('#teleFill').style.transform = `scaleX(${clamp(1 - c.enemyAtk / e.atk, 0, 1)})`;
 
     // КД Игрока
-    const atkFill = $('#atkFill');
-    if (atkFill) {
+    const atkBtn = $('#atk');
+    if (atkBtn) {
       const cdPerc = p.atkCd > 0 ? (1 - p.atkCd / p.atkCdMax) : 1;
-      atkFill.style.transform = `scaleX(${clamp(cdPerc, 0, 1)})`;
-      $('#atk').disabled = p.atkCd > 0;
+
+      if (p.atkCd > 0) {
+        atkBtn.innerHTML = `${t('dodge').toUpperCase()}<div class="cd-bar"><div id="atkFill" style="transform:scaleX(${clamp(cdPerc, 0, 1)})"></div></div>`;
+        atkBtn.disabled = true;
+      } else {
+        atkBtn.innerHTML = `${t('atk')}<div class="cd-bar"><div id="atkFill" style="transform:scaleX(1)"></div></div>`;
+        atkBtn.disabled = false;
+      }
     }
 
     // Кнопка уклонения с кулдауном
-    $('#dodge').disabled = c.cdDodge > 0;
-    $('#dodge').textContent = c.cdDodge > 0 ? `${t('dodge').slice(0, 1)} [${c.cdDodge.toFixed(1)}s]` : t('dodge').toUpperCase();
+    const dodgeBtn = $('#dodge');
+    if (dodgeBtn) {
+      dodgeBtn.disabled = c.cdDodge > 0;
+      dodgeBtn.textContent = c.cdDodge > 0 ? `${t('dodge').slice(0, 1)} [${c.cdDodge.toFixed(1)}s]` : t('dodge').toUpperCase();
+    }
   };
 
   // --- ИНТЕРНАЦИОНАЛИЗАЦИЯ (i18n) ---
