@@ -24,7 +24,8 @@ export const PlaygamaSDK = (() => {
     // Playgama storage (async, не блокируем)
     if (bridgeReady && window.bridge) {
       try {
-        window.bridge.storage.set('fallout_save', json).catch(() => { });
+        const storageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL;
+        window.bridge.storage.set('fallout_save', json, storageType).catch(() => { });
       } catch (_) { }
     }
   };
@@ -32,7 +33,8 @@ export const PlaygamaSDK = (() => {
   // --- Загрузка ---
   const load = (callback) => {
     if (bridgeReady && window.bridge) {
-      window.bridge.storage.get('fallout_save')
+      const storageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL;
+      window.bridge.storage.get('fallout_save', storageType)
         .then(data => {
           if (data) {
             try { localStorage.setItem('fallout_save', data); } catch (_) { }
@@ -128,6 +130,37 @@ export const PlaygamaSDK = (() => {
     } catch (_) { }
   };
 
+  // --- Игровое состояние ---
+  const gameReady = () => {
+    if (bridgeReady && window.bridge) {
+      try { window.bridge.game.gameReady(); } catch (_) { }
+    }
+  };
+
+  const setGameplayState = (state) => {
+    if (!bridgeReady || !window.bridge) return;
+    try {
+      if (state === 'start') window.bridge.game.gameplayStart();
+      else if (state === 'stop') window.bridge.game.gameplayStop();
+    } catch (_) { }
+  };
+
+  // --- IAP: каталог ---
+  const getCatalog = () => {
+    if (!bridgeReady || !window.bridge || !window.bridge.payments.isSupported) return Promise.resolve([]);
+    return window.bridge.payments.getCatalog()
+      .then(items => items || [])
+      .catch(() => []);
+  };
+
+  // --- Локализация ---
+  const getLanguage = () => {
+    if (bridgeReady && window.bridge) {
+      return window.bridge.platform.language || 'ru';
+    }
+    return 'ru';
+  };
+
   const isBridgeReady = () => bridgeReady;
 
   // --- Хелперы паузы звука во время рекламы ---
@@ -171,11 +204,6 @@ export const PlaygamaSDK = (() => {
           );
         } catch (_) { }
 
-        // Сообщаем платформе что игра готова
-        try {
-          window.bridge.game.happyTime();
-        } catch (_) { }
-
         setSplash(100);
         hideSplash();
         console.log('[PlaygamaSDK] Инициализирован успешно.');
@@ -193,5 +221,11 @@ export const PlaygamaSDK = (() => {
     init();
   }
 
-  return { save, load, showInterstitial, showRewarded, buyProduct, checkPurchases, isBridgeReady };
+  return {
+    save, load,
+    showInterstitial, showRewarded,
+    buyProduct, checkPurchases, getCatalog,
+    gameReady, setGameplayState,
+    getLanguage, isBridgeReady
+  };
 })();

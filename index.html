@@ -13,16 +13,15 @@
   <header class="hud card">
     <div class="hud-top">
       <div class="titleBlock">
-        <h1 id="currentGoal">[ТЕКУЩАЯ ЦЕЛЬ: ВЫЖИТЬ]</h1>
-        <div class="sub highlight-text" id="deathCount">ЦИКЛОВ (СМЕРТЕЙ): 0</div>
+        <h1 id="currentGoal" data-i18n="goal_survive">[ТЕКУЩАЯ ЦЕЛЬ: ВЫЖИТЬ]</h1>
+        <div class="sub highlight-text" id="deathCount" data-i18n="cycles">ЦИКЛОВ (СМЕРТЕЙ): 0</div>
       </div>
-      <div class="capsTop" id="capsTop">[КРЕДИТЫ]: 0</div>
     </div>
     <div class="row">
-      <div class="pill" id="day">ДЕНЬ 1</div>
-      <div class="pill" id="phase">СТАТУС: ИССЛЕДОВАНИЕ</div>
-      <div class="pill" id="weaponPill">ОРУЖИЕ: КУЛАКИ</div>
-      <button class="pill btn-mini" id="muteBtn" title="ЗВУК ВКЛ/ВЫКЛ">🔊 ЗВУК</button>
+      <div class="pill" id="day" data-i18n="day_label">ДЕНЬ 1</div>
+      <div class="pill capsTop" id="capsTop" data-i18n="credits_label">[КРЕДИТЫ]: 0</div>
+      <div class="pill" id="weaponPill" data-i18n="weapon_label">ОРУЖИЕ: КУЛАКИ</div>
+      <button class="pill btn-mini" id="muteBtn" title="ЗВУК ВКЛ/ВЫКЛ" data-i18n="sound_btn">🔊 ЗВУК</button>
     </div>
   </header>
 
@@ -31,19 +30,14 @@
       <button id="charBtn" title="СЛЕДУЮЩИЙ ДЕНЬ">
         <img src="img/person.webp" alt="ВЫЖИВШИЙ" onerror="this.style.display='none'" />
       </button>
-      <div class="hint"><b>[ВВОД] КЛИК ПО СКАНЕРУ = НОВЫЙ ДЕНЬ</b></div>
-      <div class="sub" id="statusText">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
+      <div class="hint" data-i18n="hint_click"><b>[ВВОД] КЛИК ПО ПЕРСОНАЖУ</b></div>
+      <div class="sub" id="statusText" data-i18n="sys_init">ИНИЦИАЛИЗАЦИЯ СИСТЕМ...</div>
       <div class="statusBars" id="statusBars"></div>
       <div class="res" id="res"></div>
-      <div class="actionsRow" id="adActions" style="margin-bottom: 0.5rem; display: none;">
-        <button class="pill pill-btn ad-btn" id="airdropBtn" style="display:none;">📦 ДРОН СНАБЖЕНИЯ</button>
-        <button class="pill pill-btn ad-btn" id="adrenalineBtn">⚡ АДРЕНАЛИН</button>
-        <button class="pill pill-btn ad-btn bad" id="emergencyBtn" style="display:none;">🚨 АВАРИЙНЫЙ ПАЁК</button>
-      </div>
       <div class="actionsRow" id="actionsRow">
-        <button class="pill pill-btn" id="merchantBtn">СЕТЬ ТОРГОВЛИ</button>
-        <button class="pill pill-btn" id="equipBtn">ИНВЕНТАРЬ</button>
-        <button class="pill pill-btn" id="craftBtn">СИНТЕЗАТОР</button>
+        <button class="pill pill-btn" id="merchantBtn" data-i18n="btn_merchant">СЕТЬ ТОРГОВЛИ</button>
+        <button class="pill pill-btn" id="equipBtn" data-i18n="btn_inventory">ИНВЕНТАРЬ</button>
+        <button class="pill pill-btn" id="craftBtn" data-i18n="btn_synth">СИНТЕЗАТОР</button>
       </div>
     </section>
   </main>
@@ -51,7 +45,7 @@
   <!-- МОДАЛЬНЫЕ ОКНА -->
   <div class="overlay" id="storyModal">
     <div class="card modal">
-      <h2 id="storySpeaker">ПЕРЕХВАТ ДАННЫХ</h2>
+      <h2 id="storySpeaker" data-i18n="intercept_data">ПЕРЕХВАТ ДАННЫХ</h2>
       <div class="row" style="gap: 1.5rem; align-items: flex-start;">
         <img id="storyPortrait" src="" alt="Портрет"
           style="width: 120px; height: 120px; border: 2px solid var(--line); display: none; object-fit: cover;"
@@ -59,23 +53,25 @@
         <div id="storyText" class="scrollable" style="font-size: 1.1em; line-height: 1.4; flex: 1;"></div>
       </div>
       <div id="storyChoices" class="actionsRow" style="margin-bottom: 1rem;"></div>
-      <button class="btn good" id="storyOk">ПРОДОЛЖИТЬ</button>
+      <button class="btn good" id="storyOk" data-i18n="btn_continue">ПРОДОЛЖИТЬ</button>
     </div>
   </div>
 
   <div class="overlay" id="encounterModal">
     <div class="card modal">
-      <h2>ВНИМАНИЕ: СОБЫТИЕ</h2>
+      <h2 data-i18n="event_warning">ВНИМАНИЕ: СОБЫТИЕ</h2>
       <div id="encounterText" class="scrollable"></div>
-      <div class="row" style="justify-content:center;"><button class="btn good"
-          id="encounterYes">ПОДТВЕРДИТЬ</button><button class="btn alt" id="encounterNo">ОТМЕНА</button></div>
+      <div class="row" style="justify-content:center;">
+        <button class="btn good" id="encounterYes" data-i18n="btn_confirm">ПОДТВЕРДИТЬ</button>
+        <button class="btn alt" id="encounterNo" data-i18n="btn_cancel">ОТМЕНА</button>
+      </div>
     </div>
   </div>
 
   <div class="overlay" id="battleModal">
     <div class="card modal">
       <div class="hud-top" style="margin-bottom:0;">
-        <h2>РЕЖИМ БОЯ</h2>
+        <h2 data-i18n="battle_mode">РЕЖИМ БОЯ</h2>
         <div class="pill" id="battleTimer">00.0s</div>
       </div>
       <div class="statusBars" id="pBars"></div>
@@ -85,72 +81,82 @@
         <div class="bar">
           <div class="fill bg-bad" id="eHp"></div>
         </div>
-        <div class="sub" id="telegraph">[ОЖИДАНИЕ АТАКИ]</div>
+        <div class="sub" id="telegraph" data-i18n="waiting_attack">[ОЖИДАНИЕ АТАКИ]</div>
         <div class="bar">
           <div class="fill bg-warn" id="teleFill"></div>
         </div>
       </div>
       <div class="actions">
-        <button class="btn" id="atk">
+        <button class="btn" id="atk" data-i18n="atk">
           АТАКА
           <div class="cd-bar">
             <div id="atkFill"></div>
           </div>
         </button>
-        <button class="btn" id="dodge">УКЛОНЕНИЕ</button>
-        <button class="btn" id="med">ЛЕЧЕНИЕ</button>
-        <button class="btn bad" id="retreat" style="grid-column: span 3;">ОТСТУПИТЬ</button>
+        <button class="btn" id="dodge" data-i18n="dodge">УКЛОНЕНИЕ</button>
+        <button class="btn" id="med" data-i18n="med">ЛЕЧЕНИЕ</button>
+        <button class="btn bad" id="retreat" style="grid-column: span 3;" data-i18n="retreat">ОТСТУПИТЬ</button>
       </div>
     </div>
   </div>
 
   <div class="overlay" id="rewardModal">
     <div class="card modal">
-      <h2>СИСТЕМНОЕ СООБЩЕНИЕ</h2>
+      <h2 data-i18n="sys_msg">СИСТЕМНОЕ СООБЩЕНИЕ</h2>
       <div id="rewardText" class="scrollable"></div>
       <div class="row" style="gap:0.5rem;">
-        <button class="btn good" id="rewardOk">ПРИНЯТЬ</button>
-        <button class="btn warn" id="doubleRewardBtn">✖2 ТРОФЕИ</button>
+        <button class="btn good" id="rewardOk" data-i18n="btn_accept">ПРИНЯТЬ</button>
+        <button class="btn warn" id="doubleRewardBtn" data-i18n="btn_double_loot">✖2 ТРОФЕИ</button>
       </div>
     </div>
   </div>
+
   <div class="overlay" id="merchantModal">
     <div class="card modal">
-      <h2>ТОРГОВАЯ СЕТЬ</h2>
-      <div class="sub">ОБМЕН КРЕДИТОВ НА РЕСУРСЫ.</div>
-      <div id="merchantStock" class="scrollable"></div><button class="btn" id="merchantClose">ЗАКРЫТЬ
-        СОЕДИНЕНИЕ</button>
+      <h2 data-i18n="btn_merchant">ТОРГОВАЯ СЕТЬ</h2>
+      <div class="sub" data-i18n="merchant_desc">ОБМЕН КРЕДИТОВ НА РЕСУРСЫ.</div>
+      <div id="merchantStock" class="scrollable"></div>
+      <button class="btn" id="merchantClose" data-i18n="btn_close_conn">ЗАКРЫТЬ СОЕДИНЕНИЕ</button>
     </div>
   </div>
+
   <div class="overlay" id="craftModal">
     <div class="card modal">
-      <h2>СИНТЕЗАТОР</h2>
-      <div class="sub">СИНТЕЗ И МОДЕРНИЗАЦИЯ.</div>
-      <div id="craftStock" class="scrollable"></div><button class="btn" id="craftClose">ОТКЛЮЧИТЬСЯ</button>
+      <h2 data-i18n="btn_synth">СИНТЕЗАТОР</h2>
+      <div class="sub" data-i18n="synth_desc">СИНТЕЗ И МОДЕРНИЗАЦИЯ.</div>
+      <div id="craftStock" class="scrollable"></div>
+      <button class="btn" id="craftClose" data-i18n="btn_disconnect">ОТКЛЮЧИТЬСЯ</button>
     </div>
   </div>
+
   <div class="overlay" id="equipModal">
     <div class="card modal">
-      <h2>ИНВЕНТАРЬ</h2>
-      <div class="sub">ВЫБОР ДОСТУПНОГО СНАРЯЖЕНИЯ.</div>
-      <div id="equipList" class="scrollable"></div><button class="btn" id="equipClose">ЗАКРЫТЬ</button>
+      <h2 data-i18n="btn_inventory">ИНВЕНТАРЬ</h2>
+      <div class="sub" data-i18n="inventory_desc">ВЫБОР ДОСТУПНОГО СНАРЯЖЕНИЯ.</div>
+      <div id="equipList" class="scrollable"></div>
+      <button class="btn" id="equipClose" data-i18n="btn_close">ЗАКРЫТЬ</button>
     </div>
   </div>
 
   <!-- ЭКРАН ПОРАЖЕНИЯ -->
   <div class="overlay defeat-overlay" id="defeatModal">
     <div class="card modal defeat-card">
-      <h2 class="glitch-text" data-text="КРИТИЧЕСКИЙ СБОЙ">КРИТИЧЕСКИЙ СБОЙ</h2>
+      <h2 class="glitch-text" data-text="КРИТИЧЕСКИЙ СБОЙ" data-i18n="crit_failure">КРИТИЧЕСКИЙ СБОЙ</h2>
       <div style="font-size: 5rem; text-align: center; margin: 1rem 0;">☠️</div>
       <div class="defeat-stats">
-        <div>СТАТУС ОБЪЕКТА: <span style="color:var(--bad)">ЛИКВИДИРОВАН</span></div>
-        <div id="defeatReason" style="color:#aaa; font-size: 0.9em;">ПРИЧИНА: НЕИЗВЕСТНО</div>
-        <div id="defeatDays" style="font-size: 1.2em; margin-top: 0.5rem; color:var(--warn)">ПРОЖИТО ЦИКЛОВ: 0</div>
+        <div><span data-i18n="obj_status">СТАТУС ОБЪЕКТА:</span> <span style="color:var(--bad)"
+            data-i18n="liquidated">ЛИКВИДИРОВАН</span></div>
+        <div id="defeatReason" style="color:#aaa; font-size: 0.9em;" data-i18n="reason_unknown">ПРИЧИНА: НЕИЗВЕСТНО
+        </div>
+        <div id="defeatDays" style="font-size: 1.2em; margin-top: 0.5rem; color:var(--warn)" data-i18n="cycles_lived">
+          ПРОЖИТО ЦИКЛОВ: 0</div>
       </div>
-      <div class="defeat-msg" id="defeatMsg">"СИСТЕМА ОЧИЩЕНА. ЗАГРУЗКА НОВОГО КЛОНА..."</div>
+      <div class="defeat-msg" id="defeatMsg" data-i18n="sys_cleaned">"СИСТЕМА ОЧИЩЕНА. ЗАГРУЗКА НОВОГО КЛОНА..."</div>
       <div class="row" style="flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
-        <button class="btn warn" id="reviveBtn" style="padding: 1rem;">⚡ ЗАГРУЗИТЬ РЕЗЕРВ (REVIVE)</button>
-        <button class="btn bad" id="newRun" style="padding: 1rem;">ИНИЦИАЛИЗАЦИЯ НОВОГО ЦИКЛА</button>
+        <button class="btn warn" id="reviveBtn" style="padding: 1rem;" data-i18n="btn_revive">⚡ ЗАГРУЗИТЬ РЕЗЕРВ
+          (REVIVE)</button>
+        <button class="btn bad" id="newRun" style="padding: 1rem;" data-i18n="btn_new_cycle">ИНИЦИАЛИЗАЦИЯ НОВОГО
+          ЦИКЛА</button>
       </div>
     </div>
   </div>
@@ -159,12 +165,13 @@
   <div class="overlay ending-overlay" id="endingModal">
     <div class="card modal ending-card">
       <div class="ending-glow"></div>
-      <h2 id="endingTitle" class="ending-title">КОНЕЦ ЦИКЛА</h2>
+      <h2 id="endingTitle" class="ending-title" data-i18n="cycle_end">КОНЕЦ ЦИКЛА</h2>
       <div class="ending-divider"></div>
       <div id="endingText" class="ending-text scrollable"></div>
       <div class="ending-divider"></div>
       <div id="endingScore" class="ending-score"></div>
-      <button class="btn good" id="endingNewRun" style="margin-top:1.5rem; padding:1rem; font-size:1.1em;">
+      <button class="btn good" id="endingNewRun" style="margin-top:1.5rem; padding:1rem; font-size:1.1em;"
+        data-i18n="btn_restart_cycle">
         ↺ НАЧАТЬ НОВЫЙ ЦИКЛ
       </button>
     </div>

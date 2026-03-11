@@ -24,10 +24,9 @@ body {
   line-height: 1.15;
   color: var(--txt);
   background-color: #030803;
-  background-image: linear-gradient(rgba(3, 8, 3, 0.6), rgba(3, 8, 3, 0.6)), url('img/background.webp');
+  background-image: linear-gradient(rgba(3, 8, 3, 0.6), rgba(3, 8, 3, 0.6)), url('/img/background.webp');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
   background-repeat: no-repeat;
   height: 100svh;
   width: 100vw;
@@ -152,7 +151,7 @@ h2 {
 }
 
 .capsTop {
-  padding: 0.15rem 0.4rem;
+  padding: 0.2rem 0.4rem;
   border: 1px solid var(--line);
   background: rgba(0, 0, 0, 0.8);
 }
@@ -161,6 +160,7 @@ h2 {
   display: flex;
   gap: 0.3rem;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 /* ПЛАШКИ */
