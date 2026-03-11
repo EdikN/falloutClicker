@@ -252,7 +252,21 @@ export const GameUI = (() => {
       cat_upgrades: 'УЛУЧШЕНИЯ',
       cat_weapon: 'ОРУЖИЕ',
       wpn_gun: 'ОГНЕСТРЕЛ',
-      wpn_melee: 'БЛИЖНИЙ БОЙ'
+      wpn_melee: 'БЛИЖНИЙ БОЙ',
+      item_no_ads_name: 'БЕЗ РЕКЛАМЫ',
+      item_no_ads_desc: 'Навсегда убирает межстраничную рекламу. Никаких прерываний во время игры.',
+      item_starter_name: 'СТАРТОВЫЙ НАБОР',
+      item_starter_desc: 'Надежный старт: 50 кредитов, Кирка, по 10 еды и воды.',
+      item_premium_name: 'КОШЕЛЕК: 200 КРЕДИТОВ',
+      item_premium_desc: 'Мгновенное пополнение баланса на 200 кредитов для любых покупок.',
+      item_mega_name: 'МЕГА-ЯЩИК ПРИПАСОВ',
+      item_mega_desc: 'Крупная поставка: 500 кредитов, 15 патронов и 5 аптечек сразу.',
+      item_stomach_name: 'ИМПЛАНТ "КИБЕР-ЖЕЛУДОК"',
+      item_stomach_desc: 'Постоянный эффект: снижает ежедневный расход еды и воды на 50%.',
+      item_arsenal_name: 'ЖЕЛЕЗНЫЙ АРСЕНАЛ',
+      item_arsenal_desc: 'Мощное вооружение: открывает Дробовик и дает 30 патронов к нему.',
+      item_armor_name: 'СИЛОВОЙ КАРКАС',
+      item_armor_desc: 'Элитная защита: мгновенно дает доступ к тяжелой силовой броне.'
     },
     en: {
       days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -405,7 +419,21 @@ export const GameUI = (() => {
       cat_upgrades: 'UPGRADES',
       cat_weapon: 'WEAPON',
       wpn_gun: 'GUN',
-      wpn_melee: 'MELEE'
+      wpn_melee: 'MELEE',
+      item_no_ads_name: 'NO ADS',
+      item_no_ads_desc: 'Permanently removes interstitial ads. No interruptions during gameplay.',
+      item_starter_name: 'STARTER PACK',
+      item_starter_desc: 'Reliable start: 50 credits, Pickaxe, 10 food and water each.',
+      item_premium_name: 'WALLET: 200 CREDITS',
+      item_premium_desc: 'Instant balance top-up: 200 credits for any purchases.',
+      item_mega_name: 'MEGA SUPPLY CRATE',
+      item_mega_desc: 'Major shipment: 500 credits, 15 ammo and 5 medkits at once.',
+      item_stomach_name: 'IMPLANT "CYBER-STOMACH"',
+      item_stomach_desc: 'Permanent effect: halves daily food and water consumption by 50%.',
+      item_arsenal_name: 'IRON ARSENAL',
+      item_arsenal_desc: 'Heavy weaponry: unlocks the Shotgun and provides 30 shells for it.',
+      item_armor_name: 'POWER FRAME',
+      item_armor_desc: 'Elite protection: instantly grants access to heavy power armor.'
     }
   };
 

@@ -11,49 +11,43 @@
         {
             "id": "no_ads",
             "playgama": {
-                "amount": 99
+                "amount": 299
             }
         },
         {
             "id": "starter_pack",
             "playgama": {
-                "amount": 49
+                "amount": 149
             }
         },
         {
             "id": "premium_caps",
             "playgama": {
-                "amount": 29
+                "amount": 99
             }
         },
         {
             "id": "mega_pack",
             "playgama": {
-                "amount": 79
+                "amount": 299
             }
         },
         {
             "id": "cyber_stomach",
             "playgama": {
-                "amount": 59
+                "amount": 199
             }
         },
         {
             "id": "iron_arsenal",
             "playgama": {
-                "amount": 49
+                "amount": 249
             }
         },
         {
             "id": "heavy_armor",
             "playgama": {
-                "amount": 69
-            }
-        },
-        {
-            "id": "dlc_sector7",
-            "playgama": {
-                "amount": 99
+                "amount": 399
             }
         }
     ]

@@ -655,13 +655,13 @@ const renderMerchant = async () => {
     content.innerHTML = `<div class="sub" style="margin-bottom:1rem;">${UI.t('shop_desc')}</div>`;
 
     const DEFAULT_ITEMS = [
-      { id: 'no_ads', price: '99 GAM', name: 'БЕЗ РЕКЛАМЫ', desc: 'Навсегда убирает межстраничную рекламу. Никаких прерываний во время игры.' },
-      { id: 'starter_pack', price: '49 GAM', name: 'СТАРТОВЫЙ НАБОР', desc: 'Надежный старт: 50 кредитов, Кирка, по 10 еды и воды.' },
-      { id: 'premium_caps', price: '29 GAM', name: 'КОШЕЛЕК: 200 КРЕДИТОВ', desc: 'Мгновенное пополнение баланса на 200 кредитов для любых покупок.' },
-      { id: 'mega_pack', price: '89 GAM', name: 'МЕГА-ЯЩИК ПРИПАСОВ', desc: 'Крупная поставка: 500 кредитов, 15 патронов и 5 аптечек сразу.' },
-      { id: 'cyber_stomach', price: '59 GAM', name: 'ИМПЛАНТ "КИБЕР-ЖЕЛУДОК"', desc: 'Постоянный эффект: снижает ежедневный расход еды и воды на 50%.' },
-      { id: 'iron_arsenal', price: '79 GAM', name: 'ЖЕЛЕЗНЫЙ АРСЕНАЛ', desc: 'Мощное вооружение: открывает Дробовик и дает 30 патронов к нему.' },
-      { id: 'heavy_armor', price: '119 GAM', name: 'СИЛОВОЙ КАРКАС', desc: 'Элитная защита: мгновенно дает доступ к тяжелой силовой броне.' }
+      { id: 'no_ads', price: '299 GAM', name: UI.t('item_no_ads_name'), desc: UI.t('item_no_ads_desc') },
+      { id: 'starter_pack', price: '149 GAM', name: UI.t('item_starter_name'), desc: UI.t('item_starter_desc') },
+      { id: 'premium_caps', price: '99 GAM', name: UI.t('item_premium_name'), desc: UI.t('item_premium_desc') },
+      { id: 'mega_pack', price: '299 GAM', name: UI.t('item_mega_name'), desc: UI.t('item_mega_desc') },
+      { id: 'cyber_stomach', price: '199 GAM', name: UI.t('item_stomach_name'), desc: UI.t('item_stomach_desc') },
+      { id: 'iron_arsenal', price: '249 GAM', name: UI.t('item_arsenal_name'), desc: UI.t('item_arsenal_desc') },
+      { id: 'heavy_armor', price: '399 GAM', name: UI.t('item_armor_name'), desc: UI.t('item_armor_desc') }
     ];
 
     const items = DEFAULT_ITEMS.map(item => {
