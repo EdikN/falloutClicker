@@ -16,14 +16,19 @@ export const PlaygamaSDK = (() => {
   };
 
   // --- Сохранение ---
+  let lastSavedJson = null;
+
   const save = (data) => {
     const json = typeof data === 'string' ? data : JSON.stringify(data);
+    if (json === lastSavedJson) return; // Prevent duplicate identical saves
 
     // Playgama storage (async, не блокируем)
     if (bridgeReady && window.bridge) {
       try {
-        const storageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL;
-        window.bridge.storage.set('fallout_save', json, storageType).catch(() => { });
+        const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
+        window.bridge.storage.set('fallout_save', json, storageType)
+          .then(() => { lastSavedJson = json; })
+          .catch(() => { });
       } catch (_) { }
     }
   };
@@ -31,9 +36,10 @@ export const PlaygamaSDK = (() => {
   // --- Загрузка ---
   const load = (callback) => {
     if (bridgeReady && window.bridge) {
-      const storageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL;
+      const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
       window.bridge.storage.get('fallout_save', storageType)
         .then(data => {
+          if (data) lastSavedJson = typeof data === 'string' ? data : JSON.stringify(data);
           callback(data || null);
         })
         .catch(() => {
@@ -139,15 +145,21 @@ export const PlaygamaSDK = (() => {
   };
 
   // --- IAP: каталог ---
+  let cachedCatalog = null;
   const getCatalog = () => {
+    if (cachedCatalog) return Promise.resolve(cachedCatalog);
     if (!bridgeReady || !window.bridge || !window.bridge.payments.isSupported) return Promise.resolve([]);
     return window.bridge.payments.getCatalog()
-      .then(items => items || [])
+      .then(items => {
+        cachedCatalog = items || [];
+        return cachedCatalog;
+      })
       .catch(() => []);
   };
 
   // --- Локализация ---
   let cachedLanguage = null;
+  let cachedStorageType = null;
   const getLanguage = () => {
     if (cachedLanguage) return cachedLanguage;
     if (bridgeReady && window.bridge) {

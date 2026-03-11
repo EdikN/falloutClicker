@@ -481,7 +481,7 @@ const checkAdEvents = () => {
         text_en: 'CRITICAL SUPPLY SHORTAGE DETECTED. SUPPLY DRONE AVAILABLE.',
         choices: [
           {
-            text: UI.t('btn_airdrop') + ' 📺', action: () => {
+            text: UI.t('btn_airdrop') + (UI.t('lang') === 'ru' ? ' (РЕКЛАМА)' : ' (AD)'), action: () => {
               window.PlaygamaSDK.showRewarded('airdrop', () => {
                 applyReward({ materials: 5, caps: 5, food: 3, water: 3, ammo: 10 });
                 UI.toast(UI.t('toast_airdrop')); S.save(); UI.renderMain();
@@ -505,9 +505,13 @@ const checkAdEvents = () => {
         text_en: 'CRITICAL VITAL SIGNS DROP. RECEIVE EMERGENCY RATION?',
         choices: [
           {
-            text: UI.t('btn_emergency') + ' 📺', action: () => {
+            text: UI.t('btn_emergency') + (UI.t('lang') === 'ru' ? ' (РЕКЛАМА)' : ' (AD)'), action: () => {
               window.PlaygamaSDK.showRewarded('emergency_ration', () => {
-                applyReward({ food: 6, water: 6 }); UI.toast(UI.t('toast_emergency')); S.save(); UI.renderMain();
+                const st = S.get();
+                st.player.hp = st.player.maxHp;
+                st.player.mood = st.player.maxMood;
+                applyReward({ food: 5, water: 5 });
+                UI.toast(UI.t('toast_emergency')); S.save(); UI.renderMain();
               });
             }
           },
@@ -528,7 +532,7 @@ const checkAdEvents = () => {
         text_en: 'COMBAT STIMULANT FOUND. ACTIVATE ADRENALINE (+50% DAMAGE FOR 15 MIN)?',
         choices: [
           {
-            text: UI.t('btn_adrenaline') + ' 📺', action: () => {
+            text: UI.t('btn_adrenaline') + (UI.t('lang') === 'ru' ? ' (РЕКЛАМА)' : ' (AD)'), action: () => {
               window.PlaygamaSDK.showRewarded('adrenaline', () => {
                 st.adBoosts.adrenaline = Date.now() + 900000;
                 UI.toast(UI.t('toast_adrenaline')); UI.renderTop(); UI.renderMain(); S.save();
@@ -943,23 +947,27 @@ UI.$('#craftClose').onclick = () => UI.show('#craftModal', false);
 UI.$('#storyOk').onclick = () => UI.show('#storyModal', false);
 
 UI.$('#reviveBtn').onclick = () => {
-  PlaygamaSDK.showRewarded('revive', () => {
-    const st = S.get();
-    if (!st.dead) return;
-    st.dead = false; st.reviveAvailable = false;
-    st.player.hp = Math.round(st.player.maxHp * 0.5);
-    UI.show('#defeatModal', false);
-    UI.toast(UI.t('btn_revive_sys'));
-    UI.renderTop(); UI.renderMain(); S.save();
-    if (st.combat.enemy) beginFight();
-  });
+  if (window.PlaygamaSDK) {
+    window.PlaygamaSDK.showRewarded('revive', () => {
+      const st = S.get();
+      if (!st.dead) return;
+      st.dead = false; st.reviveAvailable = false;
+      st.player.hp = Math.max(Math.round(st.player.maxHp * 0.5), 10);
+      UI.show('#defeatModal', false);
+      UI.toast(UI.t('btn_revive_sys'));
+      UI.renderTop(); UI.renderMain(); S.save();
+      if (st.combat.enemy) beginFight();
+    });
+  }
 };
 
 UI.$('#doubleRewardBtn').onclick = () => {
-  PlaygamaSDK.showRewarded('double_loot', () => {
-    const r = S.get().combat.lastReward;
-    if (r) { applyReward(r); UI.toast(UI.t('toast_loot_doubled')); UI.$('#doubleRewardBtn').style.display = 'none'; }
-  });
+  if (window.PlaygamaSDK) {
+    window.PlaygamaSDK.showRewarded('double_loot', () => {
+      const r = S.get().combat.lastReward;
+      if (r) { applyReward(r); UI.toast(UI.t('toast_loot_doubled')); UI.$('#doubleRewardBtn').style.display = 'none'; }
+    });
+  }
 };
 
 

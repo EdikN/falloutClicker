@@ -109,8 +109,14 @@ export const SoundManager = (() => {
     },
     systemMute: (muted) => {
       systemMuted = muted;
-      if (systemMuted || !enabled) { stopBGM(); }
-      else { if (ctx.state === 'running') startBGM(); }
+      if (systemMuted || !enabled) {
+        if (ctx.state === 'running') ctx.suspend();
+        stopBGM();
+      }
+      else {
+        if (ctx.state === 'suspended') ctx.resume();
+        startBGM();
+      }
     },
     isEnabled: () => enabled,
     init: () => {
