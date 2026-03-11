@@ -96,6 +96,23 @@ export const PlaygamaSDK = (() => {
     }
   };
 
+  // --- Баннерная реклама ---
+  const showBanner = (position = 'bottom', placement = 'default') => {
+    if (!bridgeReady || !window.bridge || !window.bridge.advertisement.isBannerSupported) return;
+    try {
+      window.bridge.advertisement.showBanner(position, placement);
+      console.log(`[PlaygamaSDK] Показ баннера: ${position}, ${placement}`);
+    } catch (_) { }
+  };
+
+  const hideBanner = () => {
+    if (!bridgeReady || !window.bridge) return;
+    try {
+      window.bridge.advertisement.hideBanner();
+      console.log('[PlaygamaSDK] Скрытие баннера');
+    } catch (_) { }
+  };
+
   // --- IAP: покупка ---
   const buyProduct = (productId, onSuccess, onError) => {
     if (!bridgeReady || !window.bridge) {
@@ -282,6 +299,7 @@ export const PlaygamaSDK = (() => {
   return {
     save, load,
     showInterstitial, showRewarded,
+    showBanner, hideBanner,
     buyProduct, checkPurchases, getCatalog,
     gameReady, setGameplayState,
     getLanguage, isBridgeReady

@@ -591,7 +591,7 @@ const applyReward = r => {
   UI.renderTop(); UI.renderMain();
 };
 
-const renderMerchant = async () => {
+const renderMerchant = async (defaultTab = 'items') => {
   const st = S.get();
 
   UI.$('#merchantStock').innerHTML = `
@@ -662,7 +662,14 @@ const renderMerchant = async () => {
       { id: 'cyber_stomach', price: '199 GAM', name: UI.t('item_stomach_name'), desc: UI.t('item_stomach_desc') },
       { id: 'iron_arsenal', price: '249 GAM', name: UI.t('item_arsenal_name'), desc: UI.t('item_arsenal_desc') },
       { id: 'heavy_armor', price: '399 GAM', name: UI.t('item_armor_name'), desc: UI.t('item_armor_desc') }
-    ];
+    ].filter(item => {
+      if (item.id === 'no_ads' && st.permanentBonuses.noAds) return false;
+      if (item.id === 'cyber_stomach' && st.permanentBonuses.cyberStomach) return false;
+      if (item.id === 'iron_arsenal' && st.weapons.shotgun) return false;
+      if (item.id === 'heavy_armor' && st.armors.heavy) return false;
+      if (item.id === 'starter_pack' && st.weapons.pickaxe) return false;
+      return true;
+    });
 
     const items = DEFAULT_ITEMS.map(item => {
       const catItem = catalog.find(c => c.id === item.id);
@@ -707,7 +714,7 @@ const renderMerchant = async () => {
 
   tabItems.onclick = showItems;
   tabDirector.onclick = showDirector;
-  showItems();
+  if (defaultTab === 'director') showDirector(); else showItems();
 };
 
 const renderCraft = () => {
@@ -1012,7 +1019,10 @@ UI.$('#rewardOk').onclick = () => { UI.show('#rewardModal', false); S.save(); UI
 const applyPurchase = (id) => {
   const st = S.get(); UI.toast(`${UI.t('purchase_activated')}: ${id.toUpperCase()}`);
   switch (id) {
-    case 'no_ads': st.permanentBonuses.noAds = true; break;
+    case 'no_ads':
+      st.permanentBonuses.noAds = true;
+      if (PlaygamaSDK) PlaygamaSDK.hideBanner();
+      break;
     case 'cyber_stomach': st.permanentBonuses.cyberStomach = true; break;
     case 'dlc_sector7': st.permanentBonuses.dlcSector7 = true; break;
     case 'premium_caps': st.resources.caps += 200; break;
@@ -1022,6 +1032,10 @@ const applyPurchase = (id) => {
     case 'heavy_armor': armorUnlock('heavy'); break;
   }
   S.save(); UI.renderTop(); UI.renderMain();
+  if (UI.$('#merchantModal').classList.contains('show')) {
+    const isDirector = UI.$('#tabDirector') && UI.$('#tabDirector').classList.contains('active');
+    renderMerchant(isDirector ? 'director' : 'items');
+  }
 };
 
 UI.$('#newRun').onclick = () => {
@@ -1068,6 +1082,10 @@ const initGame = () => {
   if (PlaygamaSDK) {
     PlaygamaSDK.gameReady();
     PlaygamaSDK.setGameplayState('start');
+
+    if (!S.get().permanentBonuses.noAds) {
+      PlaygamaSDK.showBanner('bottom');
+    }
   }
 
   UI.applyLanguage();
