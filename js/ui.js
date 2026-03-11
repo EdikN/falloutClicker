@@ -32,7 +32,11 @@ export const GameUI = (() => {
   const renderMain = () => {
     const st = S.get(), p = st.player;
     const isAdrenaline = st.adBoosts.adrenaline > Date.now();
-    const dmg = (p.baseDmg + p.dmgBonus) * (isAdrenaline ? 1.5 : 1);
+    let dmgStr = `${Math.round(p.baseDmg + p.dmgBonus)}`;
+    if (isAdrenaline) {
+      const minutesLeft = Math.ceil((st.adBoosts.adrenaline - Date.now()) / 60000);
+      dmgStr = `${Math.round((p.baseDmg + p.dmgBonus) * 1.5)} <span style="color:var(--text); font-size:0.8em">(+50% | ${minutesLeft}m)</span>`;
+    }
 
     $('#statusBars').innerHTML = `
       <div>♥ ${t('health').toUpperCase()} ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='transform:scaleX(${clamp(p.hp / p.maxHp, 0, 1)})'></div></div></div>
@@ -44,7 +48,7 @@ export const GameUI = (() => {
       <button class='pill pill-btn' data-use='medkits'>✚ ${t('medkits').toUpperCase()}: ${st.resources.medkits}</button>
       <div class='pill'>⚙️ ${t('materials').toUpperCase()}: ${st.resources.materials}</div>
       <div class='pill'>⚡ ${t('ammo').toUpperCase()}: ${st.resources.ammo}</div>
-      <div class='pill'>⚔️ ${t('damage').toUpperCase()}: ${Math.round(dmg)}</div>`;
+      <div class='pill'>⚔️ ${t('damage').toUpperCase()}: ${dmgStr}</div>`;
   };
 
 
@@ -242,7 +246,13 @@ export const GameUI = (() => {
       ending_merge_score: 'КОНЦОВКА: ТЁМНАЯ | ЦИКЛ {0}',
       ending_reject_title: '💀 КОНЦОВКА C — ОТРЕЧЕНИЕ',
       ending_reject_text: '«...Значит, нет».\n\nТЕХНИК АКТИВИРУЕТ ПОСЛЕДНИЙ ПРОТОКОЛ.\nВЗРЫВ. ОБЛОМКИ. ТИШИНА.\n\nВЫ ВЫЖИВАЕТЕ В ОДИНОЧЕСТВЕ.\nБЕЗ СОЮЗНИКОВ. БЕЗ ОТВЕТОВ.\nНО ИЕРИХОН МЁРТВ.\n\n«ЭТОГО ДОСТАТОЧНО».',
-      ending_reject_score: 'ЦИКЛ {0} | ЖЕРТВА'
+      ending_reject_score: 'ЦИКЛ {0} | ЖЕРТВА',
+      // Store categories
+      cat_armor: 'БРОНЯ',
+      cat_upgrades: 'УЛУЧШЕНИЯ',
+      cat_weapon: 'ОРУЖИЕ',
+      wpn_gun: 'ОГНЕСТРЕЛ',
+      wpn_melee: 'БЛИЖНИЙ БОЙ'
     },
     en: {
       days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -390,7 +400,12 @@ export const GameUI = (() => {
       ending_merge_score: 'ENDING: DARK | CYCLE {0}',
       ending_reject_title: '💀 ENDING C — RENUNCIATION',
       ending_reject_text: '«...So be it».\n\nTECHNICIAN ACTIVATES THE FINAL PROTOCOL.\nEXPLOSION. DEBRIS. SILENCE.\n\nYOU SURVIVE ALONE.\nWITHOUT ALLIES. WITHOUT ANSWERS.\nBUT JERICHO IS DEAD.\n\n«THAT IS ENOUGH».',
-      ending_reject_score: 'CYCLE {0} | SACRIFICE'
+      ending_reject_score: 'CYCLE {0} | SACRIFICE',
+      cat_armor: 'ARMOR',
+      cat_upgrades: 'UPGRADES',
+      cat_weapon: 'WEAPON',
+      wpn_gun: 'GUN',
+      wpn_melee: 'MELEE'
     }
   };
 
@@ -439,9 +454,11 @@ export const GameUI = (() => {
     $(id).classList.toggle('show', on);
     // Отправляем событие состояния геймплея при открытии/закрытии модалок
     if (window.PlaygamaSDK) {
-      // Если хоть одна модалка открыта — gameplay stop
-      const isAnyOpen = !!document.querySelector('.overlay.show');
-      window.PlaygamaSDK.setGameplayState(isAnyOpen ? 'stop' : 'start');
+      // Если хоть одна модалка открыта (КРОМЕ ОКНА БОЯ) — gameplay stop
+      const overlayOpen = document.querySelector('.overlay.show');
+      const isBattleOpen = overlayOpen && overlayOpen.id === 'battleModal';
+      const shouldStop = overlayOpen && !isBattleOpen;
+      window.PlaygamaSDK.setGameplayState(shouldStop ? 'stop' : 'start');
     }
   };
   const triggerDamage = () => { SoundManager.play('damage'); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); const modal = $('#battleModal .card'); if (modal) { modal.classList.remove('flash-red'); void modal.offsetWidth; modal.classList.add('flash-red'); } };
@@ -466,7 +483,7 @@ export const GameUI = (() => {
 
   const showDialogue = ({ speaker, speaker_ru, speaker_en, text, text_ru, text_en, img, choices = [] }) => {
     const locObj = { speaker, speaker_ru, speaker_en, text, text_ru, text_en };
-    const actualSpeaker = loc(locObj, 'speaker') || 'ПЕРЕХВАТ ДАННЫХ';
+    const actualSpeaker = loc(locObj, 'speaker') || t('intercept_data');
     const actualText = loc(locObj, 'text') || text;
 
     $('#storySpeaker').textContent = actualSpeaker;
@@ -520,7 +537,7 @@ export const GameUI = (() => {
       div.className = 'shopItem';
       div.innerHTML = `
         <div>${loc(w, 'name')}
-          <div class='sub'>${t('damage')}: ${w.dmg} | ${t('days').slice(0, 1)}: ${w.cd}s | ${w.isGun ? 'GUN' : 'MELEE'}</div>
+          <div class='sub'>${t('damage')}: ${w.dmg} | ${t('days').slice(0, 1)}: ${w.cd}s | ${w.isGun ? t('wpn_gun') : t('wpn_melee')}</div>
         </div>
         <button class='btn ${isEquipped ? 'good' : ''}' data-equip-w='${id}'>
           ${isEquipped ? t('equipped') : t('equip')}

@@ -633,8 +633,8 @@ const renderMerchant = async () => {
 
     renderGroup(groups.resource, `${UI.t('food')} / ${UI.t('water')} / ${UI.t('medkits')}`.toUpperCase());
     renderGroup(groups.weapon, UI.t('weapon').toUpperCase());
-    renderGroup(groups.armor, 'БРОНЯ / ARMOR');
-    renderGroup(groups.upgrade, 'УЛУЧШЕНИЯ / UPGRADES');
+    renderGroup(groups.armor, UI.t('cat_armor').toUpperCase());
+    renderGroup(groups.upgrade, UI.t('cat_upgrades').toUpperCase());
 
     content.innerHTML = html;
 
@@ -736,8 +736,8 @@ const renderCraft = () => {
   };
 
   renderGroup(groups.weapon, UI.t('weapon').toUpperCase());
-  renderGroup(groups.armor, 'БРОНЯ / ARMOR');
-  renderGroup(groups.upgrade, 'УЛУЧШЕНИЯ / UPGRADES');
+  renderGroup(groups.armor, UI.t('cat_armor').toUpperCase());
+  renderGroup(groups.upgrade, UI.t('cat_upgrades').toUpperCase());
   renderGroup(groups.resource, `${UI.t('food')} / ${UI.t('water')} / ${UI.t('medkits')}`.toUpperCase());
 
   UI.$('#craftStock').innerHTML = html;
@@ -1074,12 +1074,4 @@ const initGame = () => {
   console.log('[Game] Инициализация завершена.');
 };
 
-// Загружаем состояние (теперь асинхронно через SDK)
-S.load((success) => {
-  if (!success) {
-    S.set(S.fresh());
-  }
-  initGame();
-});
-
-export const Game = { applyReward, switchWeapon, switchArmor, weaponUnlock, armorUnlock };
+export const Game = { init: initGame, applyReward, switchWeapon, switchArmor, weaponUnlock, armorUnlock };

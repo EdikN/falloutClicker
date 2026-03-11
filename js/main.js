@@ -44,6 +44,27 @@ const preloadImages = () => {
 
 // Wait for DOM
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('[App] Initializing game...');
-    preloadImages();
+    // Init SDK first, wait, then init game logic
+    const checkSDK = setInterval(() => {
+        if (window.PlaygamaSDK && window.PlaygamaSDK.isBridgeReady()) {
+            clearInterval(checkSDK);
+
+            // Force UI language correctly right at start
+            GameUI.applyLanguage();
+
+            GameState.load((success) => {
+                if (!success) {
+                    GameState.set(GameState.fresh());
+                }
+
+                // Start the core logic
+                Game.init();
+
+                // Tell platform game is ready
+                if (window.bridge) {
+                    window.bridge.platform.sendMessage("game_ready");
+                }
+            });
+        }
+    }, 100);
 });
