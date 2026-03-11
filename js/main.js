@@ -10,6 +10,7 @@ import { PlaygamaSDK } from './playgama.js';
 window.GameState = GameState;
 window.GameUI = GameUI;
 window.Game = Game;
+window.PlaygamaSDK = PlaygamaSDK;
 
 // Init sound
 SoundManager.init();

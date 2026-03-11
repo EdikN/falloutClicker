@@ -440,7 +440,7 @@ export const GameData = (() => {
     amazon_weak: { name_ru: 'Амазонка-Синт (Ослаблена)', name_en: 'Amazon Synth (Weakened)', hp: 100, dmg: 12, atk: 3.5, armor: 0.1, img: 'img/enemy_amazon.webp', icon: '[⚔️]' },
     amazon_full: { name_ru: 'Амазонка-Синт', name_en: 'Amazon Synth (Full)', hp: 250, dmg: 32, atk: 2.5, armor: 0.2, img: 'img/enemy_amazon.webp', icon: '[⚔️]' },
     boss_technician: { name_ru: 'Одержимый техник (БОСС)', name_en: 'Possessed Technician (BOSS)', hp: 500, dmg: 45, atk: 2.5, armor: 0.4, img: 'img/enemy_technician.webp', icon: '[🔧]' },
-    drifter_enemy: { name_ru: 'Синтетик-страж (x3)', name_en: 'Synth Guardian (x3)', hp: 120, dmg: 14, atk: 3.0, armor: 0.1, img: 'img/enemy_synth.webp', icon: '[⚙️]' }
+    drifter_enemy: { name_ru: 'Синтетик-страж (x3)', name_en: 'Synth Guardian (x3)', hp: 120, dmg: 14, atk: 3.0, armor: 0.1, img: 'img/portrait_drifter.webp', icon: '[⚙️]' }
   };
 
   const NOTES = [

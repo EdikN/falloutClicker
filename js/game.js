@@ -101,13 +101,13 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
       caps: Math.floor((st.resources.caps || 0) * 0.5)
     }
   };
-  localStorage.setItem('fallout_clicker_corpse', JSON.stringify(corpse));
+  S.getMeta().corpse = corpse;
 
   // Считаем смерти для цикла
-  const currentDeaths = parseInt(localStorage.getItem('fallout_clicker_deaths') || '0', 10);
-  localStorage.setItem('fallout_clicker_deaths', currentDeaths + 1);
+  S.getMeta().deaths = (S.getMeta().deaths || 0) + 1;
 
-  localStorage.removeItem(D.SAVE_KEY);
+  S.set(S.fresh());
+  S.save();
 };
 
 // --- СЮЖЕТНЫЕ СОБЫТИЯ ---
@@ -175,7 +175,7 @@ const handleBarWoman = (event) => {
   };
   const fight = () => {
     st.flags.foughtBarWoman = true;
-    const enemy = { name_ru: 'Вышибала из бара', name_en: 'Bar Bouncer', hp: 55, dmg: 10, atk: 3.5, img: 'img/enemy_scavenger.webp', icon: '[👊]' };
+    const enemy = { name_ru: 'Вышибала из бара', name_en: 'Bar Bouncer', hp: 55, dmg: 10, atk: 3.5, img: 'img/portrait_bar.webp', icon: '[👊]' };
     st.combat.enemy = { ...enemy, maxHp: enemy.hp };
     st.combat.onWin = () => {
       UI.showDialogue({ speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.t('bar_woman_fight_win') });
@@ -263,14 +263,26 @@ const handleCartographer = (event) => {
     UI.showDialogue({ speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.loc(event, 'branch_leave') });
   };
 
+  const choices = [];
+  if (st.resources.caps >= 50) choices.push({ text: UI.t('carto_buy_map'), action: buyMap });
+  if (st.resources.caps >= 120) choices.push({ text: UI.t('carto_buy_file'), action: buyFile });
+  if (st.resources.caps >= 200) choices.push({ text: UI.t('carto_buy_code'), action: buyCode });
+  choices.push({ text: UI.t('btn_leave'), action: leave });
+
+  let text = UI.loc(event, 'text');
+  if (st.resources.caps < 50) {
+    text = UI.t('lang') === 'ru'
+      ? 'НЕЗНАКОМЕЦ В ПОТЁРТОМ ПЛАЩЕ РАЗВОРАЧИВАЕТ ПЕРЕД ВАМИ РУЧНОЙ ПЛАНШЕТ С КАРТОЙ.\n\n«У тебя даже на самую дешевую карту не наскребется крышек. Приходи как разбогатеешь, бродяга».'
+      : 'A STRANGER IN A WORN CLOAK UNFOLDS A HANDHELD TABLET WITH A MAP BEFORE YOU.\n\n"You don\'t even have enough caps for the cheapest map. Come back when you get rich, drifter."';
+  } else if (st.resources.caps < 200) {
+    text += UI.t('lang') === 'ru'
+      ? '\n\n«Вижу, кредитов у тебя немного. Что ж, выбирай из того, что по карману».'
+      : '\n\n"I see you are short on credits. Well, choose from what you can afford."';
+  }
+
   UI.showDialogue({
-    speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.loc(event, 'text'),
-    choices: [
-      { text: UI.t('carto_buy_map'), action: buyMap },
-      { text: UI.t('carto_buy_file'), action: buyFile },
-      { text: UI.t('carto_buy_code'), action: buyCode },
-      { text: UI.t('btn_leave'), action: leave }
-    ]
+    speaker: UI.loc(event, 'speaker'), img: event.img, text: text,
+    choices: choices
   });
 };
 
@@ -421,7 +433,8 @@ const showEnding = ({ title, text, score }) => {
   const st = S.get();
   st.flags.endingReached = true;
   st.dead = true;
-  localStorage.removeItem(D.SAVE_KEY);
+  S.set(S.fresh());
+  S.save();
 
   const modal = UI.$('#endingModal');
   if (modal) {
@@ -557,12 +570,9 @@ const encounterRoll = () => {
   const enemyChance = Math.min(.55, .20 + st.day * 0.005), roll = rng();
 
   if (roll < 0.15) {
-    const rawCorpse = localStorage.getItem('fallout_clicker_corpse');
-    if (rawCorpse) {
-      try {
-        const corpse = JSON.parse(rawCorpse);
-        return { type: 'corpse', corpse: corpse };
-      } catch (e) { }
+    const corpse = S.getMeta().corpse;
+    if (corpse) {
+      return { type: 'corpse', corpse };
     }
   }
 
@@ -779,7 +789,7 @@ const startDay = () => {
 
   if (event.type === 'corpse') {
     const corpse = event.corpse;
-    localStorage.removeItem('fallout_clicker_corpse');
+    S.getMeta().corpse = null;
     st.player.humanity = Math.max(0, st.player.humanity - 5);
     UI.toast(UI.t('toast_humanity', '-5'));
     UI.showDialogue({
@@ -828,7 +838,7 @@ const updateChapterTitle = (day) => {
   }
   const deathCountEl = UI.$('#deathCount');
   if (deathCountEl) {
-    const deaths = localStorage.getItem('fallout_clicker_deaths') || '0';
+    const deaths = S.getMeta().deaths || 0;
     deathCountEl.textContent = UI.t('cycles', deaths);
   }
 };

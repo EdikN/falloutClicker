@@ -18,8 +18,6 @@ export const PlaygamaSDK = (() => {
   // --- Сохранение ---
   const save = (data) => {
     const json = typeof data === 'string' ? data : JSON.stringify(data);
-    // Всегда сохраняем в localStorage как fallback
-    try { localStorage.setItem('fallout_save', json); } catch (_) { }
 
     // Playgama storage (async, не блокируем)
     if (bridgeReady && window.bridge) {
@@ -36,18 +34,13 @@ export const PlaygamaSDK = (() => {
       const storageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL;
       window.bridge.storage.get('fallout_save', storageType)
         .then(data => {
-          if (data) {
-            try { localStorage.setItem('fallout_save', data); } catch (_) { }
-            callback(data);
-          } else {
-            callback(localStorage.getItem('fallout_save') || null);
-          }
+          callback(data || null);
         })
         .catch(() => {
-          callback(localStorage.getItem('fallout_save') || null);
+          callback(null);
         });
     } else {
-      callback(localStorage.getItem('fallout_save') || null);
+      callback(null);
     }
   };
 
@@ -154,9 +147,12 @@ export const PlaygamaSDK = (() => {
   };
 
   // --- Локализация ---
+  let cachedLanguage = null;
   const getLanguage = () => {
+    if (cachedLanguage) return cachedLanguage;
     if (bridgeReady && window.bridge) {
-      return window.bridge.platform.language || 'ru';
+      cachedLanguage = window.bridge.platform.language || 'ru';
+      return cachedLanguage;
     }
     return 'ru';
   };
@@ -164,12 +160,29 @@ export const PlaygamaSDK = (() => {
   const isBridgeReady = () => bridgeReady;
 
   // --- Хелперы паузы звука во время рекламы ---
+  let isAdShowing = false;
+
+  const updateAudioState = () => {
+    try {
+      if (window.SoundManager && window.SoundManager.systemMute) {
+        const shouldMute = isAdShowing || (typeof document !== 'undefined' && document.hidden);
+        window.SoundManager.systemMute(shouldMute);
+      }
+    } catch (_) { }
+  };
+
   const _muteSound = () => {
-    try { if (window.SoundManager) window.SoundManager.toggle(false); } catch (_) { }
+    isAdShowing = true;
+    updateAudioState();
   };
   const _resumeSound = () => {
-    try { if (window.SoundManager) window.SoundManager.toggle(true); } catch (_) { }
+    isAdShowing = false;
+    updateAudioState();
   };
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', updateAudioState);
+  }
 
   // --- Инициализация ---
   const init = () => {

@@ -1,13 +1,14 @@
 export const SoundManager = (() => {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   let enabled = true;
+  let systemMuted = false;
   let bgmOsc1 = null, bgmOsc2 = null, lfo = null, bgmGain = null;
   let melodyTimer = null;
 
   const startBGM = () => {
-    if (bgmOsc1 || !enabled) return;
+    if (bgmOsc1 || !enabled || systemMuted) return;
     bgmGain = ctx.createGain();
-    bgmGain.gain.value = 0.03;
+    bgmGain.gain.value = 0.05;
     bgmGain.connect(ctx.destination);
 
     bgmOsc1 = ctx.createOscillator();
@@ -23,7 +24,7 @@ export const SoundManager = (() => {
     lfo.type = 'sine';
     lfo.frequency.value = 0.15; // Slow eerie pulse
     const lfoGain = ctx.createGain();
-    lfoGain.gain.value = 0.02; // modulate volume +/- 0.02
+    lfoGain.gain.value = 0.04; // modulate volume +/- 0.04
 
     lfo.connect(lfoGain);
     lfoGain.connect(bgmGain.gain);
@@ -39,23 +40,23 @@ export const SoundManager = (() => {
   };
 
   const startMelody = () => {
-    if (!enabled) return;
+    if (!enabled || systemMuted) return;
     // Spooky minor/diminished notes: A3, Bb3, C4, Eb4, E3, F3
     const notes = [220.00, 233.08, 261.63, 311.13, 164.81, 174.61];
     const note = notes[Math.floor(Math.random() * notes.length)];
 
-    // Play the note with a soft sine wave
-    playOsc(note, 'sine', 2.5, 0.015 + Math.random() * 0.02);
+    // Play the note with a soft sine wave, louder now
+    playOsc(note, 'sine', 2.8, 0.04 + Math.random() * 0.02);
 
-    // If lucky, play a second harmonious or dissonant note
-    if (Math.random() < 0.3) {
+    // Play a second harmonious or dissonant note more reliably
+    if (Math.random() < 0.6) {
       setTimeout(() => {
         const note2 = notes[Math.floor(Math.random() * notes.length)];
-        playOsc(note2, 'sine', 2.0, 0.01);
-      }, 500 + Math.random() * 500);
+        playOsc(note2, 'sine', 2.0, 0.03);
+      }, 400 + Math.random() * 400);
     }
 
-    melodyTimer = setTimeout(startMelody, 3500 + Math.random() * 5000);
+    melodyTimer = setTimeout(startMelody, 2500 + Math.random() * 3500);
   };
 
   const stopBGM = () => {
@@ -70,7 +71,7 @@ export const SoundManager = (() => {
   };
 
   const playOsc = (freq, type, duration, vol = 0.1) => {
-    if (!enabled) return;
+    if (!enabled || systemMuted) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
@@ -103,8 +104,13 @@ export const SoundManager = (() => {
     play: (id) => { if (SFX[id]) SFX[id](); },
     toggle: (v) => {
       enabled = v;
-      if (!enabled) { ctx.suspend(); stopBGM(); }
-      else { ctx.resume(); startBGM(); }
+      if (!enabled || systemMuted) { stopBGM(); }
+      else { if (ctx.state === 'running') startBGM(); }
+    },
+    systemMute: (muted) => {
+      systemMuted = muted;
+      if (systemMuted || !enabled) { stopBGM(); }
+      else { if (ctx.state === 'running') startBGM(); }
     },
     isEnabled: () => enabled,
     init: () => {

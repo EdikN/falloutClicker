@@ -43,7 +43,7 @@ export const GameState = (() => {
     },
     reviveAvailable: true,   // Доступно ли возрождение за рекламу в этом цикле
 
-    resources: { food: 15, water: 15, materials: 0, ammo: 0, medkits: 1, caps: 0 },
+    resources: { food: 30, water: 30, materials: 0, ammo: 0, medkits: 1, caps: 0 },
 
     // Статы игрока
     player: {
@@ -82,6 +82,7 @@ export const GameState = (() => {
   });
 
   let state = fresh();
+  let metaState = { deaths: 0, corpse: null };
 
   const normalize = () => {
     const def = fresh();
@@ -103,48 +104,36 @@ export const GameState = (() => {
   };
 
   const save = () => {
-    const json = JSON.stringify(state);
-    localStorage.setItem(D.SAVE_KEY, json);
-    // Playgama cloud save
+    const json = JSON.stringify({ state, meta: metaState });
     if (window.PlaygamaSDK) window.PlaygamaSDK.save(json);
   };
 
   const load = (onDone) => {
-    // 1. Сначала загружаем из локала (быстро)
-    const localRaw = localStorage.getItem(D.SAVE_KEY);
-    if (localRaw) {
-      try {
-        const parsed = JSON.parse(localRaw);
-        if (parsed.v === D.SAVE_VER) {
-          state = parsed;
-          normalize();
-          if (onDone) onDone(true);
-        }
-      } catch (_) { }
-    }
-
-    // 2. Затем пробуем загрузить из облака SDK (может быть более актуально)
     if (window.PlaygamaSDK) {
       window.PlaygamaSDK.load((cloudData) => {
         if (cloudData) {
           try {
             const parsed = JSON.parse(cloudData);
-            if (parsed.v === D.SAVE_VER) {
+            if (parsed.meta !== undefined && parsed.state !== undefined) {
+              if (parsed.state.v === D.SAVE_VER) {
+                state = parsed.state;
+                metaState = parsed.meta;
+                normalize();
+                if (onDone) return onDone(true);
+              }
+            } else if (parsed.v === D.SAVE_VER) {
               state = parsed;
               normalize();
-              // Если загрузили облако — пересохраняем в локал
-              localStorage.setItem(D.SAVE_KEY, cloudData);
-              if (onDone) onDone(true);
+              if (onDone) return onDone(true);
             }
           } catch (_) { }
-        } else if (onDone && !localRaw) {
-          onDone(false);
         }
+        if (onDone) onDone(false);
       });
-    } else if (onDone) {
-      onDone(!!localRaw);
+    } else {
+      if (onDone) onDone(false);
     }
   };
 
-  return { get: () => state, set: v => state = v, fresh, save, load, normalize };
+  return { get: () => state, getMeta: () => metaState, set: v => state = v, fresh, save, load, normalize };
 })();
