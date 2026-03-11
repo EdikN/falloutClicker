@@ -678,22 +678,22 @@ const renderMerchant = async () => {
     });
 
     const ICONS = {
-      'no_ads': '🚫',
-      'starter_pack': '🎒',
-      'premium_caps': '💰',
-      'mega_pack': '📦',
-      'cyber_stomach': '🤖',
-      'iron_arsenal': '🔫',
-      'heavy_armor': '🛡️'
+      'no_ads': 'repair.webp',
+      'starter_pack': 'exploration.webp',
+      'premium_caps': 'food.webp',
+      'mega_pack': 'ammunition.webp',
+      'cyber_stomach': 'energy.webp',
+      'iron_arsenal': 'weapons.webp',
+      'heavy_armor': 'armor.webp'
     };
 
     items.forEach(item => {
       const div = document.createElement('div');
       div.className = 'shopItem';
-      const icon = ICONS[item.id] || '🛒';
+      const icon = ICONS[item.id] || 'exploration.webp';
       div.innerHTML = `
         <div style="display:flex; gap:0.4rem; align-items:center;">
-          <span style="font-size:1.5em">${icon}</span>
+          <img src="img/payments/${icon}" style="width:2.5em; height:2.5em; object-fit:contain;" alt="">
           <div>${item.name} <div class="sub">${item.desc}</div></div>
         </div>
         <button class="btn good" style="min-width:80px;">${item.price}</button>
