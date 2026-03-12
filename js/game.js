@@ -771,8 +771,10 @@ const startDay = () => {
       st.adBoosts.nextInterstitialDay = st.day + 10 + Math.floor(rng() * 11);
     }
     if (st.day >= st.adBoosts.nextInterstitialDay) {
-      window.PlaygamaSDK.showInterstitial();
-      st.adBoosts.nextInterstitialDay = st.day + 10 + Math.floor(rng() * 11);
+      const shown = window.PlaygamaSDK.showInterstitial();
+      if (shown) {
+        st.adBoosts.nextInterstitialDay = st.day + 10 + Math.floor(rng() * 11);
+      }
     }
   }
 

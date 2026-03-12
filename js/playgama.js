@@ -1,6 +1,6 @@
 export const PlaygamaSDK = (() => {
   // Минимальный интервал между интерстишалами (секунды)
-  const AD_COOLDOWN_SEC = 180;
+  const AD_COOLDOWN_SEC = 120;
   let lastAdTime = 0;
   let bridgeReady = false;
 
@@ -27,9 +27,16 @@ export const PlaygamaSDK = (() => {
       try {
         const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
         window.bridge.storage.set('fallout_save', json, storageType)
-          .then(() => { lastSavedJson = json; })
-          .catch(() => { });
-      } catch (_) { }
+          .then(() => {
+            lastSavedJson = json;
+            console.log('[PlaygamaSDK] Прогресс сохранён успешно.');
+          })
+          .catch((err) => {
+            console.error('[PlaygamaSDK] Ошибка сохранения прогресса:', err);
+          });
+      } catch (err) {
+        console.error('[PlaygamaSDK] Ошибка при вызове bridge.storage.set:', err);
+      }
     }
   };
 
@@ -42,7 +49,8 @@ export const PlaygamaSDK = (() => {
           if (data) lastSavedJson = typeof data === 'string' ? data : JSON.stringify(data);
           callback(data || null);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error('[PlaygamaSDK] Ошибка загрузки прогресса:', err);
           callback(null);
         });
     } else {
@@ -51,14 +59,23 @@ export const PlaygamaSDK = (() => {
   };
 
   // --- Межстраничная реклама ---
-  const showInterstitial = () => {
-    if (!bridgeReady || !window.bridge) return;
+  const canShowInterstitial = () => {
+    if (!bridgeReady || !window.bridge) return false;
     const now = Date.now() / 1000;
-    if (now - lastAdTime < AD_COOLDOWN_SEC) return;
-    lastAdTime = now;
+    return (now - lastAdTime >= AD_COOLDOWN_SEC);
+  };
+
+  const showInterstitial = () => {
+    if (!canShowInterstitial()) return false;
+
+    lastAdTime = Date.now() / 1000;
     try {
       window.bridge.advertisement.showInterstitial();
-    } catch (_) { }
+      return true;
+    } catch (err) {
+      console.warn('[PlaygamaSDK] Ошибка показа интерстишала:', err);
+      return false;
+    }
   };
 
   // --- Реклама за награду ---
@@ -142,13 +159,20 @@ export const PlaygamaSDK = (() => {
         .then((purchases) => {
           if (onResult && purchases && purchases.length > 0) onResult(purchases);
         })
-        .catch(() => { });
-    } catch (_) { }
+        .catch((err) => {
+          console.warn('[PlaygamaSDK] Ошибка получения списка покупок:', err);
+        });
+    } catch (err) {
+      console.error('[PlaygamaSDK] Ошибка при вызове getPurchases:', err);
+    }
   };
 
   const consumePurchase = (purchaseToken) => {
     if (!bridgeReady || !window.bridge || !window.bridge.payments.isSupported) return Promise.resolve();
-    return window.bridge.payments.consume(purchaseToken).catch(() => { });
+    return window.bridge.payments.consume(purchaseToken)
+      .catch((err) => {
+        console.warn('[PlaygamaSDK] Ошибка потребления покупки:', err);
+      });
   };
 
   // --- Игровое состояние ---
@@ -176,7 +200,10 @@ export const PlaygamaSDK = (() => {
         cachedCatalog = items || [];
         return cachedCatalog;
       })
-      .catch(() => []);
+      .catch((err) => {
+        console.warn('[PlaygamaSDK] Ошибка получения каталога:', err);
+        return [];
+      });
   };
 
   // --- Локализация ---
@@ -240,7 +267,7 @@ export const PlaygamaSDK = (() => {
 
         // Устанавливаем минимальный интервал между интерстишалами через SDK
         try {
-          window.bridge.advertisement.setMinimumDelayBetweenInterstitial(180);
+          window.bridge.advertisement.setMinimumDelayBetweenInterstitial(120);
         } catch (_) { }
 
         // Подписка на события интерстишала — мьютим игру
@@ -303,7 +330,7 @@ export const PlaygamaSDK = (() => {
 
   return {
     save, load,
-    showInterstitial, showRewarded,
+    showInterstitial, showRewarded, canShowInterstitial,
     showBanner, hideBanner,
     buyProduct, checkPurchases, getCatalog, consumePurchase,
     gameReady, setGameplayState,
