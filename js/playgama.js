@@ -23,16 +23,16 @@ export const PlaygamaSDK = (() => {
     if (json === lastSavedJson) return; // Prevent duplicate identical saves
 
     // Playgama storage (async, не блокируем)
-    if (bridgeReady && window.bridge) {
+    if (bridgeReady && window.bridge && window.bridge.storage) {
       try {
-        const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
+        const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE && window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
         window.bridge.storage.set('fallout_save', json, storageType)
           .then(() => {
             lastSavedJson = json;
             console.log('[PlaygamaSDK] Прогресс сохранён успешно.');
           })
           .catch((err) => {
-            console.error('[PlaygamaSDK] Ошибка сохранения прогресса:', err);
+            console.error('[PlaygamaSDK] Ошибка сохранения прогресса:', err == null ? 'storage unavailable' : err);
           });
       } catch (err) {
         console.error('[PlaygamaSDK] Ошибка при вызове bridge.storage.set:', err);
@@ -42,15 +42,15 @@ export const PlaygamaSDK = (() => {
 
   // --- Загрузка ---
   const load = (callback) => {
-    if (bridgeReady && window.bridge) {
-      const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
+    if (bridgeReady && window.bridge && window.bridge.storage) {
+      const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE && window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
       window.bridge.storage.get('fallout_save', storageType)
         .then(data => {
           if (data) lastSavedJson = typeof data === 'string' ? data : JSON.stringify(data);
           callback(data || null);
         })
         .catch((err) => {
-          console.error('[PlaygamaSDK] Ошибка загрузки прогресса:', err);
+          console.error('[PlaygamaSDK] Ошибка загрузки прогресса:', err == null ? 'storage unavailable' : err);
           callback(null);
         });
     } else {

@@ -894,3 +894,80 @@ h2 {
   color: #000;
   text-shadow: none;
 }
+
+/* ========================================= */
+/* --- ЭКРАН СМЕРТИ: АНИМАЦИЯ ПОЯВЛЕНИЯ --- */
+/* ========================================= */
+.defeat-overlay.show .defeat-card {
+  animation: defeatAppear 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes defeatAppear {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+    box-shadow: 0 0 60px rgba(255, 0, 0, 0.8), inset 0 0 40px rgba(255, 0, 0, 0.4);
+  }
+
+  60% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.4), inset 0 0 20px rgba(255, 0, 0, 0.2);
+  }
+}
+
+/* Кнопки появляются с задержкой через JS-класс */
+.defeat-btn-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.defeat-btn-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* ========================================= */
+/* --- СИНТЕЗАТОР: СТРОКА РЕСУРСОВ --- */
+/* ========================================= */
+.synth-resources {
+  background: rgba(0, 10, 0, 0.7);
+  border: 1px solid rgba(29, 242, 58, 0.4);
+  border-radius: 3px;
+  padding: 4px 8px;
+  margin-bottom: 6px;
+  font-size: 0.95em;
+  color: #7eff9a;
+}
+
+.synth-mats {
+  color: #fff;
+  text-shadow: 0 0 5px var(--line);
+}
+
+/* ========================================= */
+/* --- FALLBACK ДЛЯ СЛОМАННЫХ КАРТИНОК --- */
+/* ========================================= */
+.img-fallback {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(29, 242, 58, 0.4);
+  border-radius: 4px;
+  color: rgba(29, 242, 58, 0.5);
+  font-family: 'VT323', monospace;
+  font-size: 1em;
+  background: rgba(0, 10, 0, 0.6);
+  text-align: center;
+  padding: 0.5rem;
+  letter-spacing: 2px;
+}

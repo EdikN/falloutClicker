@@ -135,10 +135,8 @@ export const GameUI = (() => {
     DOM.enemyName.textContent = `${e.icon} ${loc(e, 'name')}`;
 
     if (e.img) {
-      if (DOM.enemyImg.getAttribute('src') !== e.img) DOM.enemyImg.src = e.img;
-      DOM.enemyImg.style.display = 'block';
+      setImgSrc(DOM.enemyImg, e.img);
     } else {
-      DOM.enemyImg.removeAttribute('src');
       DOM.enemyImg.style.display = 'none';
     }
 
@@ -216,6 +214,28 @@ export const GameUI = (() => {
   const triggerDamage = () => { SoundManager.play('damage'); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); const modal = $('#battleModal .card'); if (modal) { modal.classList.remove('flash-red'); void modal.offsetWidth; modal.classList.add('flash-red'); } };
   const triggerEnemyHit = () => { SoundManager.play('click'); const el = $('.enemy'); if (!el) return; el.style.transform = 'translate(4px, 2px)'; el.style.borderColor = 'var(--line)'; el.style.background = 'var(--line)'; setTimeout(() => { el.style.transform = ''; el.style.borderColor = ''; el.style.background = ''; }, 80); };
 
+  // Bug 7: img fallback helper — shows broken-slot placeholder instead of hiding
+  const setImgSrc = (imgEl, src) => {
+    if (!imgEl) return;
+    imgEl.onerror = null;
+    if (!src) { imgEl.style.display = 'none'; return; }
+    imgEl.onerror = () => {
+      imgEl.style.display = 'none';
+      // Show a Fallout-style broken slot sibling if it exists
+      const fallback = imgEl.nextElementSibling;
+      if (fallback && fallback.classList.contains('img-fallback')) {
+        fallback.style.display = 'flex';
+      }
+    };
+    imgEl.onload = () => {
+      imgEl.style.display = 'block';
+      const fallback = imgEl.nextElementSibling;
+      if (fallback && fallback.classList.contains('img-fallback')) fallback.style.display = 'none';
+    };
+    if (imgEl.getAttribute('src') !== src) imgEl.src = src;
+    imgEl.style.display = 'block';
+  };
+
   const typeText = (el, text, speed = 25, onComplete = null) => {
     if (!text || typeof text !== 'string') {
       el.innerHTML = text || '';
@@ -223,14 +243,14 @@ export const GameUI = (() => {
       return;
     }
     el.innerHTML = ''; let i = 0;
-    const t = () => {
+    const tick = () => {
       if (i < text.length) {
         el.innerHTML += text.charAt(i); i++;
         if (i % 3 === 0) SoundManager.play('hover');
-        setTimeout(t, speed);
+        setTimeout(tick, speed);
       } else if (onComplete) onComplete();
     };
-    t();
+    tick();
   };
 
   const showDialogue = ({ speaker, speaker_ru, speaker_en, text, text_ru, text_en, img, choices = [] }) => {
@@ -244,7 +264,7 @@ export const GameUI = (() => {
     okBtn.disabled = true;
 
     const p = $('#storyPortrait');
-    if (img) { p.src = img; p.style.display = 'block'; } else { p.style.display = 'none'; }
+    if (img) { setImgSrc(p, img); } else { p.style.display = 'none'; }
 
     const choicesCont = $('#storyChoices');
     choicesCont.innerHTML = '';
@@ -362,8 +382,28 @@ export const GameUI = (() => {
     renderTop();
     show('#defeatModal', true);
 
+    // Bug 4 fix: hide action buttons immediately, reveal after 1s with fade-in
     const reviveBtn = $('#reviveBtn');
-    if (reviveBtn) reviveBtn.style.display = data.reviveAvailable ? 'block' : 'none';
+    const newRunBtn = $('#newRun');
+    if (reviveBtn) {
+      reviveBtn.style.display = data.reviveAvailable ? 'block' : 'none';
+      reviveBtn.classList.remove('defeat-btn-visible');
+      reviveBtn.classList.add('defeat-btn-hidden');
+    }
+    if (newRunBtn) {
+      newRunBtn.classList.remove('defeat-btn-visible');
+      newRunBtn.classList.add('defeat-btn-hidden');
+    }
+    setTimeout(() => {
+      if (reviveBtn && data.reviveAvailable) {
+        reviveBtn.classList.remove('defeat-btn-hidden');
+        reviveBtn.classList.add('defeat-btn-visible');
+      }
+      if (newRunBtn) {
+        newRunBtn.classList.remove('defeat-btn-hidden');
+        newRunBtn.classList.add('defeat-btn-visible');
+      }
+    }, 1000);
   };
 
   // Bind Events

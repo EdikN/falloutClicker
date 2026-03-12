@@ -37,7 +37,8 @@ const switchWeapon = id => {
 const switchArmor = id => {
   const st = S.get(), p = st.player, a = D.ARMOR_STATS[id];
   if (!a || !st.armors[id]) return;
-  const oldA = Object.values(D.ARMOR_STATS).find(x => x.name_ru === p.armorName || x.name_en === p.armorName || x.id === p.armorId);
+  // Bug 8 fix: use armorId directly instead of fragile name lookup
+  const oldA = D.ARMOR_STATS[p.armorId];
   if (oldA) p.maxHp -= oldA.hp;
   p.armorId = id;
   p.armorName = a.name_ru;
@@ -62,10 +63,18 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
   st.combat.active = false;
   const reason = t(reasonKey);
 
+  // Bug 3 fix: save revival info BEFORE resetting state
+  const reviveAvailable = st.reviveAvailable;
+  const savedEnemy = st.combat.enemy ? { ...st.combat.enemy } : null;
+
+  // Bug 4 fix: play death sound
+  SoundManager.play('error');
+
   Events.emit('ui:defeat', {
     reason: reason,
     day: st.day,
-    reviveAvailable: st.reviveAvailable
+    reviveAvailable: reviveAvailable,
+    savedEnemy: savedEnemy
   });
 
   if (PlaygamaSDK && !st.permanentBonuses.noAds) PlaygamaSDK.showInterstitial();
@@ -82,6 +91,9 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
   S.getMeta().corpse = corpse;
   S.getMeta().deaths = (S.getMeta().deaths || 0) + 1;
   S.set(S.fresh());
+  // Bug 3 fix: restore revival state into fresh state
+  S.get().reviveAvailable = reviveAvailable;
+  if (savedEnemy) S.get().combat.enemy = savedEnemy;
   S.save();
 };
 
@@ -444,10 +456,12 @@ const checkAdEvents = () => {
   st.adBoosts.lastEmergencyDay = st.adBoosts.lastEmergencyDay || 0;
   st.adBoosts.lastAdrenalineDay = st.adBoosts.lastAdrenalineDay || 0;
 
-  if (st.day - st.adBoosts.lastAdShownDay < 3) return false;
+  // Bug 5 fix: increased min gap from 3 to 7 days
+  if (st.day - st.adBoosts.lastAdShownDay < 7) return false;
 
-  if ((st.resources.food < 5 || st.resources.water < 5) && (st.day - st.adBoosts.lastDroneDay >= 10)) {
-    if (rng() < 0.4) {
+  // Bug 5 fix: per-event gap increased from 10 to 15 days
+  if ((st.resources.food < 5 || st.resources.water < 5) && (st.day - st.adBoosts.lastDroneDay >= 15)) {
+    if (rng() < 0.35) {
       st.adBoosts.lastDroneDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
       Events.emit('ui:showDialogue', {
@@ -470,8 +484,8 @@ const checkAdEvents = () => {
     }
   }
 
-  if ((st.player.hp / st.player.maxHp < 0.5) && (st.day - st.adBoosts.lastEmergencyDay >= 10)) {
-    if (rng() < 0.4) {
+  if ((st.player.hp / st.player.maxHp < 0.5) && (st.day - st.adBoosts.lastEmergencyDay >= 15)) {
+    if (rng() < 0.35) {
       st.adBoosts.lastEmergencyDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
       Events.emit('ui:showDialogue', {
@@ -497,8 +511,8 @@ const checkAdEvents = () => {
     }
   }
 
-  if (st.day - st.adBoosts.lastAdrenalineDay >= 15) {
-    if (rng() < 0.3) {
+  if (st.day - st.adBoosts.lastAdrenalineDay >= 20) {
+    if (rng() < 0.25) {
       st.adBoosts.lastAdrenalineDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
       Events.emit('ui:showDialogue', {
@@ -712,7 +726,8 @@ const renderCraft = () => {
     groups[item.type].push({ ...item, i });
   });
 
-  let html = '';
+  // Bug 2 fix: show current material count at top
+  let html = `<div class="synth-resources">${t('materials').toUpperCase()}: <span class="synth-mats">${st.resources.materials}</span> | ${t('ammo').toUpperCase()}: <span class="synth-mats">${st.resources.ammo}</span></div>`;
   const renderGroup = (arr, title) => {
     if (!arr || arr.length === 0) return;
     html += `<h3 style="margin-top:0.5rem;">${title}</h3>`;
@@ -738,7 +753,8 @@ const renderCraft = () => {
   UI.$('#craftStock').querySelectorAll('[data-craft]').forEach(btn => {
     btn.onclick = () => {
       const rec = D.CRAFT_ITEMS[+btn.dataset.craft];
-      if (st.resources.materials < rec.materials) return Events.emit('ui:toast', t('toast_not_enough_caps', rec.materials)); // Use appropriate message if we have mats equivalent
+      // Bug 1 fix: use correct toast key for materials shortage
+      if (st.resources.materials < rec.materials) return Events.emit('ui:toast', t('toast_not_enough_mats', rec.materials));
       if (rec.ammo > 0 && st.resources.ammo < rec.ammo) return Events.emit('ui:toast', t('res_ammo_empty'));
       st.resources.materials -= rec.materials;
       if (rec.ammo) st.resources.ammo -= rec.ammo;
@@ -849,7 +865,7 @@ const beginFight = () => {
   Object.assign(c, { active: true, time: 0, enemyAtk: 1.5, cdDodge: 0, dodge: 0, lastTs: 0 });
   st.phase = t('status_combat'); Events.emit('ui:show', { id: '#battleModal', on: true });
   SoundManager.play('success');
-  tick(performance.now());
+  gameTick(performance.now());
 };
 
 const finishFight = win => {
@@ -880,7 +896,7 @@ const finishFight = win => {
   UI.$('#rewardText').textContent = txt; Events.emit('ui:show', { id: '#rewardModal', on: true }); S.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 };
 
-const tick = ts => {
+const gameTick = ts => {
   const st = S.get(), c = st.combat, p = st.player, e = c.enemy; if (!c.active || !e || st.dead) return;
   const dt = Math.min(.08, (ts - (c.lastTs || ts)) / 1000 || .016);
   if (st.player.atkCd > 0) st.player.atkCd = Math.max(0, st.player.atkCd - dt);
@@ -907,7 +923,7 @@ const tick = ts => {
     c.lastRenderTs = ts;
   }
 
-  requestAnimationFrame(tick);
+  requestAnimationFrame(gameTick);
 };
 
 const actAttack = () => {
@@ -951,9 +967,10 @@ UI.$('#storyOk').onclick = () => Events.emit('ui:show', { id: '#storyModal', on:
 UI.$('#reviveBtn').onclick = () => {
   if (window.PlaygamaSDK) {
     window.PlaygamaSDK.showRewarded('revive', () => {
+      // Bug 3 fix: state was already reset in defeat(), just restore hp and clear dead flag
       const st = S.get();
-      if (!st.dead) return;
-      st.dead = false; st.reviveAvailable = false;
+      st.dead = false;
+      st.reviveAvailable = false;
       st.player.hp = Math.max(Math.round(st.player.maxHp * 0.5), 10);
       Events.emit('ui:show', { id: '#defeatModal', on: false });
       Events.emit('ui:toast', t('btn_revive_sys'));

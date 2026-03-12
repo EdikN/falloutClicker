@@ -44,28 +44,35 @@ const preloadImages = () => {
 
 // Wait for DOM
 document.addEventListener('DOMContentLoaded', () => {
+    const startGame = () => {
+        GameUI.applyLanguage();
+        preloadImages();
+
+        GameState.load((success) => {
+            if (!success) {
+                GameState.set(GameState.fresh());
+            }
+            Game.init();
+            // Tell platform game is ready
+            try {
+                if (window.bridge) window.bridge.platform.sendMessage("game_ready");
+            } catch (_) { }
+        });
+    };
+
     // Init SDK first, wait, then init game logic
+    // Fallback: start game after 5s even if bridge never becomes ready
+    const timeout = setTimeout(() => {
+        clearInterval(checkSDK);
+        console.warn('[App] Bridge readiness timeout — starting game in offline mode.');
+        startGame();
+    }, 5000);
+
     const checkSDK = setInterval(() => {
         if (window.PlaygamaSDK && window.PlaygamaSDK.isBridgeReady()) {
             clearInterval(checkSDK);
-
-            // Force UI language correctly right at start
-            GameUI.applyLanguage();
-            preloadImages();
-
-            GameState.load((success) => {
-                if (!success) {
-                    GameState.set(GameState.fresh());
-                }
-
-                // Start the core logic
-                Game.init();
-
-                // Tell platform game is ready
-                if (window.bridge) {
-                    window.bridge.platform.sendMessage("game_ready");
-                }
-            });
+            clearTimeout(timeout);
+            startGame();
         }
     }, 100);
 });
