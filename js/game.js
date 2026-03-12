@@ -1,8 +1,10 @@
 import { GameData as D } from './data.js';
 import { GameState as S } from './state.js';
-import { GameUI as UI } from './ui.js';
 import { SoundManager } from './audio.js';
 import { PlaygamaSDK } from './playgama.js';
+import { EventEmitter as Events } from './events.js';
+import { t, loc } from './locales.js';
+import { GameUI as UI } from './ui.js';
 
 const rng = () => Math.random();
 const pick = arr => arr[Math.floor(rng() * arr.length)];
@@ -14,7 +16,7 @@ const totalDmg = () => {
 
 const weaponUnlock = id => {
   const st = S.get();
-  if (st.weapons[id]) return UI.toast(UI.t('toast_already_have'));
+  if (st.weapons[id]) return Events.emit('ui:toast', t('toast_already_have'));
   st.weapons[id] = true;
   switchWeapon(id);
 };
@@ -28,8 +30,8 @@ const switchWeapon = id => {
   p.isGun = w.isGun;
   p.atkCdMax = w.cd;
   p.atkCd = 0;
-  UI.toast(UI.t('toast_weapon_equipped', UI.loc(w, 'name')));
-  UI.renderTop();
+  Events.emit('ui:toast', t('toast_weapon_equipped', loc(w, 'name')));
+  Events.emit('ui:renderTop');
 };
 
 const switchArmor = id => {
@@ -42,9 +44,9 @@ const switchArmor = id => {
   p.armorClass = a.armorClass;
   p.maxHp += a.hp;
   p.hp = Math.min(p.maxHp, p.hp);
-  UI.toast(UI.t('toast_armor_equipped', UI.loc(a, 'name')));
-  UI.renderTop();
-  UI.renderMain();
+  Events.emit('ui:toast', t('toast_armor_equipped', loc(a, 'name')));
+  Events.emit('ui:renderTop');
+  Events.emit('ui:renderMain');
 };
 
 const armorUnlock = id => {
@@ -58,40 +60,16 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
   const st = S.get();
   st.dead = true;
   st.combat.active = false;
-  const reason = UI.t(reasonKey);
+  const reason = t(reasonKey);
 
-  UI.show('#battleModal', false);
-  UI.show('#encounterModal', false);
-  UI.show('#storyModal', false);
+  Events.emit('ui:defeat', {
+    reason: reason,
+    day: st.day,
+    reviveAvailable: st.reviveAvailable
+  });
 
-  const defeatDaysEl = UI.$('#defeatDays');
-  const defeatReasonEl = UI.$('#defeatReason');
-  const defeatMsgEl = UI.$('#defeatMsg');
-
-  if (defeatDaysEl) defeatDaysEl.textContent = UI.t('cycles_lived', st.day);
-  if (defeatReasonEl) defeatReasonEl.textContent = `${UI.t('obj_status')} ${reason}`;
-
-  const msgs = [
-    UI.t('defeat_msg_1'),
-    UI.t('defeat_msg_2'),
-    UI.t('defeat_msg_3'),
-    UI.t('defeat_msg_4'),
-    UI.t('defeat_msg_5')
-  ];
-  if (defeatMsgEl) defeatMsgEl.textContent = `"${pick(msgs)}"`;
-
-  UI.renderMain();
-  UI.renderTop();
-  UI.show('#defeatModal', true);
-
-  // Показываем кнопку возрождения если доступно
-  const reviveBtn = UI.$('#reviveBtn');
-  if (reviveBtn) reviveBtn.style.display = st.reviveAvailable ? 'block' : 'none';
-
-  // Показываем рекламу при гибели персонажа (если нет NoAds)
   if (PlaygamaSDK && !st.permanentBonuses.noAds) PlaygamaSDK.showInterstitial();
 
-  // Сохраняем "труп" (наследие) перед удалением сейва
   const corpse = {
     day: st.day,
     reason: reason,
@@ -102,10 +80,7 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
     }
   };
   S.getMeta().corpse = corpse;
-
-  // Считаем смерти для цикла
   S.getMeta().deaths = (S.getMeta().deaths || 0) + 1;
-
   S.set(S.fresh());
   S.save();
 };
@@ -117,24 +92,24 @@ const checkStoryEvents = () => {
   if (!event) {
     if (st.day >= st.nextNoteDay) {
       const note = pick(D.NOTES);
-      UI.showDialogue({ speaker: UI.t('corpse_echo'), text: UI.loc(note, 'text') });
+      Events.emit('ui:showDialogue', { speaker: t('corpse_echo'), text: loc(note, 'text') });
       st.nextNoteDay = st.day + 15 + Math.floor(rng() * 10);
       return true;
     }
     return false;
   }
 
-  const speaker = UI.loc(event, 'speaker');
-  const text = UI.loc(event, 'text');
+  const speaker = loc(event, 'speaker');
+  const text = loc(event, 'text');
 
   if (event.isFlag) {
     st.flags[event.flagKey] = true;
-    UI.showDialogue({ speaker, text, img: event.img });
+    Events.emit('ui:showDialogue', { speaker, text, img: event.img });
     return true;
   }
 
   if (event.isMemory) {
-    UI.showDialogue({ speaker, text, img: event.img });
+    Events.emit('ui:showDialogue', { speaker, text, img: event.img });
     return true;
   }
 
@@ -147,7 +122,7 @@ const checkStoryEvents = () => {
   } else if (event.isCombat) {
     handleStoryCombat(event);
   } else {
-    UI.showDialogue({ speaker, text, img: event.img, choices: event.choices });
+    Events.emit('ui:showDialogue', { speaker, text, img: event.img, choices: event.choices });
   }
   return true;
 };
@@ -158,37 +133,37 @@ const handleBarWoman = (event) => {
   const st = S.get();
   const negotiate = () => {
     if (rng() < 0.3) {
-      UI.showDialogue({
-        speaker: UI.loc(event, 'speaker'), img: event.img,
-        text: UI.loc(event, 'branch_negotiate_success'),
-        choices: [{ text: UI.t('btn_accept'), action: () => { applyReward({ food: 5, water: 5, ammo: 10 }); st.flags.paidBarWoman = false; } }]
+      Events.emit('ui:showDialogue', {
+        speaker: loc(event, 'speaker'), img: event.img,
+        text: loc(event, 'branch_negotiate_success'),
+        choices: [{ text: t('btn_accept'), action: () => { applyReward({ food: 5, water: 5, ammo: 10 }); st.flags.paidBarWoman = false; } }]
       });
     } else {
-      UI.showDialogue({ speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.t('bar_woman_negotiate_fail') });
+      Events.emit('ui:showDialogue', { speaker: loc(event, 'speaker'), img: event.img, text: t('bar_woman_negotiate_fail') });
     }
   };
   const pay = () => {
-    if (st.resources.caps < 50) return UI.toast(UI.t('toast_not_enough_caps', 50));
+    if (st.resources.caps < 50) return Events.emit('ui:toast', t('toast_not_enough_caps', 50));
     st.resources.caps -= 50;
     st.flags.paidBarWoman = true;
-    UI.showDialogue({ speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.loc(event, 'branch_pay') });
+    Events.emit('ui:showDialogue', { speaker: loc(event, 'speaker'), img: event.img, text: loc(event, 'branch_pay') });
   };
   const fight = () => {
     st.flags.foughtBarWoman = true;
     const enemy = { name_ru: 'Вышибала из бара', name_en: 'Bar Bouncer', hp: 55, dmg: 10, atk: 3.5, img: 'img/portrait_bar.webp', icon: '[👊]' };
     st.combat.enemy = { ...enemy, maxHp: enemy.hp };
     st.combat.onWin = () => {
-      UI.showDialogue({ speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.t('bar_woman_fight_win') });
+      Events.emit('ui:showDialogue', { speaker: loc(event, 'speaker'), img: event.img, text: t('bar_woman_fight_win') });
     };
     beginFight();
   };
 
-  UI.showDialogue({
-    speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.loc(event, 'text'),
+  Events.emit('ui:showDialogue', {
+    speaker: loc(event, 'speaker'), img: event.img, text: loc(event, 'text'),
     choices: [
-      { text: UI.t('bar_woman_negotiate_choice'), action: negotiate },
-      { text: UI.t('bar_woman_pay_choice'), action: pay },
-      { text: UI.t('bar_woman_fight_choice'), action: fight }
+      { text: t('bar_woman_negotiate_choice'), action: negotiate },
+      { text: t('bar_woman_pay_choice'), action: pay },
+      { text: t('bar_woman_fight_choice'), action: fight }
     ]
   });
 };
@@ -200,12 +175,12 @@ const handleDrifterRescue = (event) => {
     st.combat.enemy = { ...enemy, maxHp: enemy.hp };
     st.flags.savedDrifter = true;
     st.player.humanity = Math.min(100, st.player.humanity + 15);
-    UI.toast(UI.t('toast_humanity', '+15'));
+    Events.emit('ui:toast', t('toast_humanity', '+15'));
     st.combat.onWin = () => {
-      UI.showDialogue({
-        speaker: UI.t('drifter_echo'), speaker_en: 'DRIFTER', img: event.img,
-        text: UI.loc(event, 'branch_save_success'),
-        choices: [{ text: UI.t('btn_accept'), action: () => applyReward({ medkits: 2, ammo: 15, food: 3 }) }]
+      Events.emit('ui:showDialogue', {
+        speaker: t('drifter_echo'), speaker_en: 'DRIFTER', img: event.img,
+        text: loc(event, 'branch_save_success'),
+        choices: [{ text: t('btn_accept'), action: () => applyReward({ medkits: 2, ammo: 15, food: 3 }) }]
       });
     };
     beginFight();
@@ -213,18 +188,18 @@ const handleDrifterRescue = (event) => {
   const leaveHim = () => {
     st.flags.savedDrifter = false;
     st.player.humanity = Math.max(0, st.player.humanity - 15);
-    UI.toast(UI.t('toast_humanity', '-15'));
-    UI.showDialogue({
-      speaker: UI.t('drifter_echo'), speaker_en: 'DRIFTER', img: event.img,
-      text: UI.loc(event, 'branch_leave')
+    Events.emit('ui:toast', t('toast_humanity', '-15'));
+    Events.emit('ui:showDialogue', {
+      speaker: t('drifter_echo'), speaker_en: 'DRIFTER', img: event.img,
+      text: loc(event, 'branch_leave')
     });
   };
 
-  UI.showDialogue({
-    speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.loc(event, 'text'),
+  Events.emit('ui:showDialogue', {
+    speaker: loc(event, 'speaker'), img: event.img, text: loc(event, 'text'),
     choices: [
-      { text: UI.t('btn_fight'), action: saveHim },
-      { text: UI.t('btn_flee'), action: leaveHim }
+      { text: t('btn_fight'), action: saveHim },
+      { text: t('btn_flee'), action: leaveHim }
     ]
   });
 };
@@ -233,55 +208,55 @@ const handleCartographer = (event) => {
   const st = S.get();
   st.flags.cartographerMet = true;
   const buyMap = () => {
-    if (st.resources.caps < 50) return UI.toast(UI.t('toast_not_enough_caps', 50));
+    if (st.resources.caps < 50) return Events.emit('ui:toast', t('toast_not_enough_caps', 50));
     st.resources.caps -= 50;
-    UI.showDialogue({
-      speaker: UI.loc(event, 'speaker'), img: event.img,
-      text: UI.loc(event, 'branch_buy_map'),
-      choices: [{ text: UI.t('btn_accept'), action: () => { st.flags.sector4Unlocked = true; UI.toast(UI.t('goal_2')); } }]
+    Events.emit('ui:showDialogue', {
+      speaker: loc(event, 'speaker'), img: event.img,
+      text: loc(event, 'branch_buy_map'),
+      choices: [{ text: t('btn_accept'), action: () => { st.flags.sector4Unlocked = true; Events.emit('ui:toast', t('goal_2')); } }]
     });
   };
   const buyFile = () => {
-    if (st.resources.caps < 120) return UI.toast(UI.t('toast_not_enough_caps', 120));
+    if (st.resources.caps < 120) return Events.emit('ui:toast', t('toast_not_enough_caps', 120));
     st.resources.caps -= 120;
     const mem = D.MEMORY_FRAGMENTS[Math.floor(rng() * 5) + 2];
-    UI.showDialogue({
-      speaker: UI.loc(event, 'speaker'), img: event.img,
-      text: `${UI.loc(event, 'branch_buy_file')}\n\n${UI.loc(mem, 'text')}`
+    Events.emit('ui:showDialogue', {
+      speaker: loc(event, 'speaker'), img: event.img,
+      text: `${loc(event, 'branch_buy_file')}\n\n${loc(mem, 'text')}`
     });
   };
   const buyCode = () => {
-    if (st.resources.caps < 200) return UI.toast(UI.t('toast_not_enough_caps', 200));
+    if (st.resources.caps < 200) return Events.emit('ui:toast', t('toast_not_enough_caps', 200));
     st.resources.caps -= 200;
-    UI.showDialogue({
-      speaker: UI.loc(event, 'speaker'), img: event.img,
-      text: UI.loc(event, 'branch_buy_code'),
-      choices: [{ text: UI.t('btn_accept'), action: () => { st.flags.bypassCode = true; UI.toast(UI.t('bypass_code_active')); } }]
+    Events.emit('ui:showDialogue', {
+      speaker: loc(event, 'speaker'), img: event.img,
+      text: loc(event, 'branch_buy_code'),
+      choices: [{ text: t('btn_accept'), action: () => { st.flags.bypassCode = true; Events.emit('ui:toast', t('bypass_code_active')); } }]
     });
   };
   const leave = () => {
-    UI.showDialogue({ speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.loc(event, 'branch_leave') });
+    Events.emit('ui:showDialogue', { speaker: loc(event, 'speaker'), img: event.img, text: loc(event, 'branch_leave') });
   };
 
   const choices = [];
-  if (st.resources.caps >= 50) choices.push({ text: UI.t('carto_buy_map'), action: buyMap });
-  if (st.resources.caps >= 120) choices.push({ text: UI.t('carto_buy_file'), action: buyFile });
-  if (st.resources.caps >= 200) choices.push({ text: UI.t('carto_buy_code'), action: buyCode });
-  choices.push({ text: UI.t('btn_leave'), action: leave });
+  if (st.resources.caps >= 50) choices.push({ text: t('carto_buy_map'), action: buyMap });
+  if (st.resources.caps >= 120) choices.push({ text: t('carto_buy_file'), action: buyFile });
+  if (st.resources.caps >= 200) choices.push({ text: t('carto_buy_code'), action: buyCode });
+  choices.push({ text: t('btn_leave'), action: leave });
 
-  let text = UI.loc(event, 'text');
+  let text = loc(event, 'text');
   if (st.resources.caps < 50) {
-    text = UI.t('lang') === 'ru'
+    text = t('lang') === 'ru'
       ? 'НЕЗНАКОМЕЦ В ПОТЁРТОМ ПЛАЩЕ РАЗВОРАЧИВАЕТ ПЕРЕД ВАМИ РУЧНОЙ ПЛАНШЕТ С КАРТОЙ.\n\n«У тебя даже на самую дешевую карту не наскребется крышек. Приходи как разбогатеешь, бродяга».'
       : 'A STRANGER IN A WORN CLOAK UNFOLDS A HANDHELD TABLET WITH A MAP BEFORE YOU.\n\n"You don\'t even have enough caps for the cheapest map. Come back when you get rich, drifter."';
   } else if (st.resources.caps < 200) {
-    text += UI.t('lang') === 'ru'
+    text += t('lang') === 'ru'
       ? '\n\n«Вижу, кредитов у тебя немного. Что ж, выбирай из того, что по карману».'
       : '\n\n"I see you are short on credits. Well, choose from what you can afford."';
   }
 
-  UI.showDialogue({
-    speaker: UI.loc(event, 'speaker'), img: event.img, text: text,
+  Events.emit('ui:showDialogue', {
+    speaker: loc(event, 'speaker'), img: event.img, text: text,
     choices: choices
   });
 };
@@ -294,17 +269,17 @@ const handleStoryCombat = (event) => {
   if (st.flags && st.flags.bypassCode) {
     enemyHp = Math.round(enemyHp * 0.7);
     st.flags.bypassCode = false;
-    UI.toast(UI.t('bypass_code_active'));
+    Events.emit('ui:toast', t('bypass_code_active'));
   }
 
   st.combat.enemy = { ...enemyData, hp: enemyHp, maxHp: enemyHp };
 
   if (event.enemyId === 'amazon_weak') {
     st.combat.onWin = () => {
-      UI.showDialogue({
-        speaker: UI.loc(enemyData, 'name'), img: event.img,
-        text: UI.loc(event, 'branch_win'),
-        choices: [{ text: UI.t('btn_continue'), action: () => applyReward({ medkits: 2, ammo: 20 }) }]
+      Events.emit('ui:showDialogue', {
+        speaker: loc(enemyData, 'name'), img: event.img,
+        text: loc(event, 'branch_win'),
+        choices: [{ text: t('btn_continue'), action: () => applyReward({ medkits: 2, ammo: 20 }) }]
       });
     };
   }
@@ -315,9 +290,9 @@ const handleStoryCombat = (event) => {
     st.combat.onWin = () => handleEnding();
   }
 
-  UI.showDialogue({
-    speaker: UI.loc(event, 'speaker'), img: event.img, text: UI.loc(event, 'text'),
-    choices: [{ text: UI.t('btn_fight'), action: beginFight }]
+  Events.emit('ui:showDialogue', {
+    speaker: loc(event, 'speaker'), img: event.img, text: loc(event, 'text'),
+    choices: [{ text: t('btn_fight'), action: beginFight }]
   });
 };
 
@@ -328,33 +303,33 @@ const handleAmazonChoice = (event) => {
     st.flags.amazonImplant = true;
     st.player.humanity = Math.max(0, st.player.humanity - 20);
     st.player.armorClass = Math.min(0.9, (st.player.armorClass || 0) + 0.2);
-    UI.toast(UI.t('toast_humanity', '-20'));
-    UI.showDialogue({
-      speaker: UI.t('intercept_data'), img: 'img/portrait_sys.webp',
-      text: UI.loc(event, 'branch_kill')
+    Events.emit('ui:toast', t('toast_humanity', '-20'));
+    Events.emit('ui:showDialogue', {
+      speaker: t('intercept_data'), img: 'img/portrait_sys.webp',
+      text: loc(event, 'branch_kill')
     });
     S.save();
-    UI.renderTop(); UI.renderMain();
+    Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
   };
   const spare = () => {
     st.flags.mercyAmazon = true;
     st.player.humanity = Math.min(100, st.player.humanity + 20);
-    UI.toast(UI.t('toast_humanity', '+20'));
-    UI.showDialogue({
-      speaker: UI.loc(enemyData, 'name'), img: event.img,
-      text: UI.loc(event, 'branch_spare'),
-      choices: [{ text: UI.t('btn_accept'), action: () => UI.toast(UI.t('mercy_amazon_companion')) }]
+    Events.emit('ui:toast', t('toast_humanity', '+20'));
+    Events.emit('ui:showDialogue', {
+      speaker: loc(enemyData, 'name'), img: event.img,
+      text: loc(event, 'branch_spare'),
+      choices: [{ text: t('btn_accept'), action: () => Events.emit('ui:toast', t('mercy_amazon_companion')) }]
     });
     S.save();
   };
 
   const enemyData = D.STORY_ENEMIES[event.enemyId];
-  UI.showDialogue({
-    speaker: UI.loc(enemyData, 'name'), img: event.img,
-    text: UI.loc(event, 'branch_post_fight'),
+  Events.emit('ui:showDialogue', {
+    speaker: loc(enemyData, 'name'), img: event.img,
+    text: loc(event, 'branch_post_fight'),
     choices: [
-      { text: UI.t('btn_kill'), action: kill },
-      { text: UI.t('btn_spare'), action: spare }
+      { text: t('btn_kill'), action: kill },
+      { text: t('btn_spare'), action: spare }
     ]
   });
 };
@@ -371,9 +346,9 @@ const handleEnding = () => {
 
   if (flags.savedDrifter && flags.mercyAmazon && humanity >= 70) {
     showEnding({
-      title: UI.t('ending_mercy_title'),
-      text: UI.t('ending_mercy_text'),
-      score: UI.t('ending_mercy_score', Math.round(humanity), st.day)
+      title: t('ending_mercy_title'),
+      text: t('ending_mercy_text'),
+      score: t('ending_mercy_score', Math.round(humanity), st.day)
     });
   }
   else if (!flags.savedDrifter && !flags.mercyAmazon) {
@@ -381,9 +356,9 @@ const handleEnding = () => {
   }
   else {
     showEnding({
-      title: UI.t('ending_neutral_title'),
-      text: UI.t('ending_neutral_text'),
-      score: UI.t('ending_neutral_score', Math.round(humanity), st.day)
+      title: t('ending_neutral_title'),
+      text: t('ending_neutral_text'),
+      score: t('ending_neutral_score', Math.round(humanity), st.day)
     });
   }
 };
@@ -394,34 +369,34 @@ const showEndingChoice = (forced = false) => {
   if (forced) {
     st.flags.endingReached = true;
     showEnding({
-      title: UI.t('ending_bad_title'),
-      text: UI.t('ending_bad_text'),
-      score: UI.t('ending_bad_score', Math.round(st.player.humanity), st.day)
+      title: t('ending_bad_title'),
+      text: t('ending_bad_text'),
+      score: t('ending_bad_score', Math.round(st.player.humanity), st.day)
     });
     return;
   }
 
-  UI.showDialogue({
-    speaker: UI.loc(D.STORY_ENEMIES.boss_technician, 'name'), img: 'img/enemy_technician.webp',
-    text: UI.loc(D.STORY_EVENTS.find(e => e.day === 365), 'branch_final_offer'), // I need to make sure this is in data.js
+  Events.emit('ui:showDialogue', {
+    speaker: loc(D.STORY_ENEMIES.boss_technician, 'name'), img: 'img/enemy_technician.webp',
+    text: loc(D.STORY_EVENTS.find(e => e.day === 365), 'branch_final_offer'), // I need to make sure this is in data.js
     choices: [
       {
-        text: UI.t('btn_accept'), action: () => {
+        text: t('btn_accept'), action: () => {
           st.flags.endingReached = true;
           showEnding({
-            title: UI.t('ending_merge_title'),
-            text: UI.t('ending_merge_text'),
-            score: UI.t('ending_merge_score', st.day)
+            title: t('ending_merge_title'),
+            text: t('ending_merge_text'),
+            score: t('ending_merge_score', st.day)
           });
         }
       },
       {
-        text: UI.t('btn_confirm'), action: () => { // Confirm -> Reject/Destroy
+        text: t('btn_confirm'), action: () => { // Confirm -> Reject/Destroy
           st.flags.endingReached = true;
           showEnding({
-            title: UI.t('ending_reject_title'),
-            text: UI.t('ending_reject_text'),
-            score: UI.t('ending_reject_score', st.day)
+            title: t('ending_reject_title'),
+            text: t('ending_reject_text'),
+            score: t('ending_reject_score', st.day)
           });
         }
       }
@@ -441,11 +416,11 @@ const showEnding = ({ title, text, score }) => {
     UI.$('#endingTitle').textContent = title;
     UI.$('#endingText').textContent = text;
     UI.$('#endingScore').textContent = score;
-    UI.show('#battleModal', false);
-    UI.show('#storyModal', false);
-    UI.show('#endingModal', true);
+    Events.emit('ui:show', { id: '#battleModal', on: false });
+    Events.emit('ui:show', { id: '#storyModal', on: false });
+    Events.emit('ui:show', { id: '#endingModal', on: true });
   } else {
-    UI.showDialogue({ speaker: title, text: text + '\n\n' + score });
+    Events.emit('ui:showDialogue', { speaker: title, text: text + '\n\n' + score });
   }
 };
 
@@ -475,20 +450,20 @@ const checkAdEvents = () => {
     if (rng() < 0.4) {
       st.adBoosts.lastDroneDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
-      UI.showDialogue({
+      Events.emit('ui:showDialogue', {
         speaker: 'СИСТЕМА СНАБЖЕНИЯ', speaker_en: 'SUPPLY SYSTEM',
         text: 'ЗАМЕЧЕНА КРИТИЧЕСКАЯ НЕХВАТКА ПРИПАСОВ. ВАМ ДОСТУПЕН ДРОН СНАБЖЕНИЯ.',
         text_en: 'CRITICAL SUPPLY SHORTAGE DETECTED. SUPPLY DRONE AVAILABLE.',
         choices: [
           {
-            text: UI.t('btn_airdrop') + (UI.t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
+            text: t('btn_airdrop') + (t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
               window.PlaygamaSDK.showRewarded('airdrop', () => {
                 applyReward({ materials: 5, caps: 5, food: 3, water: 3, ammo: 10 });
-                UI.toast(UI.t('toast_airdrop')); S.save(); UI.renderMain();
+                Events.emit('ui:toast', t('toast_airdrop')); S.save(); Events.emit('ui:renderMain');
               });
             }
           },
-          { text: UI.t('btn_ignore'), action: () => { } }
+          { text: t('btn_ignore'), action: () => { } }
         ]
       });
       return true;
@@ -499,23 +474,23 @@ const checkAdEvents = () => {
     if (rng() < 0.4) {
       st.adBoosts.lastEmergencyDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
-      UI.showDialogue({
+      Events.emit('ui:showDialogue', {
         speaker: 'МЕДИЦИНСКАЯ ПОДСИСТЕМА', speaker_en: 'MEDICAL SUBSYSTEM',
         text: 'КРИТИЧЕСКОЕ ПАДЕНИЕ ЖИЗНЕННЫХ ПОКАЗАТЕЛЕЙ. ПОЛУЧИТЬ АВАРИЙНЫЙ ПАЁК?',
         text_en: 'CRITICAL VITAL SIGNS DROP. RECEIVE EMERGENCY RATION?',
         choices: [
           {
-            text: UI.t('btn_emergency') + (UI.t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
+            text: t('btn_emergency') + (t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
               window.PlaygamaSDK.showRewarded('emergency_ration', () => {
                 const st = S.get();
                 st.player.hp = st.player.maxHp;
                 st.player.mood = st.player.maxMood;
                 applyReward({ food: 5, water: 5 });
-                UI.toast(UI.t('toast_emergency')); S.save(); UI.renderMain();
+                Events.emit('ui:toast', t('toast_emergency')); S.save(); Events.emit('ui:renderMain');
               });
             }
           },
-          { text: UI.t('btn_ignore'), action: () => { } }
+          { text: t('btn_ignore'), action: () => { } }
         ]
       });
       return true;
@@ -526,20 +501,20 @@ const checkAdEvents = () => {
     if (rng() < 0.3) {
       st.adBoosts.lastAdrenalineDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
-      UI.showDialogue({
+      Events.emit('ui:showDialogue', {
         speaker: 'СИСТЕМЫ УСИЛЕНИЯ', speaker_en: 'BOOST SYSTEMS',
         text: 'НАЙДЕН СТИМУЛЯТОР БОЕВОЙ АКТИВНОСТИ. АКТИВИРОВАТЬ АДРЕНАЛИН (+50% УРОНА НА 15 МИН)?',
         text_en: 'COMBAT STIMULANT FOUND. ACTIVATE ADRENALINE (+50% DAMAGE FOR 15 MIN)?',
         choices: [
           {
-            text: UI.t('btn_adrenaline') + (UI.t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
+            text: t('btn_adrenaline') + (t('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
               window.PlaygamaSDK.showRewarded('adrenaline', () => {
                 st.adBoosts.adrenaline = Date.now() + 900000;
-                UI.toast(UI.t('toast_adrenaline')); UI.renderTop(); UI.renderMain(); S.save();
+                Events.emit('ui:toast', t('toast_adrenaline')); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); S.save();
               });
             }
           },
-          { text: UI.t('btn_ignore'), action: () => { } }
+          { text: t('btn_ignore'), action: () => { } }
         ]
       });
       return true;
@@ -558,12 +533,12 @@ const upkeep = () => {
   st.resources.water = Math.max(0, st.resources.water - consumption);
 
   if (st.resources.food === 0) {
-    p.hp -= 5; p.mood -= 5; UI.toast(UI.t('res_food_empty')); UI.triggerDamage();
-    if (p.hp <= 0) { defeat(UI.t('defeat_starved')); return; }
+    p.hp -= 5; p.mood -= 5; Events.emit('ui:toast', t('res_food_empty')); Events.emit('ui:triggerDamage');
+    if (p.hp <= 0) { defeat(t('defeat_starved')); return; }
   }
   if (st.resources.water === 0) {
-    p.hp -= 8; p.mood -= 8; UI.toast(UI.t('res_water_empty')); UI.triggerDamage();
-    if (p.hp <= 0) { defeat(UI.t('defeat_dehydrated')); return; }
+    p.hp -= 8; p.mood -= 8; Events.emit('ui:toast', t('res_water_empty')); Events.emit('ui:triggerDamage');
+    if (p.hp <= 0) { defeat(t('defeat_dehydrated')); return; }
   }
   p.mood = Math.max(0, p.mood - 1);
 };
@@ -588,7 +563,7 @@ const encounterRoll = () => {
 const applyReward = r => {
   const st = S.get();
   Object.entries(r).forEach(([k, v]) => st.resources[k] = (st.resources[k] || 0) + v);
-  UI.renderTop(); UI.renderMain();
+  Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 };
 
 const renderMerchant = async (defaultTab = 'items') => {
@@ -596,8 +571,8 @@ const renderMerchant = async (defaultTab = 'items') => {
 
   UI.$('#merchantStock').innerHTML = `
     <div class="row" style="margin-bottom:1rem; border-bottom:1px solid var(--line);">
-      <button class="pill active" id="tabItems">${UI.t('shop_items')}</button>
-      <button class="pill" id="tabDirector">${UI.t('shop_director')}</button>
+      <button class="pill active" id="tabItems">${t('shop_items')}</button>
+      <button class="pill" id="tabDirector">${t('shop_director')}</button>
     </div>
     <div id="shopContent"></div>
   `;
@@ -625,43 +600,43 @@ const renderMerchant = async (defaultTab = 'items') => {
       html += `<h3 style="margin-top:0.5rem;">${title}</h3>`;
       html += arr.map(item =>
         `<div class='shopItem'>
-         <div>${UI.loc(item, 'label')}</div>
-         <button class='btn good' data-buy='${item.i}'>${item.price} ${UI.t('credits').slice(0, 2).toUpperCase()}</button>
+         <div>${loc(item, 'label')}</div>
+         <button class='btn good' data-buy='${item.i}'>${item.price} ${t('credits').slice(0, 2).toUpperCase()}</button>
        </div>`
       ).join('');
     };
 
-    renderGroup(groups.resource, `${UI.t('food')} / ${UI.t('water')} / ${UI.t('medkits')}`.toUpperCase());
-    renderGroup(groups.weapon, UI.t('weapon').toUpperCase());
-    renderGroup(groups.armor, UI.t('cat_armor').toUpperCase());
-    renderGroup(groups.upgrade, UI.t('cat_upgrades').toUpperCase());
+    renderGroup(groups.resource, `${t('food')} / ${t('water')} / ${t('medkits')}`.toUpperCase());
+    renderGroup(groups.weapon, t('weapon').toUpperCase());
+    renderGroup(groups.armor, t('cat_armor').toUpperCase());
+    renderGroup(groups.upgrade, t('cat_upgrades').toUpperCase());
 
     content.innerHTML = html;
 
     content.querySelectorAll('[data-buy]').forEach(btn => btn.onclick = () => {
       const p = D.SHOP_ITEMS[+btn.dataset.buy];
-      if (st.resources.caps < p.price) return UI.toast(UI.t('toast_not_enough_caps', p.price));
+      if (st.resources.caps < p.price) return Events.emit('ui:toast', t('toast_not_enough_caps', p.price));
       st.resources.caps -= p.price;
       if (p.type === 'weapon') weaponUnlock(p.weaponId);
       else if (p.type === 'armor') armorUnlock(p.armorId); // if added
       else st.resources[p.key] = (st.resources[p.key] || 0) + p.amount;
-      UI.toast(UI.t('toast_bought', UI.loc(p, 'label'))); S.save(); UI.renderTop(); UI.renderMain(); showItems();
+      Events.emit('ui:toast', t('toast_bought', loc(p, 'label'))); S.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); showItems();
     });
   };
 
   const showDirector = () => {
     tabItems.classList.remove('active');
     tabDirector.classList.add('active');
-    content.innerHTML = `<div class="sub" style="margin-bottom:1rem;">${UI.t('shop_desc')}</div>`;
+    content.innerHTML = `<div class="sub" style="margin-bottom:1rem;">${t('shop_desc')}</div>`;
 
     const DEFAULT_ITEMS = [
-      { id: 'no_ads', price: '299 GAM', name: UI.t('item_no_ads_name'), desc: UI.t('item_no_ads_desc') },
-      { id: 'starter_pack', price: '149 GAM', name: UI.t('item_starter_name'), desc: UI.t('item_starter_desc') },
-      { id: 'premium_caps', price: '99 GAM', name: UI.t('item_premium_name'), desc: UI.t('item_premium_desc') },
-      { id: 'mega_pack', price: '299 GAM', name: UI.t('item_mega_name'), desc: UI.t('item_mega_desc') },
-      { id: 'cyber_stomach', price: '199 GAM', name: UI.t('item_stomach_name'), desc: UI.t('item_stomach_desc') },
-      { id: 'iron_arsenal', price: '249 GAM', name: UI.t('item_arsenal_name'), desc: UI.t('item_arsenal_desc') },
-      { id: 'heavy_armor', price: '399 GAM', name: UI.t('item_armor_name'), desc: UI.t('item_armor_desc') }
+      { id: 'no_ads', price: '299 GAM', name: t('item_no_ads_name'), desc: t('item_no_ads_desc') },
+      { id: 'starter_pack', price: '149 GAM', name: t('item_starter_name'), desc: t('item_starter_desc') },
+      { id: 'premium_caps', price: '99 GAM', name: t('item_premium_name'), desc: t('item_premium_desc') },
+      { id: 'mega_pack', price: '299 GAM', name: t('item_mega_name'), desc: t('item_mega_desc') },
+      { id: 'cyber_stomach', price: '199 GAM', name: t('item_stomach_name'), desc: t('item_stomach_desc') },
+      { id: 'iron_arsenal', price: '249 GAM', name: t('item_arsenal_name'), desc: t('item_arsenal_desc') },
+      { id: 'heavy_armor', price: '399 GAM', name: t('item_armor_name'), desc: t('item_armor_desc') }
     ].filter(item => {
       if (item.id === 'no_ads' && st.permanentBonuses.noAds) return false;
       if (item.id === 'cyber_stomach' && st.permanentBonuses.cyberStomach) return false;
@@ -705,9 +680,20 @@ const renderMerchant = async (defaultTab = 'items') => {
         </div>
         <button class="btn good" style="min-width:80px;">${item.price}</button>
       `;
-      div.querySelector('button').onclick = () => {
-        window.PlaygamaSDK.buyProduct(item.id, () => applyPurchase(item.id), (err) => UI.toast(`${UI.t('purchase_error')}: ${err}`));
-      };
+      if (['starter_pack', 'premium_caps', 'mega_pack', 'cyber_stomach', 'iron_arsenal', 'heavy_armor'].includes(item.id)) {
+        div.querySelector('button').onclick = () => {
+          window.PlaygamaSDK.buyProduct(item.id, (purchase) => {
+            applyPurchase(item.id);
+            if (purchase && purchase.purchaseToken) {
+              window.PlaygamaSDK.consumePurchase(purchase.purchaseToken);
+            }
+          }, (err) => Events.emit('ui:toast', `${t('purchase_error')}: ${err}`));
+        };
+      } else {
+        div.querySelector('button').onclick = () => {
+          window.PlaygamaSDK.buyProduct(item.id, () => applyPurchase(item.id), (err) => Events.emit('ui:toast', `${t('purchase_error')}: ${err}`));
+        };
+      }
       content.appendChild(div);
     });
   };
@@ -731,36 +717,36 @@ const renderCraft = () => {
     if (!arr || arr.length === 0) return;
     html += `<h3 style="margin-top:0.5rem;">${title}</h3>`;
     html += arr.map(item => {
-      const costStr = item.ammo > 0 ? `${UI.t('materials')}: ${item.materials} | ${UI.t('ammo')}: ${item.ammo}` : `${UI.t('materials')}: ${item.materials}`;
+      const costStr = item.ammo > 0 ? `${t('materials')}: ${item.materials} | ${t('ammo')}: ${item.ammo}` : `${t('materials')}: ${item.materials}`;
       return `<div class='shopItem'>
-      <div>${UI.loc(item, 'label')}
-        <div class='sub'>${UI.loc(item, 'desc')}</div>
-        <div class='sub'>${UI.t('cost_label', costStr)}</div>
+      <div>${loc(item, 'label')}
+        <div class='sub'>${loc(item, 'desc')}</div>
+        <div class='sub'>${t('cost_label', costStr)}</div>
       </div>
-      <button class='btn good' data-craft='${item.i}'>${UI.t('btn_create')}</button>
+      <button class='btn good' data-craft='${item.i}'>${t('btn_create')}</button>
     </div>`;
     }).join('');
   };
 
-  renderGroup(groups.weapon, UI.t('weapon').toUpperCase());
-  renderGroup(groups.armor, UI.t('cat_armor').toUpperCase());
-  renderGroup(groups.upgrade, UI.t('cat_upgrades').toUpperCase());
-  renderGroup(groups.resource, `${UI.t('food')} / ${UI.t('water')} / ${UI.t('medkits')}`.toUpperCase());
+  renderGroup(groups.weapon, t('weapon').toUpperCase());
+  renderGroup(groups.armor, t('cat_armor').toUpperCase());
+  renderGroup(groups.upgrade, t('cat_upgrades').toUpperCase());
+  renderGroup(groups.resource, `${t('food')} / ${t('water')} / ${t('medkits')}`.toUpperCase());
 
   UI.$('#craftStock').innerHTML = html;
 
   UI.$('#craftStock').querySelectorAll('[data-craft]').forEach(btn => {
     btn.onclick = () => {
       const rec = D.CRAFT_ITEMS[+btn.dataset.craft];
-      if (st.resources.materials < rec.materials) return UI.toast(UI.t('toast_not_enough_caps', rec.materials)); // Use appropriate message if we have mats equivalent
-      if (rec.ammo > 0 && st.resources.ammo < rec.ammo) return UI.toast(UI.t('res_ammo_empty'));
+      if (st.resources.materials < rec.materials) return Events.emit('ui:toast', t('toast_not_enough_caps', rec.materials)); // Use appropriate message if we have mats equivalent
+      if (rec.ammo > 0 && st.resources.ammo < rec.ammo) return Events.emit('ui:toast', t('res_ammo_empty'));
       st.resources.materials -= rec.materials;
       if (rec.ammo) st.resources.ammo -= rec.ammo;
       if (rec.unlock) weaponUnlock(rec.unlock);
       if (rec.armorId) armorUnlock(rec.armorId);
       if (rec.hpBoost) { st.player.maxHp += rec.hpBoost; st.player.hp = Math.min(st.player.maxHp, st.player.hp + rec.hpBoost); }
       if (rec.healBoost) st.player.healPower = (st.player.healPower || 30) + rec.healBoost;
-      UI.toast(UI.t('toast_crafted', UI.loc(rec, 'label'))); S.save(); UI.renderTop(); UI.renderMain(); renderCraft();
+      Events.emit('ui:toast', t('toast_crafted', loc(rec, 'label'))); S.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); renderCraft();
     };
   });
 };
@@ -772,11 +758,11 @@ const startDay = () => {
   if (st.day === 1 && !st.initialized) {
     st.initialized = true;
     checkStoryEvents();
-    UI.renderTop(); UI.renderMain();
+    Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
     return;
   }
 
-  st.day++; st.phase = UI.t('status_exploring'); upkeep();
+  st.day++; st.phase = t('status_exploring'); upkeep();
   SoundManager.play('click');
   if (st.player.hp <= 0) return;
 
@@ -791,7 +777,7 @@ const startDay = () => {
   }
 
   updateChapterTitle(st.day);
-  UI.renderTop(); UI.renderMain();
+  Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 
   if (checkAdEvents()) return;
   if (checkStoryEvents()) return;
@@ -802,36 +788,37 @@ const startDay = () => {
     const corpse = event.corpse;
     S.getMeta().corpse = null;
     st.player.humanity = Math.max(0, st.player.humanity - 5);
-    UI.toast(UI.t('toast_humanity', '-5'));
-    UI.showDialogue({
-      speaker: UI.t('corpse_echo'),
-      text: UI.t('corpse_desc', corpse.day, corpse.reason),
+    Events.emit('ui:toast', t('toast_humanity', '-5'));
+    Events.emit('ui:showDialogue', {
+      speaker: t('corpse_echo'),
+      text: t('corpse_desc', corpse.day, corpse.reason),
       choices: [{
-        text: UI.t('btn_take_loot'), action: () => {
+        text: t('btn_take_loot'), action: () => {
           applyReward(corpse.resources);
-          UI.toast(UI.t('corpse_loot', corpse.resources.materials, corpse.resources.ammo, corpse.resources.caps));
+          Events.emit('ui:toast', t('corpse_loot', corpse.resources.materials, corpse.resources.ammo, corpse.resources.caps));
         }
       }]
     });
   } else if (event.type === 'enemy') {
     st.encounter = event;
     const threat = event.enemy.threat;
-    const threatLabel = threat < 25 ? UI.t('threat_weak') : threat < 60 ? UI.t('threat_medium') : threat < 120 ? UI.t('threat_dangerous') : UI.t('threat_deadly');
-    UI.setEncounterCard({ icon: event.enemy.icon, title: UI.loc(event.enemy, 'name'), desc: UI.t('threat_level', threatLabel) + `\n${UI.t('btn_fight')}?`, img: event.enemy.img });
-    UI.$('#encounterYes').textContent = UI.t('btn_fight'); UI.$('#encounterNo').textContent = UI.t('btn_flee');
-    st.phase = UI.t('status_combat'); UI.show('#encounterModal', true);
+    const threatLabel = threat < 25 ? t('threat_weak') : threat < 60 ? t('threat_medium') : threat < 120 ? t('threat_dangerous') : t('threat_deadly');
+    Events.emit('ui:setEncounterCard', { icon: event.enemy.icon, title: loc(event.enemy, 'name'), desc: t('threat_level', threatLabel) + `\n${t('btn_fight')}?`, img: event.enemy.img });
+    UI.$('#encounterYes').textContent = t('btn_fight'); UI.$('#encounterNo').textContent = t('btn_flee');
+    st.phase = t('status_combat'); Events.emit('ui:show', { id: '#encounterModal', on: true });
   } else if (event.type === 'location') {
     if (event.location.moodCost) {
       st.player.mood = Math.max(0, st.player.mood - event.location.moodCost);
-      UI.toast(`${UI.t('mood')} -${event.location.moodCost}`);
+      Events.emit('ui:toast', `${t('mood')} -${event.location.moodCost}`);
     }
     st.encounter = event;
-    UI.setEncounterCard({ icon: event.location.icon, title: `${UI.loc(event.location, 'name')}`, desc: UI.loc(event.location, 'desc') });
-    UI.$('#encounterYes').textContent = UI.t('btn_search'); UI.$('#encounterNo').textContent = UI.t('btn_ignore');
-    st.phase = UI.t('status_exploring'); UI.show('#encounterModal', true);
+    Events.emit('ui:setEncounterCard', { icon: event.location.icon, title: `${loc(event.location, 'name')}`, desc: loc(event.location, 'desc') });
+    UI.$('#encounterYes').textContent = t('btn_search'); UI.$('#encounterNo').textContent = t('btn_ignore');
+    st.phase = t('status_exploring'); Events.emit('ui:show', { id: '#encounterModal', on: true });
   } else {
     applyReward({ materials: 2 + Math.floor(rng() * 3), caps: 1 + Math.floor(rng() * 2) });
-    UI.toast(UI.t('day_calm'));
+    Events.emit('ui:toast', t('day_calm'));
+    Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
   }
   S.save();
 };
@@ -839,32 +826,32 @@ const startDay = () => {
 const updateChapterTitle = (day) => {
   const el = UI.$('#currentGoal');
   if (el) {
-    if (day < 30) el.textContent = UI.t('goal_1');
-    else if (day < 80) el.textContent = UI.t('goal_2');
-    else if (day < 145) el.textContent = UI.t('goal_3');
-    else if (day < 210) el.textContent = UI.t('goal_4');
-    else if (day < 300) el.textContent = UI.t('goal_5');
-    else if (day < 365) el.textContent = UI.t('goal_6');
-    else el.textContent = UI.t('goal_7');
+    if (day < 30) el.textContent = t('goal_1');
+    else if (day < 80) el.textContent = t('goal_2');
+    else if (day < 145) el.textContent = t('goal_3');
+    else if (day < 210) el.textContent = t('goal_4');
+    else if (day < 300) el.textContent = t('goal_5');
+    else if (day < 365) el.textContent = t('goal_6');
+    else el.textContent = t('goal_7');
   }
   const deathCountEl = UI.$('#deathCount');
   if (deathCountEl) {
     const deaths = S.getMeta().deaths || 0;
-    deathCountEl.textContent = UI.t('cycles', deaths);
+    deathCountEl.textContent = t('cycles', deaths);
   }
 };
 
 const beginFight = () => {
   const st = S.get(), c = st.combat; if (!c.enemy) return;
-  UI.show('#encounterModal', false);
+  Events.emit('ui:show', { id: '#encounterModal', on: false });
   Object.assign(c, { active: true, time: 0, enemyAtk: 1.5, cdDodge: 0, dodge: 0, lastTs: 0 });
-  st.phase = UI.t('status_combat'); UI.show('#battleModal', true);
+  st.phase = t('status_combat'); Events.emit('ui:show', { id: '#battleModal', on: true });
   SoundManager.play('success');
   tick(performance.now());
 };
 
 const finishFight = win => {
-  const st = S.get(), c = st.combat; c.active = false; UI.show('#battleModal', false); st.phase = UI.t('status_exploring');
+  const st = S.get(), c = st.combat; c.active = false; Events.emit('ui:show', { id: '#battleModal', on: false }); st.phase = t('status_exploring');
 
   if (win) {
     SoundManager.play('success');
@@ -881,14 +868,14 @@ const finishFight = win => {
       applyReward(r);
       c.lastReward = r;
       UI.$('#doubleRewardBtn').style.display = 'block';
-      return `${UI.t('btn_accept').toUpperCase()}. ${UI.t('materials')}: +${r.materials}, ${UI.t('credits').slice(0, 2).toUpperCase()}: +${r.caps}`;
+      return `${t('btn_accept').toUpperCase()}. ${t('materials')}: +${r.materials}, ${t('credits').slice(0, 2).toUpperCase()}: +${r.caps}`;
     })()
     : (() => {
       st.player.mood = Math.max(0, st.player.mood - 15);
       UI.$('#doubleRewardBtn').style.display = 'none';
-      return `${UI.t('flee_msg')}\n${UI.t('flee_mood_lost')}`;
+      return `${t('flee_msg')}\n${t('flee_mood_lost')}`;
     })();
-  UI.$('#rewardText').textContent = txt; UI.show('#rewardModal', true); S.save(); UI.renderTop(); UI.renderMain();
+  UI.$('#rewardText').textContent = txt; Events.emit('ui:show', { id: '#rewardModal', on: true }); S.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 };
 
 const tick = ts => {
@@ -901,57 +888,63 @@ const tick = ts => {
   if (c.dodge > 0) c.dodge -= dt;
 
   if (c.enemyAtk <= 0) {
-    if (c.dodge > 0) { UI.toast(UI.t('dodge_success')); }
+    if (c.dodge > 0) { Events.emit('ui:toast', t('dodge_success')); }
     else {
       let dmg = e.dmg;
       if (p.armorClass) dmg = Math.round(dmg * (1 - p.armorClass));
       p.hp -= Math.max(1, dmg);
-      p.mood = Math.max(0, p.mood - 1); UI.triggerDamage();
-      if (p.hp <= 0) { defeat(`${UI.t('liquidated')}: ${UI.loc(e, 'name').toUpperCase()}`); return; }
+      p.mood = Math.max(0, p.mood - 1); Events.emit('ui:triggerDamage');
+      if (p.hp <= 0) { defeat(`${t('liquidated')}: ${loc(e, 'name').toUpperCase()}`); return; }
     }
     c.enemyAtk = e.atk;
   }
   if (e.hp <= 0) return finishFight(true);
-  UI.renderTop(); UI.renderBattle(); requestAnimationFrame(tick);
+
+  if (!c.lastRenderTs || ts - c.lastRenderTs > 50) {
+    Events.emit('ui:renderBattle');
+    c.lastRenderTs = ts;
+  }
+
+  requestAnimationFrame(tick);
 };
 
 const actAttack = () => {
   const st = S.get(), c = st.combat, p = st.player;
   if (!c.active || p.hp <= 0 || p.atkCd > 0) return;
   const isGun = p.isGun;
-  if (isGun && st.resources.ammo <= 0) return UI.toast(UI.t('res_ammo_empty'));
+  if (isGun && st.resources.ammo <= 0) return Events.emit('ui:toast', t('res_ammo_empty'));
   p.atkCd = p.atkCdMax || 1;
   if (isGun) { st.resources.ammo--; SoundManager.play('shoot'); }
   else { SoundManager.play('punch'); }
   let dmg = totalDmg() + Math.floor(rng() * 4);
   const e = c.enemy;
-  if (rng() < 0.1) { dmg = Math.round(dmg * 1.5); UI.toast(UI.t('crit_hit')); }
+  if (rng() < 0.1) { dmg = Math.round(dmg * 1.5); Events.emit('ui:toast', t('crit_hit')); }
   if (e.armor) dmg = Math.round(dmg * (1 - e.armor));
   e.hp -= Math.max(1, dmg);
-  UI.triggerEnemyHit(); UI.renderTop(); UI.renderBattle();
+  Events.emit('ui:triggerEnemyHit'); Events.emit('ui:renderTop'); Events.emit('ui:renderBattle');
 };
 
-const actDodge = () => { const c = S.get().combat; if (c.cdDodge > 0) return; c.dodge = 1.5; c.cdDodge = 5; UI.renderBattle(); };
+const actDodge = () => { const c = S.get().combat; if (c.cdDodge > 0) return; c.dodge = 1.5; c.cdDodge = 5; Events.emit('ui:renderBattle'); };
 
 const actMed = () => {
-  const st = S.get(); if (st.resources.medkits < 1) return UI.toast(UI.t('res_medkits_empty'));
+  const st = S.get(); if (st.resources.medkits < 1) return Events.emit('ui:toast', t('res_medkits_empty'));
   st.resources.medkits--;
   st.player.hp = Math.min(st.player.maxHp, st.player.hp + (st.player.healPower || 30));
-  UI.toast(`+${st.player.healPower || 30} HP`); UI.renderTop(); UI.renderBattle();
+  Events.emit('ui:toast', `+${st.player.healPower || 30} HP`); Events.emit('ui:renderTop'); Events.emit('ui:renderBattle');
 };
 
 /* ---------- ПРИВЯЗКА СОБЫТИЙ ---------- */
 UI.$('#charBtn').onclick = startDay;
 UI.$('#merchantBtn').onclick = async () => {
   await renderMerchant();
-  UI.show('#merchantModal', true);
+  Events.emit('ui:show', { id: '#merchantModal', on: true });
 };
-UI.$('#merchantClose').onclick = () => UI.show('#merchantModal', false);
-UI.$('#equipBtn').onclick = () => { UI.renderEquipment(switchWeapon, switchArmor); UI.show('#equipModal', true); };
-UI.$('#equipClose').onclick = () => UI.show('#equipModal', false);
-UI.$('#craftBtn').onclick = () => { renderCraft(); UI.show('#craftModal', true); };
-UI.$('#craftClose').onclick = () => UI.show('#craftModal', false);
-UI.$('#storyOk').onclick = () => UI.show('#storyModal', false);
+UI.$('#merchantClose').onclick = () => Events.emit('ui:show', { id: '#merchantModal', on: false });
+UI.$('#equipBtn').onclick = () => { Events.emit('ui:renderEquipment', { onSwitchWeapon: switchWeapon, onSwitchArmor: switchArmor }); Events.emit('ui:show', { id: '#equipModal', on: true }); };
+UI.$('#equipClose').onclick = () => Events.emit('ui:show', { id: '#equipModal', on: false });
+UI.$('#craftBtn').onclick = () => { renderCraft(); Events.emit('ui:show', { id: '#craftModal', on: true }); };
+UI.$('#craftClose').onclick = () => Events.emit('ui:show', { id: '#craftModal', on: false });
+UI.$('#storyOk').onclick = () => Events.emit('ui:show', { id: '#storyModal', on: false });
 
 UI.$('#reviveBtn').onclick = () => {
   if (window.PlaygamaSDK) {
@@ -960,9 +953,9 @@ UI.$('#reviveBtn').onclick = () => {
       if (!st.dead) return;
       st.dead = false; st.reviveAvailable = false;
       st.player.hp = Math.max(Math.round(st.player.maxHp * 0.5), 10);
-      UI.show('#defeatModal', false);
-      UI.toast(UI.t('btn_revive_sys'));
-      UI.renderTop(); UI.renderMain(); S.save();
+      Events.emit('ui:show', { id: '#defeatModal', on: false });
+      Events.emit('ui:toast', t('btn_revive_sys'));
+      Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); S.save();
       if (st.combat.enemy) beginFight();
     });
   }
@@ -972,7 +965,7 @@ UI.$('#doubleRewardBtn').onclick = () => {
   if (window.PlaygamaSDK) {
     window.PlaygamaSDK.showRewarded('double_loot', () => {
       const r = S.get().combat.lastReward;
-      if (r) { applyReward(r); UI.toast(UI.t('toast_loot_doubled')); UI.$('#doubleRewardBtn').style.display = 'none'; }
+      if (r) { applyReward(r); Events.emit('ui:toast', t('toast_loot_doubled')); UI.$('#doubleRewardBtn').style.display = 'none'; }
     });
   }
 };
@@ -986,38 +979,38 @@ UI.$('#encounterYes').onclick = () => {
     applyReward(enc.location.reward);
     st.combat.lastReward = enc.location.reward;
     st.encounter = null;
-    UI.show('#encounterModal', false);
+    Events.emit('ui:show', { id: '#encounterModal', on: false });
     S.save();
-    UI.renderTop();
-    UI.renderMain();
+    Events.emit('ui:renderTop');
+    Events.emit('ui:renderMain');
 
     let r = enc.location.reward;
     let rewardParts = [];
-    if (r.materials) rewardParts.push(`${UI.t('materials')}: +${r.materials}`);
-    if (r.caps) rewardParts.push(`${UI.t('credits').slice(0, 2).toUpperCase()}: +${r.caps}`);
-    if (r.food) rewardParts.push(`${UI.t('food').toUpperCase()}: +${r.food}`);
-    if (r.water) rewardParts.push(`${UI.t('water').toUpperCase()}: +${r.water}`);
-    if (r.ammo) rewardParts.push(`${UI.t('ammo').toUpperCase()}: +${r.ammo}`);
-    if (r.medkits) rewardParts.push(`${UI.t('medkits').toUpperCase()}: +${r.medkits}`);
+    if (r.materials) rewardParts.push(`${t('materials')}: +${r.materials}`);
+    if (r.caps) rewardParts.push(`${t('credits').slice(0, 2).toUpperCase()}: +${r.caps}`);
+    if (r.food) rewardParts.push(`${t('food').toUpperCase()}: +${r.food}`);
+    if (r.water) rewardParts.push(`${t('water').toUpperCase()}: +${r.water}`);
+    if (r.ammo) rewardParts.push(`${t('ammo').toUpperCase()}: +${r.ammo}`);
+    if (r.medkits) rewardParts.push(`${t('medkits').toUpperCase()}: +${r.medkits}`);
 
-    UI.$('#rewardText').textContent = `${UI.t('received_prefix')}\n${rewardParts.join(', ')}`;
+    UI.$('#rewardText').textContent = `${t('received_prefix')}\n${rewardParts.join(', ')}`;
     UI.$('#doubleRewardBtn').style.display = 'block';
-    UI.show('#rewardModal', true);
+    Events.emit('ui:show', { id: '#rewardModal', on: true });
   }
 };
 
 UI.$('#encounterNo').onclick = () => {
-  const st = S.get(); st.player.mood = Math.max(0, st.player.mood - 5); st.encounter = null; UI.show('#encounterModal', false); S.save(); UI.renderTop(); UI.renderMain();
+  const st = S.get(); st.player.mood = Math.max(0, st.player.mood - 5); st.encounter = null; Events.emit('ui:show', { id: '#encounterModal', on: false }); S.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 };
 
 UI.$('#atk').onclick = actAttack;
 UI.$('#dodge').onclick = actDodge;
 UI.$('#med').onclick = actMed;
 UI.$('#retreat').onclick = () => finishFight(false);
-UI.$('#rewardOk').onclick = () => { UI.show('#rewardModal', false); S.save(); UI.renderMain(); };
+UI.$('#rewardOk').onclick = () => { Events.emit('ui:show', { id: '#rewardModal', on: false }); S.save(); Events.emit('ui:renderMain'); };
 
 const applyPurchase = (id) => {
-  const st = S.get(); UI.toast(`${UI.t('purchase_activated')}: ${id.toUpperCase()}`);
+  const st = S.get(); Events.emit('ui:toast', `${t('purchase_activated')}: ${id.toUpperCase()}`);
   switch (id) {
     case 'no_ads':
       st.permanentBonuses.noAds = true;
@@ -1031,7 +1024,7 @@ const applyPurchase = (id) => {
     case 'iron_arsenal': weaponUnlock('shotgun'); st.resources.ammo += 30; break;
     case 'heavy_armor': armorUnlock('heavy'); break;
   }
-  S.save(); UI.renderTop(); UI.renderMain();
+  S.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
   if (UI.$('#merchantModal').classList.contains('show')) {
     const isDirector = UI.$('#tabDirector') && UI.$('#tabDirector').classList.contains('active');
     renderMerchant(isDirector ? 'director' : 'items');
@@ -1039,22 +1032,22 @@ const applyPurchase = (id) => {
 };
 
 UI.$('#newRun').onclick = () => {
-  SoundManager.play('click'); S.set(S.fresh()); UI.show('#defeatModal', false); UI.renderTop(); UI.renderMain(); S.save(); UI.toast(UI.t('sys_init'));
+  SoundManager.play('click'); S.set(S.fresh()); Events.emit('ui:show', { id: '#defeatModal', on: false }); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); S.save(); Events.emit('ui:toast', t('sys_init'));
 };
 
 UI.$('#res').addEventListener('click', e => {
   const btn = e.target.closest('[data-use]'); if (!btn) return;
   const type = btn.dataset.use, st = S.get(), p = st.player;
-  if (st.resources[type] < 1) { SoundManager.play('error'); return UI.toast(UI.t('toast_no_items')); }
+  if (st.resources[type] < 1) { SoundManager.play('error'); return Events.emit('ui:toast', t('toast_no_items')); }
   st.resources[type]--; SoundManager.play('heal');
-  if (type === 'food') { p.hp = Math.min(p.maxHp, p.hp + 6); p.mood = Math.min(p.maxMood, p.mood + 10); UI.toast(UI.t('toast_energy')); }
-  if (type === 'water') { p.hp = Math.min(p.maxHp, p.hp + 4); p.mood = Math.min(p.maxMood, p.mood + 15); UI.toast(UI.t('toast_water')); }
-  if (type === 'medkits') { const h = p.healPower || 30; p.hp = Math.min(p.maxHp, p.hp + h); UI.toast(UI.t('toast_healed', h)); }
-  S.save(); UI.renderTop(); UI.renderMain();
+  if (type === 'food') { p.hp = Math.min(p.maxHp, p.hp + 6); p.mood = Math.min(p.maxMood, p.mood + 10); Events.emit('ui:toast', t('toast_energy')); }
+  if (type === 'water') { p.hp = Math.min(p.maxHp, p.hp + 4); p.mood = Math.min(p.maxMood, p.mood + 15); Events.emit('ui:toast', t('toast_water')); }
+  if (type === 'medkits') { const h = p.healPower || 30; p.hp = Math.min(p.maxHp, p.hp + h); Events.emit('ui:toast', t('toast_healed', h)); }
+  S.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 });
 
 UI.$('#muteBtn').onclick = () => {
-  SoundManager.toggle(!SoundManager.isEnabled()); UI.$('#muteBtn').textContent = SoundManager.isEnabled() ? UI.t('sound_btn') : UI.t('sound_mute');
+  SoundManager.toggle(!SoundManager.isEnabled()); UI.$('#muteBtn').textContent = SoundManager.isEnabled() ? t('sound_btn') : t('sound_mute');
 };
 
 // --- ЗАПУСК ---
@@ -1062,12 +1055,17 @@ const initGame = () => {
   S.normalize();
 
   if (PlaygamaSDK) {
-    PlaygamaSDK.checkPurchases((purchases) => purchases.forEach(p => applyPurchase(p.productId)));
+    PlaygamaSDK.checkPurchases((purchases) => {
+      purchases.forEach(p => {
+        applyPurchase(p.productId);
+        if (p.purchaseToken) PlaygamaSDK.consumePurchase(p.purchaseToken);
+      });
+    });
   }
 
   updateChapterTitle(S.get().day);
-  UI.renderTop();
-  UI.renderMain();
+  Events.emit('ui:renderTop');
+  Events.emit('ui:renderMain');
   renderCraft();
   S.save();
 

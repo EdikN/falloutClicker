@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Force UI language correctly right at start
             GameUI.applyLanguage();
+            preloadImages();
 
             GameState.load((success) => {
                 if (!success) {

@@ -84,22 +84,21 @@ export const GameState = (() => {
   let state = fresh();
   let metaState = { deaths: 0, corpse: null };
 
+  const deepMerge = (target, source) => {
+    for (const key in source) {
+      if (typeof source[key] === 'object' && source[key] !== null && !Array.isArray(source[key])) {
+        if (!target[key]) target[key] = {};
+        deepMerge(target[key], source[key]);
+      } else if (target[key] === undefined) {
+        target[key] = source[key];
+      }
+    }
+    return target;
+  };
+
   const normalize = () => {
     const def = fresh();
-
-    // Мягкое слияние объектов, чтобы не терять прогресс при обновлении версии
-    state.resources = { ...def.resources, ...(state.resources || {}) };
-    state.player = { ...def.player, ...(state.player || {}) };
-    state.weapons = { ...def.weapons, ...(state.weapons || {}) };
-    state.armors = { ...def.armors, ...(state.armors || {}) };
-    state.combat = { ...def.combat, ...(state.combat || {}) };
-    state.flags = { ...def.flags, ...(state.flags || {}) };
-
-    // Новые поля для монетизации
-    state.adBoosts = { ...def.adBoosts, ...(state.adBoosts || {}) };
-    state.permanentBonuses = { ...def.permanentBonuses, ...(state.permanentBonuses || {}) };
-    if (state.reviveAvailable === undefined) state.reviveAvailable = def.reviveAvailable;
-
+    state = deepMerge(state, def);
     state.v = D.SAVE_VER;
   };
 

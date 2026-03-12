@@ -146,6 +146,11 @@ export const PlaygamaSDK = (() => {
     } catch (_) { }
   };
 
+  const consumePurchase = (purchaseToken) => {
+    if (!bridgeReady || !window.bridge || !window.bridge.payments.isSupported) return Promise.resolve();
+    return window.bridge.payments.consume(purchaseToken).catch(() => { });
+  };
+
   // --- Игровое состояние ---
   const gameReady = () => {
     if (bridgeReady && window.bridge) {
@@ -300,7 +305,7 @@ export const PlaygamaSDK = (() => {
     save, load,
     showInterstitial, showRewarded,
     showBanner, hideBanner,
-    buyProduct, checkPurchases, getCatalog,
+    buyProduct, checkPurchases, getCatalog, consumePurchase,
     gameReady, setGameplayState,
     getLanguage, isBridgeReady
   };

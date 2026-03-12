@@ -24,18 +24,29 @@ body {
   line-height: 1.15;
   color: var(--txt);
   background-color: #030803;
+  height: 100svh;
+  width: 100vw;
+  overflow: hidden;
+  text-transform: uppercase;
+  text-shadow: 0 0 4px rgba(29, 242, 58, 0.6);
+  user-select: none;
+}
+
+#bg-layer {
+  position: fixed;
+  inset: 0;
   background-image: linear-gradient(rgba(3, 8, 3, 0.6), rgba(3, 8, 3, 0.6)), url('/img/background.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  height: 100svh;
-  width: 100vw;
-  overflow: hidden;
+  z-index: -1;
+}
+
+.crt-container {
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  text-transform: uppercase;
-  text-shadow: 0 0 4px rgba(29, 242, 58, 0.6);
-  user-select: none;
 }
 
 body::before {
@@ -72,7 +83,6 @@ body::before {
   border: 2px solid var(--line);
   box-shadow: 0 0 8px rgba(29, 242, 58, 0.2), inset 0 0 8px rgba(29, 242, 58, 0.1);
   position: relative;
-  backdrop-filter: blur(4px);
 }
 
 /* ШАПКА */
@@ -336,7 +346,6 @@ h2 {
   flex: 1 1 auto;
   white-space: normal;
   word-wrap: break-word;
-  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -384,7 +393,6 @@ h2 {
   justify-content: center;
   z-index: 10;
   padding: 0.5rem;
-  backdrop-filter: blur(3px);
 }
 
 .overlay.show {
@@ -580,7 +588,6 @@ h2 {
   box-shadow: 0 0 10px #000;
   animation: slideLeft 0.3s forwards;
   pointer-events: auto;
-  backdrop-filter: blur(4px);
 }
 
 @keyframes slideLeft {
@@ -640,7 +647,6 @@ h2 {
 /* ========================================= */
 .defeat-overlay {
   background: rgba(20, 0, 0, 0.85) !important;
-  backdrop-filter: blur(8px) grayscale(100%);
   z-index: 100;
 }
 
@@ -804,7 +810,6 @@ h2 {
 /* ========================================= */
 .ending-overlay {
   background: rgba(0, 5, 0, 0.92) !important;
-  backdrop-filter: blur(10px);
   z-index: 100;
 }
 

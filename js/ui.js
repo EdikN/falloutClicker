@@ -1,23 +1,84 @@
 import { GameState as S } from './state.js';
 import { GameData as D } from './data.js';
 import { SoundManager } from './audio.js';
+import { TRANSLATIONS, t, loc } from './locales.js';
+import { EventEmitter as Events } from './events.js';
 
 export const GameUI = (() => {
   const $ = sel => document.querySelector(sel);
   const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
+  // --- КЭШ DOM-ЭЛЕМЕНТОВ ---
+  const DOM = {
+    day: null, capsTop: null, weaponPill: null,
+    statusBars: null, res: null,
+    pBars: null, battleTimer: null,
+    enemyName: null, enemyImg: null, eHp: null,
+    telegraph: null, teleFill: null,
+    atk: null, atkFill: null, dodge: null,
+    toasts: null,
+    // Специфические элементы для renderMain/renderBattle
+    hpFill: null, hpText: null, hpMax: null, hpLabel: null,
+    moodFill: null, moodText: null, moodMax: null, moodLabel: null,
+    pAtkHpFill: null, pAtkHpText: null, pAtkHpMax: null, pAtkHpLabel: null
+  };
+
+  const initCache = () => {
+    DOM.day = $('#day');
+    DOM.capsTop = $('#capsTop');
+    DOM.weaponPill = $('#weaponPill');
+    DOM.statusBars = $('#statusBars');
+    DOM.res = $('#res');
+    DOM.pBars = $('#pBars');
+    DOM.battleTimer = $('#battleTimer');
+    DOM.enemyName = $('#enemyName');
+    DOM.enemyImg = $('#enemyImg');
+    DOM.eHp = $('#eHp');
+    DOM.telegraph = $('#telegraph');
+    DOM.teleFill = $('#teleFill');
+    DOM.atk = $('#atk');
+    DOM.atkFill = $('#atkFill');
+    DOM.dodge = $('#dodge');
+    DOM.toasts = $('#toasts');
+
+    // Предварительное создание статической структуры для статус-баров во избежание innerHTML в цикле
+    if (DOM.statusBars) {
+      DOM.statusBars.innerHTML = `
+        <div id="hpCont">♥ <span class="label"></span> <span class="val"></span>/<span class="max"></span><div class='bar'><div class='fill bg-bad'></div></div></div>
+        <div id="moodCont">🧠 <span class="label"></span> <span class="val"></span>/<span class="max"></span><div class='bar'><div class='fill bg-ok'></div></div></div>`;
+      DOM.hpText = DOM.statusBars.querySelector('#hpCont .val');
+      DOM.hpMax = DOM.statusBars.querySelector('#hpCont .max');
+      DOM.hpLabel = DOM.statusBars.querySelector('#hpCont .label');
+      DOM.hpFill = DOM.statusBars.querySelector('#hpCont .fill');
+      DOM.moodText = DOM.statusBars.querySelector('#moodCont .val');
+      DOM.moodMax = DOM.statusBars.querySelector('#moodCont .max');
+      DOM.moodLabel = DOM.statusBars.querySelector('#moodCont .label');
+      DOM.moodFill = DOM.statusBars.querySelector('#moodCont .fill');
+    }
+
+    if (DOM.pBars) {
+      DOM.pBars.innerHTML = `<div>♥ <span class="label"></span> <span class="val"></span>/<span class="max"></span><div class='bar'><div class='fill bg-bad'></div></div></div>`;
+      DOM.pAtkHpText = DOM.pBars.querySelector('.val');
+      DOM.pAtkHpMax = DOM.pBars.querySelector('.max');
+      DOM.pAtkHpLabel = DOM.pBars.querySelector('.label');
+      DOM.pAtkHpFill = DOM.pBars.querySelector('.fill');
+    }
+  };
+
   const toast = msg => {
     const el = document.createElement('div');
     el.className = 'toast';
     el.textContent = `> ${msg}`;
-    $('#toasts').prepend(el);
+    if (!DOM.toasts) DOM.toasts = $('#toasts');
+    DOM.toasts.prepend(el);
     setTimeout(() => { el.style.animation = 'slideLeft 0.3s reverse forwards'; setTimeout(() => el.remove(), 300); }, 2500);
   };
 
   const renderTop = () => {
+    if (!DOM.day) initCache();
     const st = S.get();
-    $('#day').textContent = t('day_label', st.day);
-    $('#capsTop').textContent = t('credits_label', st.resources.caps);
+    DOM.day.textContent = t('day_label', st.day);
+    DOM.capsTop.textContent = t('credits_label', st.resources.caps);
 
     const weaponId = st.player.weaponId || Object.keys(D.WEAPON_STATS).find(k => D.WEAPON_STATS[k].name_ru === st.player.weaponName || D.WEAPON_STATS[k].name_en === st.player.weaponName);
     const w = weaponId ? D.WEAPON_STATS[weaponId] : null;
@@ -25,24 +86,33 @@ export const GameUI = (() => {
     const weaponText = weaponStr.toUpperCase();
 
     const isAdrenaline = st.adBoosts.adrenaline > Date.now();
-    $('#weaponPill').textContent = t('weapon_label', weaponText + (isAdrenaline ? ' [⚡]' : ''));
-    $('#weaponPill').classList.toggle('highlight-text', isAdrenaline);
+    DOM.weaponPill.textContent = t('weapon_label', weaponText + (isAdrenaline ? ' [⚡]' : ''));
+    DOM.weaponPill.classList.toggle('highlight-text', isAdrenaline);
   };
 
   const renderMain = () => {
+    if (!DOM.hpFill) initCache();
     const st = S.get(), p = st.player;
     const isAdrenaline = st.adBoosts.adrenaline > Date.now();
     let dmgStr = `${Math.round(p.baseDmg + p.dmgBonus)}`;
+
+    // Обновляем текст и бары напрямую (уже созданные в initCache)
+    DOM.hpLabel.textContent = t('health').toUpperCase();
+    DOM.hpText.textContent = Math.round(p.hp);
+    DOM.hpMax.textContent = p.maxHp;
+    DOM.hpFill.style.transform = `scaleX(${clamp(p.hp / p.maxHp, 0, 1)})`;
+
+    DOM.moodLabel.textContent = t('mood').toUpperCase();
+    DOM.moodText.textContent = Math.round(p.mood);
+    DOM.moodMax.textContent = p.maxMood;
+    DOM.moodFill.style.transform = `scaleX(${clamp(p.mood / p.maxMood, 0, 1)})`;
+
     if (isAdrenaline) {
       const minutesLeft = Math.ceil((st.adBoosts.adrenaline - Date.now()) / 60000);
       dmgStr = `${Math.round((p.baseDmg + p.dmgBonus) * 1.5)} <span style="color:var(--text); font-size:0.8em">(+50% | ${minutesLeft}m)</span>`;
     }
 
-    $('#statusBars').innerHTML = `
-      <div>♥ ${t('health').toUpperCase()} ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='transform:scaleX(${clamp(p.hp / p.maxHp, 0, 1)})'></div></div></div>
-      <div>🧠 ${t('mood').toUpperCase()} ${Math.round(p.mood)}/${p.maxMood}<div class='bar'><div class='fill bg-ok' style='transform:scaleX(${clamp(p.mood / p.maxMood, 0, 1)})'></div></div></div>`;
-
-    $('#res').innerHTML = `
+    DOM.res.innerHTML = `
       <button class='pill pill-btn' data-use='food'>🍖 ${t('food').toUpperCase()}: ${st.resources.food}</button>
       <button class='pill pill-btn' data-use='water'>💧 ${t('water').toUpperCase()}: ${st.resources.water}</button>
       <button class='pill pill-btn' data-use='medkits'>✚ ${t('medkits').toUpperCase()}: ${st.resources.medkits}</button>
@@ -51,408 +121,62 @@ export const GameUI = (() => {
       <div class='pill'>⚔️ ${t('damage').toUpperCase()}: ${dmgStr}</div>`;
   };
 
-
-
   const renderBattle = () => {
+    if (!DOM.eHp) initCache();
     const st = S.get(), c = st.combat, p = st.player, e = c.enemy;
     if (!e) return;
-    $('#battleTimer').textContent = `${c.time.toFixed(1)}s`;
+    DOM.battleTimer.textContent = `${c.time.toFixed(1)}s`;
 
-    $('#pBars').innerHTML = `
-      <div>♥ ${t('health').toUpperCase()} ${Math.round(p.hp)}/${p.maxHp}<div class='bar'><div class='fill bg-bad' style='transform:scaleX(${clamp(p.hp / p.maxHp, 0, 1)})'></div></div></div>`;
+    DOM.pAtkHpLabel.textContent = t('health').toUpperCase();
+    DOM.pAtkHpText.textContent = Math.round(p.hp);
+    DOM.pAtkHpMax.textContent = p.maxHp;
+    DOM.pAtkHpFill.style.transform = `scaleX(${clamp(p.hp / p.maxHp, 0, 1)})`;
 
-    $('#enemyName').textContent = `${e.icon} ${loc(e, 'name')}`;
+    DOM.enemyName.textContent = `${e.icon} ${loc(e, 'name')}`;
 
-    const imgEl = $('#enemyImg');
     if (e.img) {
-      if (imgEl.getAttribute('src') !== e.img) imgEl.src = e.img;
-      imgEl.style.display = 'block';
+      if (DOM.enemyImg.getAttribute('src') !== e.img) DOM.enemyImg.src = e.img;
+      DOM.enemyImg.style.display = 'block';
     } else {
-      imgEl.removeAttribute('src');
-      imgEl.style.display = 'none';
+      DOM.enemyImg.removeAttribute('src');
+      DOM.enemyImg.style.display = 'none';
     }
 
-    $('#eHp').style.transform = `scaleX(${clamp(e.hp / e.maxHp, 0, 1)})`;
-    $('#telegraph').textContent = `[${t('waiting_attack').toUpperCase()}: ${Math.max(0, c.enemyAtk).toFixed(1)}s]`;
-    $('#teleFill').style.transform = `scaleX(${clamp(1 - c.enemyAtk / e.atk, 0, 1)})`;
+    DOM.eHp.style.transform = `scaleX(${clamp(e.hp / e.maxHp, 0, 1)})`;
+    DOM.telegraph.textContent = `[${t('waiting_attack').toUpperCase()}: ${Math.max(0, c.enemyAtk).toFixed(1)}s]`;
+    DOM.teleFill.style.transform = `scaleX(${clamp(1 - c.enemyAtk / e.atk, 0, 1)})`;
 
     // КД Игрока
-    const atkBtn = $('#atk');
-    if (atkBtn) {
+    if (DOM.atk) {
       const cdPerc = p.atkCd > 0 ? (1 - p.atkCd / p.atkCdMax) : 1;
+      const atkFill = DOM.atkFill || DOM.atk.querySelector('#atkFill');
+      if (atkFill) atkFill.style.transform = `scaleX(${clamp(cdPerc, 0, 1)})`;
 
       if (p.atkCd > 0) {
-        atkBtn.innerHTML = `${t('dodge').toUpperCase()}<div class="cd-bar"><div id="atkFill" style="transform:scaleX(${clamp(cdPerc, 0, 1)})"></div></div>`;
-        atkBtn.disabled = true;
+        if (!DOM.atk.classList.contains('is-cd')) {
+          DOM.atk.firstChild.textContent = t('dodge').toUpperCase();
+          DOM.atk.classList.add('is-cd');
+          DOM.atk.disabled = true;
+        }
       } else {
-        atkBtn.innerHTML = `${t('atk')}<div class="cd-bar"><div id="atkFill" style="transform:scaleX(1)"></div></div>`;
-        atkBtn.disabled = false;
+        if (DOM.atk.classList.contains('is-cd')) {
+          DOM.atk.firstChild.textContent = t('atk');
+          DOM.atk.classList.remove('is-cd');
+          DOM.atk.disabled = false;
+        }
       }
     }
 
-    // Кнопка уклонения с кулдауном
-    const dodgeBtn = $('#dodge');
-    if (dodgeBtn) {
-      dodgeBtn.disabled = c.cdDodge > 0;
-      dodgeBtn.textContent = c.cdDodge > 0 ? `${t('dodge').slice(0, 1)} [${c.cdDodge.toFixed(1)}s]` : t('dodge').toUpperCase();
+    // Кнопка уклонения
+    if (DOM.dodge) {
+      DOM.dodge.disabled = c.cdDodge > 0;
+      DOM.dodge.textContent = c.cdDodge > 0 ? `${t('dodge').slice(0, 1)} [${c.cdDodge.toFixed(1)}s]` : t('dodge').toUpperCase();
     }
   };
+
 
   // --- ИНТЕРНАЦИОНАЛИЗАЦИЯ (i18n) ---
-  const TRANSLATIONS = {
-    ru: {
-      days: 'ДЕНЬ', status: 'СТАТУС', credits: 'КРЕДИТЫ', weapon: 'ОРУЖИЕ',
-      health: 'ЗДОРОВЬЕ', mood: 'РАССУДОК', food: 'ЕДА', water: 'ВОДА',
-      medkits: 'АПТ', materials: 'МАТ', ammo: 'ПАТР', damage: 'УРОН',
-      defense: 'ЗАЩИТА', hp_bonus: 'БОНУС HP', equip: 'ВЫБРАТЬ', equipped: 'ВЫБРАНО',
-      shop_items: 'ТОВАРЫ', shop_director: 'ДИРЕКТОР', shop_desc: 'Эксклюзивные предложения от Иерихона.',
-      buy: 'КУПИТЬ',
-      goal_survive: '[ТЕКУЩАЯ ЦЕЛЬ: ВЫЖИТЬ]',
-      cycles: 'ЦИКЛОВ (СМЕРТЕЙ): {0}',
-      credits_label: '[КРЕДИТЫ]: {0}',
-      day_label: 'ДЕНЬ {0}',
-      status_exploring: 'СТАТУС: ИССЛЕДОВАНИЕ',
-      status_combat: 'СТАТУС: БОЙ',
-      weapon_label: 'ОРУЖИЕ: {0}',
-      sound_btn: '🔊 ЗВУК',
-      sound_mute: '🔇 ТИШИНА',
-      hint_click: '<b>[ВВОД] КЛИК ПО ПЕРСОНАЖУ</b>',
-      sys_init: 'ИНИЦИАЛИЗАЦИЯ СИСТЕМ...',
-      btn_airdrop: '📦 ДРОН СНАБЖЕНИЯ',
-      btn_adrenaline: '⚡ АДРЕНАЛИН',
-      btn_emergency: '🚨 АВАРИЙНЫЙ ПАЁК',
-      btn_merchant: 'СЕТЬ ТОРГОВЛИ',
-      btn_inventory: 'ИНВЕНТАРЬ',
-      btn_synth: 'СИНТЕЗАТОР',
-      intercept_data: 'ПЕРЕХВАТ ДАННЫХ',
-      btn_continue: 'ПРОДОЛЖИТЬ',
-      event_warning: 'ВНИМАНИЕ: СОБЫТИЕ',
-      btn_confirm: 'ПОДТВЕРДИТЬ',
-      btn_cancel: 'ОТМЕНА',
-      battle_mode: 'РЕЖИМ БОЯ',
-      waiting_attack: '[ОЖИДАНИЕ АТАКИ]',
-      atk: 'АТАКА',
-      dodge: 'УКЛОНЕНИЕ',
-      med: 'ЛЕЧЕНИЕ',
-      retreat: 'ОТСТУПИТЬ',
-      sys_msg: 'СИСТЕМНОЕ СООБЩЕНИЕ',
-      btn_accept: 'ПРИНЯТЬ',
-      btn_double_loot: '✖2 ТРОФЕИ 📺',
-      merchant_desc: 'ОБМЕН КРЕДИТОВ НА РЕСУРСЫ.',
-      btn_close_conn: 'ЗАКРЫТЬ СОЕДИНЕНИЕ',
-      synth_desc: 'СИНТЕЗ И МОДЕРНИЗАЦИЯ.',
-      btn_disconnect: 'ОТКЛЮЧИТЬСЯ',
-      inventory_desc: 'ВЫБОР ДОСТУПНОГО СНАРЯЖЕНИЯ.',
-      btn_close: 'ЗАКРЫТЬ',
-      crit_failure: 'КРИТИЧЕСКИЙ СБОЙ',
-      obj_status: 'СТАТУС ОБЪЕКТА:',
-      liquidated: 'ЛИКВИДИРОВАН',
-      reason_unknown: 'ПРИЧИНА: НЕИЗВЕСТНО',
-      cycles_lived: 'ПРОЖИТО ЦИКЛОВ: {0}',
-      sys_cleaned: '"СИСТЕМА ОЧИЩЕНА. ЗАГРУЗКА НОВОГО КЛОНА..."',
-      btn_revive: '⚡ ВОСКРЕСНУТЬ ЗА НАГРАДУ 📺',
-      btn_new_cycle: 'ИНИЦИАЛИЗАЦИЯ НОВОГО ЦИКЛА',
-      cycle_end: 'КОНЕЦ ЦИКЛА',
-      btn_restart_cycle: '↺ НАЧАТЬ НОВЫЙ ЦИКЛ',
-      // Toasts
-      toast_no_items: 'НЕТ ПРЕДМЕТА',
-      toast_healed: '+{0} HP',
-      toast_energy: '+6 HP, +10 РАССУДОК',
-      toast_water: '+4 HP, +15 РАССУДОК',
-      toast_weapon_equipped: 'ЭКИПИРОВАНО: {0}',
-      toast_armor_equipped: 'ЭКИПИРОВАНА БРОНЯ: {0}',
-      toast_already_have: 'УЖЕ ИМЕЕТСЯ',
-      toast_not_enough_caps: 'НЕДОСТАТОЧНО КРЕДИТОВ (НУЖНО {0})',
-      toast_humanity: '[Человечность {0}]',
-      flee_msg: 'ВЫ СБЕЖАЛИ',
-      flee_mood_lost: 'РАССУДОК: -15',
-      defeat_reason_default: 'ПОТЕРЯ ЖИЗНЕННЫХ ПОКАЗАТЕЛЕЙ',
-      defeat_msg_1: 'ОБЪЕКТ СПИСАН. ЗАГРУЗКА СЛЕДУЮЩЕГО.',
-      defeat_msg_2: 'БИОМАТЕРИАЛ НЕПРИГОДЕН. УТИЛИЗАЦИЯ.',
-      defeat_msg_3: 'ПОПЫТКА ПРОВАЛЕНА. ДАННЫЕ СОХРАНЕНЫ В АРХИВ.',
-      defeat_msg_4: 'ВЫ БЫЛИ ТАК БЛИЗКО... ИЛИ НЕТ?',
-      defeat_msg_5: 'СИСТЕМА: «СЛАБАЯ ОСОБЬ. ОЧИСТИТЬ СЕКТОР».',
-      defeat_starved: 'КРИТИЧЕСКОЕ ИСТОЩЕНИЕ',
-      defeat_dehydrated: 'ОБЕЗВОЖИВАНИЕ',
-      // Game logic additions
-      threat_level: 'УРОВЕНЬ СИЛЫ: {0}',
-      threat_weak: '🟢 СЛАБЫЙ',
-      threat_medium: '🟡 СРЕДНИЙ',
-      threat_dangerous: '🟠 ОПАСНЫЙ',
-      threat_deadly: '🔴 СМЕРТЕЛЬНЫЙ',
-      btn_fight: 'В БОЙ',
-      btn_flee: 'БЕЖАТЬ',
-      btn_search: 'ОБЫСКАТЬ',
-      btn_ignore: 'ИГНОРИРОВАТЬ',
-      btn_create: 'СОЗДАТЬ',
-      cost_label: 'СТОИМОСТЬ: {0}',
-      mats_label: 'МАТ: {0}',
-      ammo_label: 'ПАТР: {0}',
-      day_calm: 'ТИХИЙ ДЕНЬ. НАЙДЕНЫ ОБЛОМКИ.',
-      goal_1: '[ЦЕЛЬ: ВЫЖИТЬ И НАЙТИ ВЫХОД]',
-      goal_2: '[ЦЕЛЬ: ИЗУЧИТЬ СЕКТОР 4]',
-      goal_3: '[ЦЕЛЬ: РАЗГАДАТЬ ПАМЯТЬ]',
-      goal_4: '[ЦЕЛЬ: СПАСТИСЬ ОТ АМАЗОНКИ]',
-      goal_5: '[ЦЕЛЬ: НАЙТИ ДИРЕКТОРА]',
-      goal_6: '[ЦЕЛЬ: ДОСТИЧЬ ГЛАВНОГО ЗАЛА]',
-      goal_7: '[ЦЕЛЬ: СДЕЛАТЬ ВЫБОР]',
-      corpse_echo: 'ЭХО ПРОШЛОГО',
-      corpse_desc: 'ВЫ НАШЛИ ОСТАНКИ КЛОНА В ГРЯЗНОМ УГЛУ.\nЕСЛИ ВЕРИТЬ ЖЕТОНУ, ОН ПОГИБ В ЦИКЛЕ {0}.\nПРИЧИНА СМЕРТИ: {1}.\n\nВЫ ОБЫСКИВАЕТЕ ТО, ЧТО КОГДА-ТО БЫЛО ВАМИ. РАССУДОК И ЧЕЛОВЕЧНОСТЬ ПАДАЮТ.',
-      btn_take_loot: 'ЗАБРАТЬ ОСТАТКИ',
-      corpse_loot: 'ПОЛУЧЕНО: {0} МАТ, {1} ПАТР, {2} КР',
-      bar_woman_negotiate_choice: 'ДОГОВОРИТЬСЯ (30%)',
-      bar_woman_pay_choice: 'ЗАПЛАТИТЬ 50 КР',
-      bar_woman_fight_choice: 'УГРОЖАТЬ (БОЙ)',
-      bar_woman_negotiate_fail: '«Не пытайся меня обмануть! Либо плати, либо проваливай!»',
-      bar_woman_fight_win: '«Хорошо! Ты победил! Прошлый "ты" был связан с Амазонка-Синт. Она где-то в северных лабораториях». ВЫ УЗНАЛИ РАСПОЛОЖЕНИЕ ЦЕЛИ.',
-      res_food_empty: 'ГОЛОД: -5 HP',
-      res_water_empty: 'ЖАЖДА: -8 HP',
-      res_medkits_empty: 'НЕТ АПТЕЧЕК.',
-      res_ammo_empty: 'НЕТ ПАТРОНОВ!',
-      crit_hit: 'КРИТ!',
-      dodge_success: 'УКЛОНЕНИЕ!',
-      equip_weapon: 'ОРУЖИЕ',
-      equip_item: 'РАСХОДНИК',
-      toast_bought: 'КУПЛЕНО: {0}',
-      toast_crafted: 'СОЗДАНО: {0}',
-      btn_revive_sys: 'СИСТЕМА: РЕЗЕРВНАЯ КОПИЯ ЗАГРУЖЕНА',
-      toast_loot_doubled: 'ДОБЫЧА УДВОЕНА!',
-      toast_airdrop: 'ДРОН СБРОСИЛ ПРИПАСЫ!',
-      toast_adrenaline: 'АДРЕНАЛИН: +50% УРОНА НА 15 МИНУТ!',
-      toast_emergency: 'АВАРИЙНЫЙ ПАЁК ПОЛУЧЕН!',
-      mercy_amazon_companion: 'АМАЗОНКА ТЕПЕРЬ СОЮЗНИК',
-      bypass_code_active: 'КОД ОБХОДА СРАБОТАЛ: -30% HP ВРАГА',
-      drifter_echo: 'БРОДЯГА',
-      carto_buy_map: 'КАРТА СЕКТОРА 4 (50 КР)',
-      carto_buy_file: 'ДОСЬЕ ЯНКОВСКОГО (120 КР)',
-      carto_buy_code: 'КОД ОБХОДА (200 КР)',
-      btn_leave: 'УЙТИ',
-      btn_kill: 'УБИТЬ',
-      btn_spare: 'ПОЩАДИТЬ',
-      received_prefix: 'ПОЛУЧЕНО',
-      purchase_activated: 'ПОКУПКА АКТИВИРОВАНА',
-      purchase_error: 'ОШИБКА ПОКУПКИ',
-      ending_mercy_title: '🌅 КОНЦОВКА A — ИСТИННОЕ НАВАСЛЕДИЕ',
-      ending_mercy_text: 'БРОДЯГА ВЗРЫВАЕТ ГЕНЕРАТОРЫ КОМПЛЕКСА.\nАМАЗОНКА БЛОКИРУЕТ ПРОТОКОЛ САМОВОССТАНОВЛЕНИЯ.\n\nТЕХНИК ПОВЕРЖЕН ОКОНЧАТЕЛЬНО.\nВЫ НЕ УНИЧТОЖАЕТЕ ИЕРИХОН. ВЫ ОТКРЫВАЕТЕ ЕГО ДВЕРИ ДЛЯ ПУСТОШИ.\n\n«ТЕПЕРЬ ЭТО УБЕЖИЩЕ ДЛЯ ТЕХ, КТО ВЫЖИЛ.\nВЫ СМОТРИТЕ НА ЛЮДЕЙ, ВХОДЯЩИХ В ГЛАВНЫЕ ВОРОТА.\nКЛОН №73 МЁРТВ.\nНО ДМИТРИЙ ЯНКОВСКИЙ ЖИВ».',
-      ending_mercy_score: 'ПОБЕДА: ИСТИННАЯ КОНЦОВКА (ЧЕЛОВЕЧНОСТЬ: {0}) | ЦИКЛ {1}',
-      ending_neutral_title: '🔄 КОНЦОВКА B — РАЗРУШЕНИЕ',
-      ending_neutral_text: 'ТЕХНИК ПОВЕРЖЕН. РЕЗЕРВНОГО СЕРВЕРА БОЛЬШЕ НЕТ.\n\nВЫ ВЗРЫВАЕТЕ КОМПЛЕКС ИЕРИХОН.\nКЛОНОВ БОЛЬШЕ НЕ БУДЕТ. ПРОЕКТ ЗАВЕРШЁН.\n\nВЫ ВЫХОДИТЕ НА ПУСТОШЬ В ОДИНОЧЕСТВЕ.\nНИ СОЮЗНИКОВ, НИ ДРУЗЕЙ. ТОЛЬКО ТИШИНА И ВЕЧНОСТЬ.\n\n«ВЫ ВЫЖИВАЕТЕ. НО ДЛЯ ЧЕГО?»',
-      ending_neutral_score: 'ПОБЕДА: НЕЙТРАЛЬНАЯ КОНЦОВКА (ЧЕЛОВЕЧНОСТЬ: {0}) | ЦИКЛ {1}',
-      ending_bad_title: '🤖 ПЛОХАЯ КОНЦОВКА — ИДЕАЛЬНАЯ МАШИНА',
-      ending_bad_text: '«Ты убивал без колебаний. Ты предал всех, кто тебе доверял. В тебе не осталось ничего человеческого».\n\nТЕХНИК УЛЫБАЕТСЯ ПОБЕДНОЙ УЛЫБКОЙ, КОГДА ВЫ УБИВАЕТЕ ЕГО.\n\nВЫ НЕ ПОСЛЕДНИЙ КЛОН.\nВЫ ПЕРВЫЙ ИСТИННЫЙ ВЕНЕЦ ИЕРИХОНА.\nМАШИНА В ЧЕЛОВЕЧЕСКОМ ОБЛИКЕ.\n\n«НАЧАЛАСЬ ЭПОХА ИССТУПЛЕНИЯ».',
-      ending_bad_score: 'КОНЦОВКА: ТЁМНАЯ (ЧЕЛОВЕЧНОСТЬ: {0}) | ЦИКЛ {1}',
-      ending_merge_title: '🕯️ КОНЦОВКА C — СЛИЯНИЕ',
-      ending_merge_text: '«...Добро пожаловать, партнёр».\n\nВЫ СТАНОВИТЕСЬ НОВЫМ ДИРЕКТОРОМ КОМПЛЕКСА ИЕРИХОН.\n\nЗНАЕТЕ ЛИ ВЫ, КЕМ БЫЛИ РАНЬШЕ?\nЗНАЕТЕ ЛИ ВЫ, КЕМ СТАЛИ?\n\n«ВОЗМОЖНО, ИМЕННО ЭТОГО ОН И ХОТЕЛ ОТ ВАС ВСЁ ВРЕМЯ».',
-      ending_merge_score: 'КОНЦОВКА: ТЁМНАЯ | ЦИКЛ {0}',
-      ending_reject_title: '💀 КОНЦОВКА C — ОТРЕЧЕНИЕ',
-      ending_reject_text: '«...Значит, нет».\n\nТЕХНИК АКТИВИРУЕТ ПОСЛЕДНИЙ ПРОТОКОЛ.\nВЗРЫВ. ОБЛОМКИ. ТИШИНА.\n\nВЫ ВЫЖИВАЕТЕ В ОДИНОЧЕСТВЕ.\nБЕЗ СОЮЗНИКОВ. БЕЗ ОТВЕТОВ.\nНО ИЕРИХОН МЁРТВ.\n\n«ЭТОГО ДОСТАТОЧНО».',
-      ending_reject_score: 'ЦИКЛ {0} | ЖЕРТВА',
-      // Store categories
-      cat_armor: 'БРОНЯ',
-      cat_upgrades: 'УЛУЧШЕНИЯ',
-      cat_weapon: 'ОРУЖИЕ',
-      wpn_gun: 'ОГНЕСТРЕЛ',
-      wpn_melee: 'БЛИЖНИЙ БОЙ',
-      item_no_ads_name: 'БЕЗ РЕКЛАМЫ',
-      item_no_ads_desc: 'Навсегда убирает межстраничную рекламу. Никаких прерываний во время игры.',
-      item_starter_name: 'СТАРТОВЫЙ НАБОР',
-      item_starter_desc: 'Надежный старт: 50 кредитов, Кирка, по 10 еды и воды.',
-      item_premium_name: 'КОШЕЛЕК: 200 КРЕДИТОВ',
-      item_premium_desc: 'Мгновенное пополнение баланса на 200 кредитов для любых покупок.',
-      item_mega_name: 'МЕГА-ЯЩИК ПРИПАСОВ',
-      item_mega_desc: 'Крупная поставка: 500 кредитов, 15 патронов и 5 аптечек сразу.',
-      item_stomach_name: 'ИМПЛАНТ "КИБЕР-ЖЕЛУДОК"',
-      item_stomach_desc: 'Постоянный эффект: снижает ежедневный расход еды и воды на 50%.',
-      item_arsenal_name: 'ЖЕЛЕЗНЫЙ АРСЕНАЛ',
-      item_arsenal_desc: 'Мощное вооружение: открывает Дробовик и дает 30 патронов к нему.',
-      item_armor_name: 'СИЛОВОЙ КАРКАС',
-      item_armor_desc: 'Элитная защита: мгновенно дает доступ к тяжелой силовой броне.'
-    },
-    en: {
-      days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
-      health: 'HEALTH', mood: 'MOOD', food: 'FOOD', water: 'WATER',
-      medkits: 'MEDS', materials: 'MATS', ammo: 'AMMO', damage: 'DMG',
-      defense: 'DEFENSE', hp_bonus: 'HP BONUS', equip: 'EQUIP', equipped: 'EQUIPPED',
-      shop_items: 'ITEMS', shop_director: 'DIRECTOR', shop_desc: 'Exclusive offers from Jericho.',
-      buy: 'BUY',
-      goal_survive: '[CURRENT GOAL: SURVIVE]',
-      cycles: 'CYCLES (DEATHS): {0}',
-      credits_label: '[CREDITS]: {0}',
-      day_label: 'DAY {0}',
-      status_exploring: 'STATUS: EXPLORING',
-      status_combat: 'STATUS: COMBAT',
-      weapon_label: 'WEAPON: {0}',
-      sound_btn: '🔊 SOUND',
-      sound_mute: '🔇 SILENCE',
-      hint_click: '<b>[INPUT] CLICK ON CHARACTER</b>',
-      sys_init: 'SYSTEMS INITIALIZING...',
-      btn_airdrop: '📦 SUPPLY DRONE',
-      btn_adrenaline: '⚡ ADRENALINE',
-      btn_emergency: '🚨 EMERGENCY RATION',
-      btn_merchant: 'TRADING NETWORK',
-      btn_inventory: 'INVENTORY',
-      btn_synth: 'SYNTHESIZER',
-      intercept_data: 'DATA INTERCEPT',
-      btn_continue: 'CONTINUE',
-      event_warning: 'WARNING: EVENT',
-      btn_confirm: 'CONFIRM',
-      btn_cancel: 'CANCEL',
-      battle_mode: 'BATTLE MODE',
-      waiting_attack: '[WAITING FOR ATTACK]',
-      atk: 'ATTACK',
-      dodge: 'DODGE',
-      med: 'HEAL',
-      retreat: 'RETREAT',
-      sys_msg: 'SYSTEM MESSAGE',
-      btn_accept: 'ACCEPT',
-      btn_double_loot: '✖2 TROPHIES 📺',
-      merchant_desc: 'EXCHANGE CREDITS FOR RESOURCES.',
-      btn_close_conn: 'CLOSE CONNECTION',
-      synth_desc: 'SYNTHESIS AND UPGRADES.',
-      btn_disconnect: 'DISCONNECT',
-      inventory_desc: 'CHOOSE AVAILABLE GEAR.',
-      btn_close: 'CLOSE',
-      crit_failure: 'CRITICAL FAILURE',
-      obj_status: 'OBJECT STATUS:',
-      liquidated: 'TERMINATED',
-      reason_unknown: 'CAUSE: UNKNOWN',
-      cycles_lived: 'CYCLES LIVED: {0}',
-      sys_cleaned: '"SYSTEM CLEANED. LOADING NEW CLONE..."',
-      btn_revive: '⚡ REVIVE FOR REWARD 📺',
-      btn_new_cycle: 'INITIALIZE NEW CYCLE',
-      cycle_end: 'CYCLE END',
-      btn_restart_cycle: '↺ START NEW CYCLE',
-      // Toasts
-      toast_no_items: 'NO ITEM',
-      toast_healed: '+{0} HP',
-      toast_energy: '+6 HP, +10 MOOD',
-      toast_water: '+4 HP, +15 MOOD',
-      toast_weapon_equipped: 'EQUIPPED: {0}',
-      toast_armor_equipped: 'ARMOR EQUIPPED: {0}',
-      toast_already_have: 'ALREADY OWNED',
-      toast_not_enough_caps: 'NOT ENOUGH CREDITS (NEED {0})',
-      toast_humanity: '[Humanity {0}]',
-      flee_msg: 'YOU FLED',
-      flee_mood_lost: 'SANITY: -15',
-      defeat_reason_default: 'LOSS OF VITAL SIGNS',
-      defeat_msg_1: 'OBJECT DECOMMISSIONED. LOADING NEXT.',
-      defeat_msg_2: 'BIOMATERIAL UNFIT. DISPOSAL.',
-      defeat_msg_3: 'ATTEMPT FAILED. DATA ARCHIVED.',
-      defeat_msg_4: 'YOU WERE SO CLOSE... OR NOT?',
-      defeat_msg_5: 'SYSTEM: "WEAK SPECIMEN. CLEAR SECTOR."',
-      defeat_starved: 'CRITICAL EXHAUSTION',
-      defeat_dehydrated: 'DEHYDRATION',
-      // Game logic additions
-      threat_level: 'THREAT LEVEL: {0}',
-      threat_weak: '🟢 WEAK',
-      threat_medium: '🟡 MEDIUM',
-      threat_dangerous: '🟠 DANGEROUS',
-      threat_deadly: '🔴 DEADLY',
-      btn_fight: 'FIGHT',
-      btn_flee: 'FLEE',
-      btn_search: 'SEARCH',
-      btn_ignore: 'IGNORE',
-      btn_create: 'CREATE',
-      cost_label: 'COST: {0}',
-      mats_label: 'MATS: {0}',
-      ammo_label: 'AMMO: {0}',
-      day_calm: 'QUIET DAY. FOUND DEBRIS.',
-      goal_1: '[GOAL: SURVIVE AND FIND THE EXIT]',
-      goal_2: '[GOAL: EXPLORE SECTOR 4]',
-      goal_3: '[GOAL: UNRAVEL MEMORY]',
-      goal_4: '[GOAL: ESCAPE FROM AMAZON]',
-      goal_5: '[GOAL: FIND THE DIRECTOR]',
-      goal_6: '[GOAL: REACH THE MAIN HALL]',
-      goal_7: '[GOAL: MAKE A CHOICE]',
-      corpse_echo: 'ECHO OF THE PAST',
-      corpse_desc: 'YOU FOUND THE REMAINS OF A CLONE IN A DIRTY CORNER.\nIF THE TAG IS TO BE BELIEVED, HE DIED IN CYCLE {0}.\nCAUSE OF DEATH: {1}.\n\nYOU SEARCH WHAT WAS ONCE YOU. SANITY AND HUMANITY DROP.',
-      btn_take_loot: 'TAKE REMAINS',
-      corpse_loot: 'OBTAINED: {0} MATS, {1} AMMO, {2} CREDITS',
-      bar_woman_negotiate_choice: 'NEGOTIATE (30%)',
-      bar_woman_pay_choice: 'PAY 50 CREDITS',
-      bar_woman_fight_choice: 'THREATEN (FIGHT)',
-      bar_woman_negotiate_fail: '«Don\'t try to fool me! Either pay up or get out!»',
-      bar_woman_fight_win: '«Fine! You win! The past "you" was linked to Amazon-Synth. She\'s somewhere in the northern labs.» YOU LEARNED THE TARGET LOCATION.',
-      res_food_empty: 'HUNGER: -5 HP',
-      res_water_empty: 'THIRST: -8 HP',
-      res_medkits_empty: 'NO MEDKITS.',
-      res_ammo_empty: 'OUT OF AMMO!',
-      crit_hit: 'CRIT!',
-      dodge_success: 'DODGE!',
-      equip_weapon: 'WEAPON',
-      equip_item: 'CONSUMABLE',
-      toast_bought: 'BOUGHT: {0}',
-      toast_crafted: 'CRAFTED: {0}',
-      btn_revive_sys: 'SYSTEM: BACKUP LOADED',
-      toast_loot_doubled: 'LOOT DOUBLED!',
-      toast_airdrop: 'DRONE DROPPED SUPPLIES!',
-      toast_adrenaline: 'ADRENALINE: +50% DAMAGE FOR 15 MIN!',
-      toast_emergency: 'EMERGENCY RATION OBTAINED!',
-      mercy_amazon_companion: 'AMAZON IS NOW AN ALLY',
-      bypass_code_active: 'BYPASS CODE ACTIVE: -30% ENEMY HP',
-      drifter_echo: 'DRIFTER',
-      carto_buy_map: 'MAP OF SECTOR 4 (50 CR)',
-      carto_buy_file: 'YANKOVSKY FILE (120 CR)',
-      carto_buy_code: 'BYPASS CODE (200 CR)',
-      btn_leave: 'LEAVE',
-      btn_kill: 'KILL',
-      btn_spare: 'SPARE',
-      received_prefix: 'OBTAINED',
-      purchase_activated: 'PURCHASE ACTIVATED',
-      purchase_error: 'PURCHASE ERROR',
-      ending_mercy_title: '🌅 ENDING A — TRUE LEGACY',
-      ending_mercy_text: 'DRIFTER BLOWS UP THE COMPLEX GENERATORS.\nAMAZON BLOCKS THE SELF-REPAIR PROTOCOL.\n\nTECHNICIAN IS DEFEATED FOR GOOD.\nYOU DO NOT DESTROY JERICHO. YOU OPEN ITS DOORS TO THE WASTELAND.\n\n«NOW IT IS A REFUGE FOR THOSE WHO SURVIVED.\nYOU WATCH PEOPLE ENTERING THE MAIN GATES.\nCLONE #73 IS DEAD.\nBUT DMITRY YANKOVSKY IS ALIVE».',
-      ending_mercy_score: 'VICTORY: TRUE ENDING (HUMANITY: {0}) | CYCLE {1}',
-      ending_neutral_title: '🔄 ENDING B — DESTRUCTION',
-      ending_neutral_text: 'TECHNICIAN DEFEATED. NO BACKUP SERVER LEFT.\n\nYOU BLOW UP THE JERICHO COMPLEX.\nNO MORE CLONES. PROJECT FINISHED.\n\nYOU WALK OUT INTO THE WASTELAND ALONE.\nNO ALLIES, NO FRIENDS. ONLY SILENCE AND ETERNITY.\n\n«YOU SURVIVE. BUT FOR WHAT?»',
-      ending_neutral_score: 'VICTORY: NEUTRAL ENDING (HUMANITY: {0}) | CYCLE {1}',
-      ending_bad_title: '🤖 BAD ENDING — PERFECT MACHINE',
-      ending_bad_text: '«You killed without hesitation. You betrayed everyone who trusted you. Nothing human left in you».\n\nTECHNICIAN SMILES A VICTORIOUS SMILE AS YOU KILL HIM.\n\nYOU ARE NOT THE LAST CLONE.\nYOU ARE THE FIRST TRUE CROWN OF JERICHO.\nA MACHINE IN HUMAN FORM.\n\n«THE ERA OF EXPIATION HAS BEGUN».',
-      ending_bad_score: 'ENDING: DARK (HUMANITY: {0}) | CYCLE {1}',
-      ending_merge_title: '🕯️ ENDING C — MERGER',
-      ending_merge_text: '«...Welcome, partner».\n\nYOU BECOME THE NEW DIRECTOR OF THE JERICHO COMPLEX.\n\nDO YOU KNOW WHO YOU WERE BEFORE?\nDO YOU KNOW WHO YOU HAVE BECOME?\n\n«PERHAPS THIS IS WHAT HE WANTED FROM YOU ALL ALONG».',
-      ending_merge_score: 'ENDING: DARK | CYCLE {0}',
-      ending_reject_title: '💀 ENDING C — RENUNCIATION',
-      ending_reject_text: '«...So be it».\n\nTECHNICIAN ACTIVATES THE FINAL PROTOCOL.\nEXPLOSION. DEBRIS. SILENCE.\n\nYOU SURVIVE ALONE.\nWITHOUT ALLIES. WITHOUT ANSWERS.\nBUT JERICHO IS DEAD.\n\n«THAT IS ENOUGH».',
-      ending_reject_score: 'CYCLE {0} | SACRIFICE',
-      cat_armor: 'ARMOR',
-      cat_upgrades: 'UPGRADES',
-      cat_weapon: 'WEAPON',
-      wpn_gun: 'GUN',
-      wpn_melee: 'MELEE',
-      item_no_ads_name: 'NO ADS',
-      item_no_ads_desc: 'Permanently removes interstitial ads. No interruptions during gameplay.',
-      item_starter_name: 'STARTER PACK',
-      item_starter_desc: 'Reliable start: 50 credits, Pickaxe, 10 food and water each.',
-      item_premium_name: 'WALLET: 200 CREDITS',
-      item_premium_desc: 'Instant balance top-up: 200 credits for any purchases.',
-      item_mega_name: 'MEGA SUPPLY CRATE',
-      item_mega_desc: 'Major shipment: 500 credits, 15 ammo and 5 medkits at once.',
-      item_stomach_name: 'IMPLANT "CYBER-STOMACH"',
-      item_stomach_desc: 'Permanent effect: halves daily food and water consumption by 50%.',
-      item_arsenal_name: 'IRON ARSENAL',
-      item_arsenal_desc: 'Heavy weaponry: unlocks the Shotgun and provides 30 shells for it.',
-      item_armor_name: 'POWER FRAME',
-      item_armor_desc: 'Elite protection: instantly grants access to heavy power armor.'
-    }
-  };
 
-  const t = (key, ...args) => {
-    const lang = (window.PlaygamaSDK && window.PlaygamaSDK.getLanguage()) || 'ru';
-    let str = (TRANSLATIONS[lang] || TRANSLATIONS.ru)[key] || key;
-    if (args.length > 0) {
-      args.forEach((val, i) => {
-        str = str.replace(`{${i}}`, val);
-      });
-    }
-    return str;
-  };
-
-  // Helper для локализации объектов из data.js (items, enemies, etc)
-  const loc = (obj, field) => {
-    const lang = (window.PlaygamaSDK && window.PlaygamaSDK.getLanguage()) || 'ru';
-    return obj[field + '_' + lang] || obj[field + '_ru'] || obj[field];
-  };
 
   const applyLanguage = () => {
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -615,6 +339,45 @@ export const GameUI = (() => {
   };
 
 
+
+  const renderDefeat = (data) => {
+    show('#battleModal', false);
+    show('#encounterModal', false);
+    show('#storyModal', false);
+
+    const defeatDaysEl = $('#defeatDays');
+    const defeatReasonEl = $('#defeatReason');
+    const defeatMsgEl = $('#defeatMsg');
+
+    if (defeatDaysEl) defeatDaysEl.textContent = t('cycles_lived', data.day);
+    if (defeatReasonEl) defeatReasonEl.textContent = `${t('obj_status')} ${data.reason}`;
+
+    const msgs = [
+      t('defeat_msg_1'), t('defeat_msg_2'), t('defeat_msg_3'),
+      t('defeat_msg_4'), t('defeat_msg_5')
+    ];
+    if (defeatMsgEl) defeatMsgEl.textContent = `"${msgs[Math.floor(Math.random() * msgs.length)]}"`;
+
+    renderMain();
+    renderTop();
+    show('#defeatModal', true);
+
+    const reviveBtn = $('#reviveBtn');
+    if (reviveBtn) reviveBtn.style.display = data.reviveAvailable ? 'block' : 'none';
+  };
+
+  // Bind Events
+  Events.on('ui:toast', toast);
+  Events.on('ui:renderTop', renderTop);
+  Events.on('ui:renderMain', renderMain);
+  Events.on('ui:renderBattle', renderBattle);
+  Events.on('ui:show', ({ id, on }) => show(id, on));
+  Events.on('ui:showDialogue', showDialogue);
+  Events.on('ui:setEncounterCard', setEncounterCard);
+  Events.on('ui:triggerDamage', triggerDamage);
+  Events.on('ui:triggerEnemyHit', triggerEnemyHit);
+  Events.on('ui:renderEquipment', ({ onSwitchWeapon, onSwitchArmor }) => renderEquipment(onSwitchWeapon, onSwitchArmor));
+  Events.on('ui:defeat', renderDefeat);
 
   return {
     $, toast, renderTop, renderMain, renderBattle, setEncounterCard, show,
