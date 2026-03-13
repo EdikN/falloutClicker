@@ -25,3 +25,8 @@ Fallout Clicker is a web-based clicker/RPG game built with Vanilla JavaScript an
 - **CRT Effects**: The game uses complex CSS filters for the retro look. Avoid heavy DOM updates in high-frequency loops.
 - **Localization**: Use `data-i18n` attributes for static text and `GameUI.t()` for dynamic strings.
 - **State Management**: Game state is managed in `GameState`. Ensure any modifications are compatible with the `normalize` function in `state.js`.
+
+## Saving & Versioning Rules
+- **Versioning**: Every task or code change MUST increment `GameData.SAVE_VER` by at least `0.1`.
+- **Save Keys**: The game uses versioned save keys in Playgama storage (e.g., `save_1_0`, `save_1_7`).
+- **Compatibility**: The load system automatically falls back to older versions if the current version's save is missing.

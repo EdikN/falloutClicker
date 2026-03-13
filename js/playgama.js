@@ -17,22 +17,23 @@ export const PlaygamaSDK = (() => {
 
   // --- Сохранение ---
   let lastSavedJson = null;
+  let lastSavedKey = null;
 
-  const save = (data) => {
+  const save = (data, key = 'save') => {
     const json = typeof data === 'string' ? data : JSON.stringify(data);
-    if (json === lastSavedJson) return; // Prevent duplicate identical saves
+    if (json === lastSavedJson && key === lastSavedKey) return;
 
-    // Playgama storage (async, не блокируем)
     if (bridgeReady && window.bridge && window.bridge.storage) {
       try {
-        const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE && window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
-        window.bridge.storage.set('fallout_save', json, storageType)
+        const storageType = (window.bridge.STORAGE_TYPE && window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL) || undefined;
+        window.bridge.storage.set(key, json, storageType)
           .then(() => {
             lastSavedJson = json;
-            console.log('[PlaygamaSDK] Прогресс сохранён успешно.');
+            lastSavedKey = key;
+            console.log(`[PlaygamaSDK] Прогресс сохранён (${key}).`);
           })
           .catch((err) => {
-            console.error('[PlaygamaSDK] Ошибка сохранения прогресса:', err == null ? 'storage unavailable' : err);
+            console.error(`[PlaygamaSDK] Ошибка сохранения (${key}):`, err == null ? 'storage unavailable' : err);
           });
       } catch (err) {
         console.error('[PlaygamaSDK] Ошибка при вызове bridge.storage.set:', err);
@@ -41,16 +42,19 @@ export const PlaygamaSDK = (() => {
   };
 
   // --- Загрузка ---
-  const load = (callback) => {
+  const load = (callback, key = 'save') => {
     if (bridgeReady && window.bridge && window.bridge.storage) {
-      const storageType = cachedStorageType || (cachedStorageType = window.bridge.STORAGE_TYPE && window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL);
-      window.bridge.storage.get('fallout_save', storageType)
+      const storageType = (window.bridge.STORAGE_TYPE && window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL) || undefined;
+      window.bridge.storage.get(key, storageType)
         .then(data => {
-          if (data) lastSavedJson = typeof data === 'string' ? data : JSON.stringify(data);
+          if (data) {
+            lastSavedJson = typeof data === 'string' ? data : JSON.stringify(data);
+            lastSavedKey = key;
+          }
           callback(data || null);
         })
         .catch((err) => {
-          console.error('[PlaygamaSDK] Ошибка загрузки прогресса:', err == null ? 'storage unavailable' : err);
+          console.error(`[PlaygamaSDK] Ошибка загрузки (${key}):`, err == null ? 'storage unavailable' : err);
           callback(null);
         });
     } else {

@@ -103,35 +103,64 @@ export const GameState = (() => {
   };
 
   const save = () => {
+    const key = `save_${D.SAVE_VER}`.replace('.', '_');
     const json = JSON.stringify({ state, meta: metaState });
-    if (window.PlaygamaSDK) window.PlaygamaSDK.save(json);
+    if (window.PlaygamaSDK) window.PlaygamaSDK.save(json, key);
   };
 
   const load = (onDone) => {
-    if (window.PlaygamaSDK) {
+    if (!window.PlaygamaSDK) return onDone && onDone(false);
+
+    let currentVer = D.SAVE_VER;
+    const tryLoad = (v) => {
+      const key = `save_${v.toFixed(1)}`.replace('.', '_');
+      console.log(`[GameState] Попытка загрузки: ${key}...`);
+
       window.PlaygamaSDK.load((cloudData) => {
         if (cloudData) {
           try {
-            const parsed = JSON.parse(cloudData);
-            if (parsed.meta !== undefined && parsed.state !== undefined) {
-              if (parsed.state.v === D.SAVE_VER) {
-                state = parsed.state;
-                metaState = parsed.meta;
-                normalize();
-                if (onDone) return onDone(true);
-              }
-            } else if (parsed.v === D.SAVE_VER) {
-              state = parsed;
+            const parsed = typeof cloudData === 'string' ? JSON.parse(cloudData) : cloudData;
+            const loadedState = parsed.state || (parsed.v ? parsed : null);
+            const loadedMeta = parsed.meta || null;
+
+            if (loadedState) {
+              state = loadedState;
+              if (loadedMeta) metaState = loadedMeta;
               normalize();
+              console.log(`[GameState] Прогресс загружен из версии ${v.toFixed(1)}.`);
               if (onDone) return onDone(true);
             }
-          } catch (_) { }
+          } catch (err) {
+            console.error(`[GameState] Ошибка парсинга ${key}:`, err);
+          }
         }
-        if (onDone) onDone(false);
-      });
-    } else {
-      if (onDone) onDone(false);
-    }
+
+        // Fallback or end
+        if (v > 1.0) {
+          tryLoad(v - 0.1);
+        } else {
+          // If even fallback to 1.0 failed, try the old generic key once as absolute last resort
+          if (v === 1.0) {
+            window.PlaygamaSDK.load((oldData) => {
+              if (oldData) {
+                try {
+                  const parsed = typeof oldData === 'string' ? JSON.parse(oldData) : oldData;
+                  state = parsed.state || parsed;
+                  normalize();
+                  console.log('[GameState] Прогресс восстановлен из старого общего ключа.');
+                  if (onDone) return onDone(true);
+                } catch (_) { }
+              }
+              if (onDone) onDone(false);
+            }, 'fallout_save');
+          } else {
+            if (onDone) onDone(false);
+          }
+        }
+      }, key);
+    };
+
+    tryLoad(currentVer);
   };
 
   return { get: () => state, getMeta: () => metaState, set: v => state = v, fresh, save, load, normalize };
