@@ -45,6 +45,11 @@ const preloadImages = () => {
 
 // Wait for DOM
 document.addEventListener('DOMContentLoaded', () => {
+    // Prevent context menu and accidental selections
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    // Prevent dragging images or elements
+    document.addEventListener('dragstart', e => e.preventDefault());
+    
     const startGame = () => {
         GameUI.applyLanguage();
         preloadImages();
