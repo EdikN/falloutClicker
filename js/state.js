@@ -103,7 +103,7 @@ export const GameState = (() => {
   };
 
   const save = () => {
-    const key = `save_${D.SAVE_VER}`.replace('.', '_');
+    const key = `save_${Number(D.SAVE_VER).toFixed(1)}`.replace('.', '_');
     const json = JSON.stringify({ state, meta: metaState });
     if (window.PlaygamaSDK) window.PlaygamaSDK.save(json, key);
   };
@@ -112,9 +112,12 @@ export const GameState = (() => {
     if (!window.PlaygamaSDK) return onDone && onDone(false);
 
     let currentVer = D.SAVE_VER;
-    const tryLoad = (v) => {
+    const tryLoad = (v, checkIntKey = false) => {
       const vFixed = Math.round(v * 10) / 10;
-      const key = `save_${vFixed.toFixed(1)}`.replace('.', '_');
+      let key = `save_${vFixed.toFixed(1)}`.replace('.', '_');
+      if (checkIntKey) {
+        key = `save_${vFixed}`; // Fallback for integer versions like save_2
+      }
       console.log(`[GameState] Попытка загрузки: ${key}...`);
 
       window.PlaygamaSDK.load((cloudData) => {
@@ -128,7 +131,7 @@ export const GameState = (() => {
               state = loadedState;
               if (loadedMeta) metaState = loadedMeta;
               normalize();
-              console.log(`[GameState] Прогресс загружен из версии ${v.toFixed(1)}.`);
+              console.log(`[GameState] Прогресс загружен из версии ${vFixed.toFixed(1)}${checkIntKey ? ' (integer key)' : ''}.`);
               if (onDone) return onDone(true);
             }
           } catch (err) {
@@ -138,10 +141,15 @@ export const GameState = (() => {
 
         // Fallback or end
         if (vFixed > 1.0) {
-          setTimeout(() => tryLoad(vFixed - 0.1), 10);
+          if (!checkIntKey && Math.floor(vFixed) === vFixed) {
+            // Try integer key before moving down
+            setTimeout(() => tryLoad(vFixed, true), 10);
+          } else {
+            setTimeout(() => tryLoad(vFixed - 0.1, false), 10);
+          }
         } else {
           // If even fallback to 1.0 failed, try the old generic key once as absolute last resort
-          if (v === 1.0) {
+          if (vFixed === 1.0 && !checkIntKey) {
             window.PlaygamaSDK.load((oldData) => {
               if (oldData) {
                 try {

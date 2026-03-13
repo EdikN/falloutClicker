@@ -5,7 +5,7 @@ import { MEMORY_FRAGMENTS, NOTES, STORY_EVENTS } from './data/story.js';
 
 export const GameData = {
   SAVE_KEY: 'fallout_clicker_save',
-  SAVE_VER: 2.0,
+  SAVE_VER: 2.1,
   WEAPON_STATS, ARMOR_STATS, SHOP_ITEMS, CRAFT_ITEMS,
   ENEMIES, ELITE_ENEMIES, STORY_ENEMIES,
   LOCATIONS,
