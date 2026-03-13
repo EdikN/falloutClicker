@@ -25,6 +25,8 @@ Fallout Clicker is a web-based clicker/RPG game built with Vanilla JavaScript an
 - **CRT Effects**: The game uses complex CSS filters for the retro look. Avoid heavy DOM updates in high-frequency loops.
 - **Localization**: Use `data-i18n` attributes for static text and `GameUI.t()` for dynamic strings.
 - **State Management**: Game state is managed in `GameState`. Ensure any modifications are compatible with the `normalize` function in `state.js`.
+- **Coding Style**: **DO NOT** use single-letter aliases for modules (e.g., `import { GameState as S }`). Use full descriptive names like `GameState`, `GameData`, `GameUI` to avoid name collisions in minified builds on Yandex Games.
+  - **Global Utilities**: Avoid single-letter function names (e.g., use `translate()` instead of `t()`) to ensure clarity and avoid minifier/global scope collisions.
 
 ## Saving & Versioning Rules
 - **Versioning**: Every task or code change MUST increment `GameData.SAVE_VER` by at least `0.1`.

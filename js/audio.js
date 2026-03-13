@@ -114,7 +114,8 @@ export const SoundManager = (() => {
         stopBGM();
       }
       else {
-        if (ctx.state === 'suspended') ctx.resume();
+        // Only resume if already started by user interaction, to avoid browser warnings
+        if (ctx.state === 'suspended' && ctx.currentTime > 0) ctx.resume();
         startBGM();
       }
     },

@@ -1,3 +1,5 @@
+import { SoundManager } from './audio.js';
+
 export const PlaygamaSDK = (() => {
   // Минимальный интервал между интерстишалами (секунды)
   const AD_COOLDOWN_SEC = 120;
@@ -25,8 +27,7 @@ export const PlaygamaSDK = (() => {
 
     if (bridgeReady && window.bridge && window.bridge.storage) {
       try {
-        const storageType = (window.bridge.STORAGE_TYPE && window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL) || undefined;
-        window.bridge.storage.set(key, json, storageType)
+        window.bridge.storage.set(key, json)
           .then(() => {
             lastSavedJson = json;
             lastSavedKey = key;
@@ -43,22 +44,28 @@ export const PlaygamaSDK = (() => {
 
   // --- Загрузка ---
   const load = (callback, key = 'save') => {
+    const safeCallback = (data) => {
+      if (typeof callback === 'function') {
+        // Всегда делайте колбэк асинхронным, чтобы избежать переполнения стека в вызывающем коде
+        setTimeout(() => callback(data), 0);
+      }
+    };
+
     if (bridgeReady && window.bridge && window.bridge.storage) {
-      const storageType = (window.bridge.STORAGE_TYPE && window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL) || undefined;
-      window.bridge.storage.get(key, storageType)
+      window.bridge.storage.get(key)
         .then(data => {
           if (data) {
             lastSavedJson = typeof data === 'string' ? data : JSON.stringify(data);
             lastSavedKey = key;
           }
-          callback(data || null);
+          safeCallback(data || null);
         })
         .catch((err) => {
           console.error(`[PlaygamaSDK] Ошибка загрузки (${key}):`, err == null ? 'storage unavailable' : err);
-          callback(null);
+          safeCallback(null);
         });
     } else {
-      callback(null);
+      safeCallback(null);
     }
   };
 
@@ -231,10 +238,10 @@ export const PlaygamaSDK = (() => {
 
   const updateAudioState = () => {
     try {
-      if (window.SoundManager && window.SoundManager.systemMute) {
+      if (SoundManager && SoundManager.systemMute) {
         const isDocumentHidden = typeof document !== 'undefined' && document.hidden;
         const shouldMute = isAdShowing || isPlatformHidden || isDocumentHidden || isAudioMutedByPlatform;
-        window.SoundManager.systemMute(shouldMute);
+        SoundManager.systemMute(shouldMute);
       }
     } catch (_) { }
   };
@@ -265,6 +272,15 @@ export const PlaygamaSDK = (() => {
     setSplash(30);
 
     return window.bridge.initialize()
+      .then(() => {
+        // Попытка авторизации перед тем как считать SDK готовым
+        if (window.bridge.player && window.bridge.player.isAuthorizationSupported && !window.bridge.player.isAuthorized) {
+          return window.bridge.player.authorize()
+            .catch(err => {
+              console.warn('[PlaygamaSDK] Ошибка авторизации или отказ пользователя:', err);
+            });
+        }
+      })
       .then(() => {
         bridgeReady = true;
         setSplash(80);

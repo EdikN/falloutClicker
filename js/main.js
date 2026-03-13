@@ -11,6 +11,7 @@ window.GameState = GameState;
 window.GameUI = GameUI;
 window.Game = Game;
 window.PlaygamaSDK = PlaygamaSDK;
+window.SoundManager = SoundManager;
 
 // Init sound
 SoundManager.init();
@@ -55,7 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
             Game.init();
             // Tell platform game is ready
             try {
-                if (window.bridge) window.bridge.platform.sendMessage("game_ready");
+                if (window.bridge) {
+                    const p = window.bridge.platform.sendMessage("game_ready");
+                    if (p && typeof p.catch === 'function') p.catch(() => {});
+                }
             } catch (_) { }
         });
     };

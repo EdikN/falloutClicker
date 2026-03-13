@@ -5,12 +5,13 @@ export default defineConfig({
     build: {
         minify: 'terser',
         terserOptions: {
+            keep_classnames: true,
+            keep_fnames: true,
             mangle: {
                 // Reserve short names used as module import aliases in source,
                 // so the minifier doesn't reuse them for other variables and cause crashes.
-                reserved: ['t', 'S', 'D', 'E', 'U', 'UI', 'loc', 'tick', 'gameTick']
+                reserved: ['GameState', 'GameData', 'GameUI', 'SoundManager', 'PlaygamaSDK', 'translate']
             }
         }
     }
 });
-

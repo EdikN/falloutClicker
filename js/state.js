@@ -113,7 +113,8 @@ export const GameState = (() => {
 
     let currentVer = D.SAVE_VER;
     const tryLoad = (v) => {
-      const key = `save_${v.toFixed(1)}`.replace('.', '_');
+      const vFixed = Math.round(v * 10) / 10;
+      const key = `save_${vFixed.toFixed(1)}`.replace('.', '_');
       console.log(`[GameState] Попытка загрузки: ${key}...`);
 
       window.PlaygamaSDK.load((cloudData) => {
@@ -136,8 +137,8 @@ export const GameState = (() => {
         }
 
         // Fallback or end
-        if (v > 1.0) {
-          tryLoad(v - 0.1);
+        if (vFixed > 1.0) {
+          setTimeout(() => tryLoad(vFixed - 0.1), 10);
         } else {
           // If even fallback to 1.0 failed, try the old generic key once as absolute last resort
           if (v === 1.0) {

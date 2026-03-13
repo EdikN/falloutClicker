@@ -338,7 +338,7 @@ export const TRANSLATIONS = {
     }
 };
 
-export const t = (key, ...args) => {
+export const translate = (key, ...args) => {
     const lang = (window.PlaygamaSDK && window.PlaygamaSDK.getLanguage()) || 'ru';
     let str = (TRANSLATIONS[lang] || TRANSLATIONS.ru)[key] || key;
     if (args.length > 0) {

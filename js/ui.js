@@ -1,7 +1,7 @@
-import { GameState as S } from './state.js';
-import { GameData as D } from './data.js';
+import { GameState } from './state.js';
+import { GameData } from './data.js';
 import { SoundManager } from './audio.js';
-import { TRANSLATIONS, t, loc } from './locales.js';
+import { TRANSLATIONS, translate, loc } from './locales.js';
 import { EventEmitter as Events } from './events.js';
 
 export const GameUI = (() => {
@@ -76,33 +76,33 @@ export const GameUI = (() => {
 
   const renderTop = () => {
     if (!DOM.day) initCache();
-    const st = S.get();
-    DOM.day.textContent = t('day_label', st.day);
-    DOM.capsTop.textContent = t('credits_label', st.resources.caps);
+    const st = GameState.get();
+    DOM.day.textContent = translate('day_label', st.day);
+    DOM.capsTop.textContent = translate('credits_label', st.resources.caps);
 
-    const weaponId = st.player.weaponId || Object.keys(D.WEAPON_STATS).find(k => D.WEAPON_STATS[k].name_ru === st.player.weaponName || D.WEAPON_STATS[k].name_en === st.player.weaponName);
-    const w = weaponId ? D.WEAPON_STATS[weaponId] : null;
+    const weaponId = st.player.weaponId || Object.keys(GameData.WEAPON_STATS).find(k => GameData.WEAPON_STATS[k].name_ru === st.player.weaponName || GameData.WEAPON_STATS[k].name_en === st.player.weaponName);
+    const w = weaponId ? GameData.WEAPON_STATS[weaponId] : null;
     const weaponStr = w ? loc(w, 'name') : (st.player.weaponName || '???');
     const weaponText = weaponStr.toUpperCase();
 
     const isAdrenaline = st.adBoosts.adrenaline > Date.now();
-    DOM.weaponPill.textContent = t('weapon_label', weaponText + (isAdrenaline ? ' [⚡]' : ''));
+    DOM.weaponPill.textContent = translate('weapon_label', weaponText + (isAdrenaline ? ' [⚡]' : ''));
     DOM.weaponPill.classList.toggle('highlight-text', isAdrenaline);
   };
 
   const renderMain = () => {
     if (!DOM.hpFill) initCache();
-    const st = S.get(), p = st.player;
+    const st = GameState.get(), p = st.player;
     const isAdrenaline = st.adBoosts.adrenaline > Date.now();
     let dmgStr = `${Math.round(p.baseDmg + p.dmgBonus)}`;
 
     // Обновляем текст и бары напрямую (уже созданные в initCache)
-    DOM.hpLabel.textContent = t('health').toUpperCase();
+    DOM.hpLabel.textContent = translate('health').toUpperCase();
     DOM.hpText.textContent = Math.round(p.hp);
     DOM.hpMax.textContent = p.maxHp;
     DOM.hpFill.style.transform = `scaleX(${clamp(p.hp / p.maxHp, 0, 1)})`;
 
-    DOM.moodLabel.textContent = t('mood').toUpperCase();
+    DOM.moodLabel.textContent = translate('mood').toUpperCase();
     DOM.moodText.textContent = Math.round(p.mood);
     DOM.moodMax.textContent = p.maxMood;
     DOM.moodFill.style.transform = `scaleX(${clamp(p.mood / p.maxMood, 0, 1)})`;
@@ -113,21 +113,21 @@ export const GameUI = (() => {
     }
 
     DOM.res.innerHTML = `
-      <button class='pill pill-btn' data-use='food'>🍖 ${t('food').toUpperCase()}: ${st.resources.food}</button>
-      <button class='pill pill-btn' data-use='water'>💧 ${t('water').toUpperCase()}: ${st.resources.water}</button>
-      <button class='pill pill-btn' data-use='medkits'>✚ ${t('medkits').toUpperCase()}: ${st.resources.medkits}</button>
-      <div class='pill'>⚙️ ${t('materials').toUpperCase()}: ${st.resources.materials}</div>
-      <div class='pill'>⚡ ${t('ammo').toUpperCase()}: ${st.resources.ammo}</div>
-      <div class='pill'>⚔️ ${t('damage').toUpperCase()}: ${dmgStr}</div>`;
+      <button class='pill pill-btn' data-use='food'>🍖 ${translate('food').toUpperCase()}: ${st.resources.food}</button>
+      <button class='pill pill-btn' data-use='water'>💧 ${translate('water').toUpperCase()}: ${st.resources.water}</button>
+      <button class='pill pill-btn' data-use='medkits'>✚ ${translate('medkits').toUpperCase()}: ${st.resources.medkits}</button>
+      <div class='pill'>⚙️ ${translate('materials').toUpperCase()}: ${st.resources.materials}</div>
+      <div class='pill'>⚡ ${translate('ammo').toUpperCase()}: ${st.resources.ammo}</div>
+      <div class='pill'>⚔️ ${translate('damage').toUpperCase()}: ${dmgStr}</div>`;
   };
 
   const renderBattle = () => {
     if (!DOM.eHp) initCache();
-    const st = S.get(), c = st.combat, p = st.player, e = c.enemy;
+    const st = GameState.get(), c = st.combat, p = st.player, e = c.enemy;
     if (!e) return;
     DOM.battleTimer.textContent = `${c.time.toFixed(1)}s`;
 
-    DOM.pAtkHpLabel.textContent = t('health').toUpperCase();
+    DOM.pAtkHpLabel.textContent = translate('health').toUpperCase();
     DOM.pAtkHpText.textContent = Math.round(p.hp);
     DOM.pAtkHpMax.textContent = p.maxHp;
     DOM.pAtkHpFill.style.transform = `scaleX(${clamp(p.hp / p.maxHp, 0, 1)})`;
@@ -141,7 +141,7 @@ export const GameUI = (() => {
     }
 
     DOM.eHp.style.transform = `scaleX(${clamp(e.hp / e.maxHp, 0, 1)})`;
-    DOM.telegraph.textContent = `[${t('waiting_attack').toUpperCase()}: ${Math.max(0, c.enemyAtk).toFixed(1)}s]`;
+    DOM.telegraph.textContent = `[${translate('waiting_attack').toUpperCase()}: ${Math.max(0, c.enemyAtk).toFixed(1)}s]`;
     DOM.teleFill.style.transform = `scaleX(${clamp(1 - c.enemyAtk / e.atk, 0, 1)})`;
 
     // КД Игрока
@@ -152,13 +152,13 @@ export const GameUI = (() => {
 
       if (p.atkCd > 0) {
         if (!DOM.atk.classList.contains('is-cd')) {
-          DOM.atk.firstChild.textContent = t('dodge').toUpperCase();
+          DOM.atk.firstChild.textContent = translate('dodge').toUpperCase();
           DOM.atk.classList.add('is-cd');
           DOM.atk.disabled = true;
         }
       } else {
         if (DOM.atk.classList.contains('is-cd')) {
-          DOM.atk.firstChild.textContent = t('atk');
+          DOM.atk.firstChild.textContent = translate('atk');
           DOM.atk.classList.remove('is-cd');
           DOM.atk.disabled = false;
         }
@@ -168,7 +168,7 @@ export const GameUI = (() => {
     // Кнопка уклонения
     if (DOM.dodge) {
       DOM.dodge.disabled = c.cdDodge > 0;
-      DOM.dodge.textContent = c.cdDodge > 0 ? `${t('dodge').slice(0, 1)} [${c.cdDodge.toFixed(1)}s]` : t('dodge').toUpperCase();
+      DOM.dodge.textContent = c.cdDodge > 0 ? `${translate('dodge').slice(0, 1)} [${c.cdDodge.toFixed(1)}s]` : translate('dodge').toUpperCase();
     }
   };
 
@@ -179,7 +179,7 @@ export const GameUI = (() => {
   const applyLanguage = () => {
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.dataset.i18n;
-      const str = t(key);
+      const str = translate(key);
       if (str !== key && !str.includes('{0}')) {
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = str;
         else el.innerHTML = str;
@@ -192,7 +192,7 @@ export const GameUI = (() => {
   };
 
   const setEncounterCard = ({ icon, title, desc, img }) => {
-    const st = window.GameState.get();
+    const st = GameState.get();
     let imgHtml = '';
     if (img) {
       imgHtml = `<div style="text-align: center; margin: 0.5rem 0;"><img src="${img}" style="max-width: 100%; max-height: 25vh; border: 2px solid var(--line); border-radius: 4px; box-shadow: 0 0 10px rgba(29, 242, 58, 0.2); filter: sepia(1) hue-rotate(70deg) saturate(3) brightness(0.9); object-fit: contain;" /></div>`;
@@ -255,7 +255,7 @@ export const GameUI = (() => {
 
   const showDialogue = ({ speaker, speaker_ru, speaker_en, text, text_ru, text_en, img, choices = [] }) => {
     const locObj = { speaker, speaker_ru, speaker_en, text, text_ru, text_en };
-    const actualSpeaker = loc(locObj, 'speaker') || t('intercept_data');
+    const actualSpeaker = loc(locObj, 'speaker') || translate('intercept_data');
     const actualText = loc(locObj, 'text') || text;
 
     $('#storySpeaker').textContent = actualSpeaker;
@@ -281,7 +281,7 @@ export const GameUI = (() => {
           btn.onclick = () => {
             SoundManager.play('click');
             show('#storyModal', false);
-            if (c.action) c.action();
+            if (c.action) c.action(Events, GameState, translate);
           };
           choicesCont.appendChild(btn);
         });
@@ -290,17 +290,17 @@ export const GameUI = (() => {
   };
 
   const renderEquipment = (onSwitchWeapon, onSwitchArmor) => {
-    const st = S.get();
+    const st = GameState.get();
     const listCont = $('#equipList');
     listCont.innerHTML = '';
 
     const wTitle = document.createElement('h3');
-    wTitle.textContent = t('weapon');
+    wTitle.textContent = translate('weapon');
     listCont.appendChild(wTitle);
 
     Object.keys(st.weapons).forEach(id => {
       if (!st.weapons[id]) return;
-      const w = D.WEAPON_STATS[id];
+      const w = GameData.WEAPON_STATS[id];
       if (!w) return;
 
       const isEquipped = st.player.weaponId === id || (!st.player.weaponId && (st.player.weaponName === w.name_ru || st.player.weaponName === w.name_en));
@@ -309,10 +309,10 @@ export const GameUI = (() => {
       div.className = 'shopItem';
       div.innerHTML = `
         <div>${loc(w, 'name')}
-          <div class='sub'>${t('damage')}: ${w.dmg} | ${t('days').slice(0, 1)}: ${w.cd}s | ${w.isGun ? t('wpn_gun') : t('wpn_melee')}</div>
+          <div class='sub'>${translate('damage')}: ${w.dmg} | ${translate('days').slice(0, 1)}: ${w.cd}s | ${w.isGun ? translate('wpn_gun') : translate('wpn_melee')}</div>
         </div>
         <button class='btn ${isEquipped ? 'good' : ''}' data-equip-w='${id}'>
-          ${isEquipped ? t('equipped') : t('equip')}
+          ${isEquipped ? translate('equipped') : translate('equip')}
         </button>
       `;
       const btn = div.querySelector('[data-equip-w]');
@@ -326,13 +326,13 @@ export const GameUI = (() => {
     });
 
     const aTitle = document.createElement('h3');
-    aTitle.textContent = t('defense');
+    aTitle.textContent = translate('defense');
     aTitle.style.marginTop = '1rem';
     listCont.appendChild(aTitle);
 
     Object.keys(st.armors).forEach(id => {
       if (!st.armors[id]) return;
-      const a = D.ARMOR_STATS[id];
+      const a = GameData.ARMOR_STATS[id];
       if (!a) return;
 
       const isEquipped = st.player.armorId === id || (!st.player.armorId && (st.player.armorName === a.name_ru || st.player.armorName === a.name_en));
@@ -341,10 +341,10 @@ export const GameUI = (() => {
       div.className = 'shopItem';
       div.innerHTML = `
         <div>${loc(a, 'name')}
-          <div class='sub'>${t('hp_bonus')}: +${a.hp} | ${t('defense')}: ${Math.round(a.armorClass * 100)}%</div>
+          <div class='sub'>${translate('hp_bonus')}: +${a.hp} | ${translate('defense')}: ${Math.round(a.armorClass * 100)}%</div>
         </div>
         <button class='btn ${isEquipped ? 'good' : ''}' data-equip-a='${id}'>
-          ${isEquipped ? t('equipped') : t('equip')}
+          ${isEquipped ? translate('equipped') : translate('equip')}
         </button>
       `;
       const btn = div.querySelector('[data-equip-a]');
@@ -369,12 +369,12 @@ export const GameUI = (() => {
     const defeatReasonEl = $('#defeatReason');
     const defeatMsgEl = $('#defeatMsg');
 
-    if (defeatDaysEl) defeatDaysEl.textContent = t('cycles_lived', data.day);
-    if (defeatReasonEl) defeatReasonEl.textContent = `${t('obj_status')} ${data.reason}`;
+    if (defeatDaysEl) defeatDaysEl.textContent = translate('cycles_lived', data.day);
+    if (defeatReasonEl) defeatReasonEl.textContent = `${translate('obj_status')} ${data.reason}`;
 
     const msgs = [
-      t('defeat_msg_1'), t('defeat_msg_2'), t('defeat_msg_3'),
-      t('defeat_msg_4'), t('defeat_msg_5')
+      translate('defeat_msg_1'), translate('defeat_msg_2'), translate('defeat_msg_3'),
+      translate('defeat_msg_4'), translate('defeat_msg_5')
     ];
     if (defeatMsgEl) defeatMsgEl.textContent = `"${msgs[Math.floor(Math.random() * msgs.length)]}"`;
 
@@ -422,6 +422,6 @@ export const GameUI = (() => {
   return {
     $, toast, renderTop, renderMain, renderBattle, setEncounterCard, show,
     triggerDamage, triggerEnemyHit, typeText, showDialogue, renderEquipment,
-    t, loc, applyLanguage
+    translate, loc, applyLanguage
   };
 })();
