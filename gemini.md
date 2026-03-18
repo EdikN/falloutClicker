@@ -1,34 +1,12 @@
-# Fallout Clicker Core - Project Documentation
+# [FALLOUT CLICKER] — Технический протокол
 
-This document serves as an entry point for AI agents to understand the "Fallout Clicker" project.
+Все технические правила и информация по проекту хранятся в центральном репозитории `GameDocs`. Используйте следующие ссылки для контекста:
 
-## Quick Links
-- **Playgama SDK Instructions**: [Plain JS SDK Intro](https://wiki.playgama.com/playgama/sdk/engines/core-plain-js/intro)
-- **Technical Review**: [review_results.md](file:///c:/Users/1/Documents/Eduard/Web/falloutClicker/review_results.md)
-- **Main Entry Point**: [main.js](file:///c:/Users/1/Documents/Eduard/Web/falloutClicker/js/main.js)
-- **Game Engine**: [game.js](file:///c:/Users/1/Documents/Eduard/Web/falloutClicker/js/game.js)
+- @rules/coding.md — Стиль кодинга, управление состоянием и протоколы версионирования.
+- @context/project.md — Обзор проекта, архитектура и структурные компоненты.
+- @playgama/js — Инструкции по интеграции Playgama Bridge SDK и базовому JS.
 
-## Project Overview
-Fallout Clicker is a web-based clicker/RPG game built with Vanilla JavaScript and Vite. It features a retro CRT aesthetic and RPG elements like combat, inventory management, and story events.
-
-### Project Structure
-- `/js/`: Contains the core logic modules.
-  - `main.js`: Initialization and SDK setup.
-  - `game.js`: Core game loop and battle logic.
-  - `ui.js`: DOM manipulation and localization.
-  - `state.js`: Save/Load logic.
-  - `playgama.js`: Bridge SDK integration.
-- `index.html`: Main HTML structure with localized text handles.
-- `styles.css`: Visual styling, including CRT effects.
-
-## Key Considerations for Agents
-- **CRT Effects**: The game uses complex CSS filters for the retro look. Avoid heavy DOM updates in high-frequency loops.
-- **Localization**: Use `data-i18n` attributes for static text and `GameUI.t()` for dynamic strings.
-- **State Management**: Game state is managed in `GameState`. Ensure any modifications are compatible with the `normalize` function in `state.js`.
-- **Coding Style**: **DO NOT** use single-letter aliases for modules (e.g., `import { GameState as S }`). Use full descriptive names like `GameState`, `GameData`, `GameUI` to avoid name collisions in minified builds on Yandex Games.
-  - **Global Utilities**: Avoid single-letter function names (e.g., use `translate()` instead of `t()`) to ensure clarity and avoid minifier/global scope collisions.
-
-## Saving & Versioning Rules
-- **Versioning**: Every task or code change MUST increment `GameData.SAVE_VER` by at least `0.1`.
-- **Save Keys**: The game uses versioned save keys in Playgama storage (e.g., `save_1_0`, `save_1_7`).
-- **Compatibility**: The load system automatically falls back to older versions if the current version's save is missing.
+---
+> [!IMPORTANT]
+> Всегда следуйте правилу №1 из `[[Rules]]`: «ВСЯ документация должна сохраняться в `C:\Users\1\Documents\Eduard\GameDocs\Games\[app-name]`».
+Пиши логи по каждому изменению в `C:\Users\1\Documents\Eduard\GameDocs\Games\[app-name]\logs\changelog.md`

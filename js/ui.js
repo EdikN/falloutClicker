@@ -189,6 +189,10 @@ export const GameUI = (() => {
         if (el.hasAttribute('data-text')) el.dataset.text = str;
       }
     });
+
+    if (DOM.atk && DOM.atk.firstChild && DOM.atk.firstChild.nodeType === Node.TEXT_NODE) {
+      DOM.atk.firstChild.textContent = DOM.atk.classList.contains('is-cd') ? translate('dodge').toUpperCase() : translate('atk');
+    }
   };
 
   const setEncounterCard = ({ icon, title, desc, img }) => {

@@ -229,7 +229,7 @@ const handleCartographer = (event) => {
     });
   };
   const buyFile = () => {
-    if (st.resources.caps < 120) return Events.emit('ui:toast', t('toast_not_enough_caps', 120));
+    if (st.resources.caps < 120) return Events.emit('ui:toast', translate('toast_not_enough_caps', 120));
     st.resources.caps -= 120;
     const mem = GameData.MEMORY_FRAGMENTS[Math.floor(rng() * 5) + 2];
     Events.emit('ui:showDialogue', {
@@ -603,7 +603,7 @@ const renderMerchant = async (defaultTab = 'items') => {
 
     // Group items
     const groups = { resource: [], weapon: [], armor: [], upgrade: [] };
-    D.SHOP_ITEMS.forEach((item, i) => {
+    GameData.SHOP_ITEMS.forEach((item, i) => {
       groups[item.type] = groups[item.type] || [];
       groups[item.type].push({ ...item, i });
     });
@@ -628,7 +628,7 @@ const renderMerchant = async (defaultTab = 'items') => {
     content.innerHTML = html;
 
     content.querySelectorAll('[data-buy]').forEach(btn => btn.onclick = () => {
-      const p = D.SHOP_ITEMS[+btn.dataset.buy];
+      const p = GameData.SHOP_ITEMS[+btn.dataset.buy];
       if (st.resources.caps < p.price) return Events.emit('ui:toast', translate('toast_not_enough_caps', p.price));
       st.resources.caps -= p.price;
       if (p.type === 'weapon') weaponUnlock(p.weaponId);

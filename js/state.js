@@ -1,8 +1,8 @@
-import { GameData as D } from './data.js';
+import { GameData } from './data.js';
 
 export const GameState = (() => {
   const fresh = () => ({
-    v: D.SAVE_VER,
+    v: GameData.SAVE_VER,
     day: 1,
     initialized: false,
     phase: 'ИССЛЕДОВАНИЕ',
@@ -99,11 +99,11 @@ export const GameState = (() => {
   const normalize = () => {
     const def = fresh();
     state = deepMerge(state, def);
-    state.v = D.SAVE_VER;
+    state.v = GameData.SAVE_VER;
   };
 
   const save = () => {
-    const key = `save_${Number(D.SAVE_VER).toFixed(1)}`.replace('.', '_');
+    const key = `save_${Number(GameData.SAVE_VER).toFixed(1)}`.replace('.', '_');
     const json = JSON.stringify({ state, meta: metaState });
     if (window.PlaygamaSDK) window.PlaygamaSDK.save(json, key);
   };
@@ -111,7 +111,7 @@ export const GameState = (() => {
   const load = (onDone) => {
     if (!window.PlaygamaSDK) return onDone && onDone(false);
 
-    let currentVer = D.SAVE_VER;
+    let currentVer = GameData.SAVE_VER;
     const tryLoad = (v, checkIntKey = false) => {
       const vFixed = Math.round(v * 10) / 10;
       let key = `save_${vFixed.toFixed(1)}`.replace('.', '_');
