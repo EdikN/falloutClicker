@@ -1105,7 +1105,8 @@ const initGame = () => {
     PlaygamaSDK.gameReady();
     PlaygamaSDK.setGameplayState('start');
 
-    if (!GameState.get().permanentBonuses.noAds) {
+    // Баннер показываем только на Яндекс и только если нет статуса "без рекламы"
+    if (PlaygamaSDK.getPlatformId() === 'yandex' && !GameState.get().permanentBonuses.noAds) {
       PlaygamaSDK.showBanner('bottom');
     }
   }

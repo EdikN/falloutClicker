@@ -253,6 +253,14 @@ export const PlaygamaSDK = (() => {
     return 'ru';
   };
 
+  // --- Платформа ---
+  const getPlatformId = () => {
+    if (bridgeReady && window.bridge && window.bridge.platform) {
+      return (window.bridge.platform.id || '').toLowerCase();
+    }
+    return '';
+  };
+
   const isBridgeReady = () => bridgeReady;
 
   // --- Хелперы паузы звука во время рекламы и сворачивания ---
@@ -369,6 +377,6 @@ export const PlaygamaSDK = (() => {
     showBanner, hideBanner,
     buyProduct, checkPurchases, getCatalog, consumePurchase,
     gameReady, setGameplayState,
-    getLanguage, isBridgeReady
+    getLanguage, getPlatformId, isBridgeReady
   };
 })();
