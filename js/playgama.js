@@ -263,6 +263,33 @@ export const PlaygamaSDK = (() => {
 
   const isBridgeReady = () => bridgeReady;
 
+  // --- Авторизация ---
+  const isAuthorizationSupported = () => {
+    try { return !!(window.bridge && window.bridge.player && window.bridge.player.isAuthorizationSupported); }
+    catch (_) { return false; }
+  };
+
+  const isAuthorized = () => {
+    try { return !!(window.bridge && window.bridge.player && window.bridge.player.isAuthorized); }
+    catch (_) { return false; }
+  };
+
+  // Вызывается ТОЛЬКО по явному действию пользователя
+  const authorize = () => {
+    if (!bridgeReady || !window.bridge || !window.bridge.player) {
+      return Promise.reject(new Error('bridge not ready'));
+    }
+    return window.bridge.player.authorize()
+      .then(() => {
+        localStorage.setItem('auth', 'authorized');
+        console.log('[PlaygamaSDK] Авторизация успешна.');
+      })
+      .catch((err) => {
+        console.warn('[PlaygamaSDK] Авторизация отклонена или не поддерживается:', err);
+        throw err;
+      });
+  };
+
   // --- Хелперы паузы звука во время рекламы и сворачивания ---
   let isAdShowing = false;
   let isPlatformHidden = false;
@@ -377,6 +404,7 @@ export const PlaygamaSDK = (() => {
     showBanner, hideBanner,
     buyProduct, checkPurchases, getCatalog, consumePurchase,
     gameReady, setGameplayState,
-    getLanguage, getPlatformId, isBridgeReady
+    getLanguage, getPlatformId, isBridgeReady,
+    isAuthorizationSupported, isAuthorized, authorize
   };
 })();

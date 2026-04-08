@@ -3,7 +3,7 @@ import { GameState } from './state.js';
 import { SoundManager } from './audio.js';
 import { PlaygamaSDK } from './playgama.js';
 import { EventEmitter as Events } from './events.js';
-import { translate as translate, loc } from './locales.js';
+import { translate as translate, loc, translateError } from './locales.js';
 import { GameUI } from './ui.js';
 
 const rng = () => Math.random();
@@ -694,20 +694,62 @@ const renderMerchant = async (defaultTab = 'items') => {
         </div>
         <button class="btn good" style="min-width:80px;">${item.price}</button>
       `;
-      if (['starter_pack', 'premium_caps', 'mega_pack', 'cyber_stomach', 'iron_arsenal', 'heavy_armor'].includes(item.id)) {
-        div.querySelector('button').onclick = () => {
+
+      // Универсальный обработчик с проверкой авторизации
+      const doPurchase = () => {
+        if (['starter_pack', 'premium_caps', 'mega_pack', 'cyber_stomach', 'iron_arsenal', 'heavy_armor'].includes(item.id)) {
           window.PlaygamaSDK.buyProduct(item.id, (purchase) => {
             applyPurchase(item.id);
             if (purchase && purchase.purchaseToken) {
               window.PlaygamaSDK.consumePurchase(purchase.purchaseToken);
             }
-          }, (err) => Events.emit('ui:toast', `${translate('purchase_error')}: ${err}`));
-        };
-      } else {
-        div.querySelector('button').onclick = () => {
-          window.PlaygamaSDK.buyProduct(item.id, () => applyPurchase(item.id), (err) => Events.emit('ui:toast', `${translate('purchase_error')}: ${err}`));
-        };
-      }
+          }, (err) => Events.emit('ui:toast', `${translate('purchase_error')}: ${translateError(err)}`));
+        } else {
+          window.PlaygamaSDK.buyProduct(item.id, () => applyPurchase(item.id), (err) => Events.emit('ui:toast', `${translate('purchase_error')}: ${translateError(err)}`));
+        }
+      };
+
+      div.querySelector('button').onclick = () => {
+        const sdk = window.PlaygamaSDK;
+        // Если авторизация поддерживается и пользователь не залогинен — предлагаем войти
+        if (sdk && sdk.isAuthorizationSupported() && !sdk.isAuthorized()) {
+          const modal = document.getElementById('authModal');
+          if (modal) {
+            modal.classList.add('show');
+            const loginBtn = document.getElementById('authLoginBtn');
+            const skipBtn = document.getElementById('authSkipBtn');
+            const close = () => modal.classList.remove('show');
+
+            loginBtn.onclick = () => {
+              close();
+              sdk.authorize()
+                .then(() => {
+                  const btn = document.getElementById('authBtn');
+                  if (btn) btn.style.display = 'none';
+                  doPurchase();
+                })
+                .catch(() => Events.emit('ui:toast', translate('auth_required_purchase')));
+            };
+
+            skipBtn.onclick = () => {
+              close();
+              Events.emit('ui:toast', translate('auth_required_purchase'));
+            };
+            return;
+          }
+
+          sdk.authorize()
+            .then(() => {
+              const btn = document.getElementById('authBtn');
+              if (btn) btn.style.display = 'none';
+              doPurchase();
+            })
+            .catch(() => Events.emit('ui:toast', translate('auth_required_purchase')));
+          return;
+        }
+        doPurchase();
+      };
+
       content.appendChild(div);
     });
   };

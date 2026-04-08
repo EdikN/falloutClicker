@@ -221,6 +221,29 @@ h2 {
   transform: scale(0.95);
 }
 
+/* Кнопка авторизации в HUD */
+.auth-hud-btn {
+  border-color: var(--warn) !important;
+  color: var(--warn) !important;
+  text-shadow: 0 0 6px var(--warn), 0 0 2px var(--warn) !important;
+  box-shadow: inset 0 0 5px rgba(255, 184, 34, 0.15), 0 0 8px rgba(255, 184, 34, 0.2) !important;
+  animation: authPulse 2.5s ease-in-out infinite;
+}
+
+.auth-hud-btn:hover:not(:disabled) {
+  background: var(--warn) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 14px rgba(255, 184, 34, 0.6) !important;
+  animation: none;
+}
+
+@keyframes authPulse {
+  0%, 100% { box-shadow: inset 0 0 5px rgba(255, 184, 34, 0.15), 0 0 6px rgba(255, 184, 34, 0.2); }
+  50%       { box-shadow: inset 0 0 8px rgba(255, 184, 34, 0.3), 0 0 14px rgba(255, 184, 34, 0.4); }
+}
+
+
 /* ГЛАВНЫЙ ЭКРАН */
 .app {
   flex: 1 1 auto;
@@ -984,4 +1007,171 @@ h2 {
   text-align: center;
   padding: 0.5rem;
   letter-spacing: 2px;
+}
+
+/* ========================================= */
+/* --- AUTH MODAL --- */
+/* ========================================= */
+
+/* Оверлей авторизации — чуть темнее остальных */
+#authModal {
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.5rem, 3vw, 1.5rem);
+}
+
+.auth-modal {
+  width: 100%;
+  max-width: 480px;
+  max-height: 95dvh;
+  overflow-y: auto;
+  background: rgba(3, 12, 3, 0.97);
+  border: 2px solid var(--line);
+  box-shadow: 0 0 40px rgba(29, 242, 58, 0.25), inset 0 0 30px rgba(29, 242, 58, 0.05);
+  padding: clamp(0.8rem, 4vw, 1.6rem);
+  gap: clamp(0.6rem, 2vw, 1rem);
+  display: flex;
+  flex-direction: column;
+  animation: glitchIn 0.25s forwards;
+}
+
+/* Шапка */
+.auth-header {
+  text-align: center;
+  border-bottom: 1px dashed rgba(29, 242, 58, 0.4);
+  padding-bottom: clamp(0.4rem, 2vw, 0.8rem);
+}
+
+.auth-icon {
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1;
+  margin-bottom: 0.3rem;
+  filter: drop-shadow(0 0 10px var(--line));
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(0.96); }
+}
+
+.auth-header h2 {
+  font-size: clamp(1.2em, 4vw, 1.8em);
+  border-bottom: none;
+  letter-spacing: 3px;
+  text-shadow: 0 0 12px var(--line);
+  padding-bottom: 0;
+  margin-bottom: 0.2rem;
+}
+
+.auth-header .sub {
+  font-size: clamp(0.75em, 2.5vw, 0.95em);
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+/* Список преимуществ */
+.auth-benefits {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 2vw, 0.7rem);
+}
+
+.auth-benefit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.5rem, 2vw, 0.9rem);
+  background: rgba(0, 20, 0, 0.5);
+  border: 1px solid rgba(29, 242, 58, 0.2);
+  border-radius: 3px;
+  padding: clamp(0.4rem, 2vw, 0.7rem) clamp(0.5rem, 2vw, 0.9rem);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.auth-benefit-item:hover {
+  border-color: rgba(29, 242, 58, 0.5);
+  background: rgba(0, 30, 0, 0.6);
+}
+
+.auth-benefit-icon {
+  font-size: clamp(1.2rem, 4vw, 1.8rem);
+  flex-shrink: 0;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px var(--line));
+}
+
+.auth-benefit-title {
+  font-size: clamp(0.9em, 3vw, 1.1em);
+  color: #fff;
+  text-shadow: 0 0 6px var(--line);
+  letter-spacing: 1px;
+  margin-bottom: 2px;
+}
+
+/* Кнопки авторизации */
+.auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 2vw, 0.6rem);
+  margin-top: clamp(0.2rem, 1vw, 0.4rem);
+}
+
+.auth-btn-login {
+  font-size: clamp(1em, 3.5vw, 1.3em);
+  padding: clamp(0.6rem, 2vw, 1rem) 1rem;
+  letter-spacing: 2px;
+  background: rgba(0, 80, 0, 0.6) !important;
+  border-color: var(--line) !important;
+  text-shadow: 0 0 8px var(--line);
+  box-shadow: 0 0 15px rgba(29, 242, 58, 0.2);
+  transition: all 0.2s;
+  flex: 0 0 auto;
+}
+
+.auth-btn-login:hover:not(:disabled) {
+  background: var(--line) !important;
+  color: #000 !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 25px rgba(29, 242, 58, 0.5) !important;
+}
+
+.auth-btn-skip {
+  font-size: clamp(0.85em, 2.5vw, 1em);
+  padding: clamp(0.4rem, 1.5vw, 0.7rem) 0.8rem;
+  opacity: 0.6;
+  border-style: dashed;
+  border-color: rgba(29, 242, 58, 0.4) !important;
+  flex: 0 0 auto;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+
+.auth-btn-skip:hover:not(:disabled) {
+  opacity: 1;
+  border-color: var(--line) !important;
+  background: rgba(0, 20, 0, 0.8);
+  color: var(--line);
+  text-shadow: 0 0 4px var(--line);
+}
+
+/* Компактный вид для маленьких экранов */
+@media (max-height: 600px) {
+  .auth-modal {
+    gap: 0.4rem;
+    padding: 0.6rem;
+  }
+
+  .auth-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+  }
+
+  .auth-benefit-item {
+    padding: 0.3rem 0.5rem;
+  }
+
+  .auth-btn-login {
+    padding: 0.5rem;
+  }
 }

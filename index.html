@@ -24,6 +24,7 @@
         <div class="pill capsTop" id="capsTop" data-i18n="credits_label">[КРЕДИТЫ]: 0</div>
         <div class="pill" id="weaponPill" data-i18n="weapon_label">ОРУЖИЕ: КУЛАКИ</div>
         <button class="pill btn-mini" id="muteBtn" title="ЗВУК ВКЛ/ВЫКЛ" data-i18n="sound_btn">🔊 ЗВУК</button>
+        <button class="pill btn-mini auth-hud-btn" id="authBtn" title="ВОЙТИ В АККАУНТ" data-i18n="auth_hud_btn" style="display:none;">🔑 ВОЙТИ</button>
       </div>
     </header>
 
@@ -178,6 +179,36 @@
           data-i18n="btn_restart_cycle">
           ↺ НАЧАТЬ НОВЫЙ ЦИКЛ
         </button>
+      </div>
+    </div>
+
+    <!-- АВТОРИЗАЦИЯ (первый запуск) -->
+    <div class="overlay" id="authModal">
+      <div class="card modal auth-modal">
+        <div class="auth-header">
+          <div class="auth-icon">🔐</div>
+          <h2 data-i18n="auth_title">ИДЕНТИФИКАЦИЯ</h2>
+        </div>
+        <div class="auth-benefits">
+          <div class="auth-benefit-item">
+            <span class="auth-benefit-icon">☁</span>
+            <div>
+              <div class="auth-benefit-title" data-i18n="auth_benefit_cloud">ОБЛАЧНЫЕ СОХРАНЕНИЯ</div>
+              <div class="sub" data-i18n="auth_benefit_cloud_desc">Прогресс не потеряется при смене устройства</div>
+            </div>
+          </div>
+          <div class="auth-benefit-item">
+            <span class="auth-benefit-icon">🛒</span>
+            <div>
+              <div class="auth-benefit-title" data-i18n="auth_benefit_purchase">ЗАЩИТА ПОКУПОК</div>
+              <div class="sub" data-i18n="auth_benefit_purchase_desc">Купленные предметы привязываются к аккаунту</div>
+            </div>
+          </div>
+        </div>
+        <div class="auth-actions">
+          <button class="btn good auth-btn-login" id="authLoginBtn" data-i18n="auth_btn_login">⚡ ВОЙТИ В СИСТЕМУ</button>
+          <button class="btn auth-btn-skip" id="authSkipBtn" data-i18n="auth_btn_skip">ПРОДОЛЖИТЬ БЕЗ ВХОДА</button>
+        </div>
       </div>
     </div>
 

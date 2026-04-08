@@ -166,7 +166,22 @@ export const TRANSLATIONS = {
         item_arsenal_name: 'ЖЕЛЕЗНЫЙ АРСЕНАЛ',
         item_arsenal_desc: 'Мощное вооружение: открывает Дробовик и дает 30 патронов к нему.',
         item_armor_name: 'СИЛОВОЙ КАРКАС',
-        item_armor_desc: 'Элитная защита: мгновенно дает доступ к тяжелой силовой броне.'
+        item_armor_desc: 'Элитная защита: мгновенно дает доступ к тяжелой силовой броне.',
+        err_user_canceled: 'ОТМЕНЕНО ПОЛЬЗОВАТЕЛЕМ',
+        err_not_supported: 'ПОКУПКИ НЕ ПОДДЕРЖИВАЮТСЯ',
+        err_sdk_not_init: 'SDK НЕ ИНИЦИАЛИЗИРОВАН',
+        err_unknown: 'НЕИЗВЕСТНАЯ ОШИБКА',
+        auth_required_purchase: 'ДЛЯ ПОКУПОК НЕОБХОДИМ АККАУНТ',
+        auth_title: 'ИДЕНТИФИКАЦИЯ',
+        auth_benefit_cloud: 'ОБЛАЧНЫЕ СОХРАНЕНИЯ',
+        auth_benefit_cloud_desc: 'Прогресс не потеряется при смене устройства',
+        auth_benefit_purchase: 'ЗАЩИТА ПОКУПОК',
+        auth_benefit_purchase_desc: 'Купленные предметы привязываются к аккаунту',
+        auth_btn_login: '⚡ ВОЙТИ В СИСТЕМУ',
+        auth_btn_skip: 'ПРОДОЛЖИТЬ БЕЗ ВХОДА',
+        auth_hud_btn: '🔑 ВОЙТИ',
+        auth_btn_login_short: '🔑 ВОЙТИ',
+        auth_loading: '⏳ ВХОД...'
     },
     en: {
         days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -334,7 +349,22 @@ export const TRANSLATIONS = {
         item_arsenal_name: 'IRON ARSENAL',
         item_arsenal_desc: 'Heavy weaponry: unlocks the Shotgun and provides 30 shells for it.',
         item_armor_name: 'POWER FRAME',
-        item_armor_desc: 'Elite protection: instantly grants access to heavy power armor.'
+        item_armor_desc: 'Elite protection: instantly grants access to heavy power armor.',
+        err_user_canceled: 'USER CANCELED THE ORDER',
+        err_not_supported: 'PURCHASES NOT SUPPORTED',
+        err_sdk_not_init: 'SDK NOT INITIALIZED',
+        err_unknown: 'UNKNOWN ERROR',
+        auth_required_purchase: 'REQUIRE ACCOUNT FOR PURCHASES',
+        auth_title: 'AUTHENTICATION',
+        auth_benefit_cloud: 'CLOUD SAVES',
+        auth_benefit_cloud_desc: 'Your progress is safe across devices',
+        auth_benefit_purchase: 'PURCHASE PROTECTION',
+        auth_benefit_purchase_desc: 'Purchased items are tied to your account',
+        auth_btn_login: '⚡ LOG IN',
+        auth_btn_skip: 'CONTINUE WITHOUT LOGIN',
+        auth_hud_btn: '🔑 LOGIN',
+        auth_btn_login_short: '🔑 LOGIN',
+        auth_loading: '⏳ LOGGING IN...'
     }
 };
 
@@ -352,4 +382,13 @@ export const translate = (key, ...args) => {
 export const loc = (obj, field) => {
     const lang = (window.PlaygamaSDK && window.PlaygamaSDK.getLanguage()) || 'ru';
     return obj[field + '_' + lang] || obj[field + '_ru'] || obj[field];
+};
+
+export const translateError = (err) => {
+    if (!err) return translate('err_unknown');
+    const s = String(err).toUpperCase();
+    if (s.includes('CANCELED') || s.includes('CANCELLED')) return translate('err_user_canceled');
+    if (s.includes('NOT SUPPORTED') || s.includes('НЕ ПОДДЕРЖИВАЮТСЯ')) return translate('err_not_supported');
+    if (s.includes('NOT INITIALIZED') || s.includes('НЕ ИНИЦИАЛИЗИРОВАН')) return translate('err_sdk_not_init');
+    return err;
 };
