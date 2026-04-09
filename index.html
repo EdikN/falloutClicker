@@ -23,7 +23,7 @@
         <div class="pill" id="day" data-i18n="day_label">ДЕНЬ 1</div>
         <div class="pill capsTop" id="capsTop" data-i18n="credits_label">[КРЕДИТЫ]: 0</div>
         <div class="pill" id="weaponPill" data-i18n="weapon_label">ОРУЖИЕ: КУЛАКИ</div>
-        <button class="pill btn-mini" id="muteBtn" title="ЗВУК ВКЛ/ВЫКЛ" data-i18n="sound_btn">🔊 ЗВУК</button>
+        <button class="pill btn-mini" id="settingsBtn" title="НАСТРОЙКИ" data-i18n="settings_btn">⚙️ НАСТРОЙКИ</button>
         <button class="pill btn-mini auth-hud-btn" id="authBtn" title="ВОЙТИ В АККАУНТ" data-i18n="auth_hud_btn" style="display:none;">🔑 ВОЙТИ</button>
       </div>
     </header>
@@ -209,6 +209,28 @@
           <button class="btn good auth-btn-login" id="authLoginBtn" data-i18n="auth_btn_login">⚡ ВОЙТИ В СИСТЕМУ</button>
           <button class="btn auth-btn-skip" id="authSkipBtn" data-i18n="auth_btn_skip">ПРОДОЛЖИТЬ БЕЗ ВХОДА</button>
         </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="tutorialModal">
+      <div class="card modal">
+        <h2 data-i18n="tutorial_title">ОБУЧЕНИЕ</h2>
+        <div id="tutorialText" class="scrollable" style="text-align: left; margin: 15px 0; font-size: 0.95em; line-height: 1.5; color: #ddd;">
+          <div data-i18n="tutorial_desc">Добро пожаловать в Иерихон! Вам предстоит выжить в суровых условиях.</div>
+          <div style="margin-top: 15px; text-align: center;"><b data-i18n="tutorial_action" style="color: var(--ok); font-size: 1.1em; display: block; border: 1px solid var(--line); padding: 10px; background: rgba(29, 242, 58, 0.05); border-radius: 4px;">ОСНОВНОЕ ДЕЙСТВИЕ: КЛИК ПО ПЕРСОНАЖУ, ЧТОБЫ ПРОШЕЛ ДЕНЬ.</b></div>
+        </div>
+        <button class="btn good" id="tutorialOk" data-i18n="btn_continue">ПРОДОЛЖИТЬ</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="settingsModal">
+      <div class="card modal">
+        <h2 data-i18n="settings_title">НАСТРОЙКИ</h2>
+        <div class="row" style="flex-direction: column; gap: 10px; margin: 15px 0;">
+          <button class="btn" id="muteBtn" title="ЗВУК ВКЛ/ВЫКЛ" data-i18n="sound_btn">🔊 ЗВУК</button>
+          <button class="btn" id="tutorialBtn" title="ОБУЧЕНИЕ" data-i18n="tutorial_btn">📖 ОБУЧЕНИЕ</button>
+        </div>
+        <button class="btn good" id="settingsClose" data-i18n="btn_close">ЗАКРЫТЬ</button>
       </div>
     </div>
 

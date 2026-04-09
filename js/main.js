@@ -51,6 +51,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // Prevent dragging images or elements
     document.addEventListener('dragstart', e => e.preventDefault());
 
+    // Tutorial Setup
+    const tutorialBtn = document.getElementById('tutorialBtn');
+    const tutorialModal = document.getElementById('tutorialModal');
+    const tutorialOk = document.getElementById('tutorialOk');
+    if (tutorialBtn) tutorialBtn.addEventListener('click', () => tutorialModal && tutorialModal.classList.add('show'));
+    if (tutorialOk) tutorialOk.addEventListener('click', () => tutorialModal && tutorialModal.classList.remove('show'));
+
+    // Settings Setup
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const settingsClose = document.getElementById('settingsClose');
+    if (settingsBtn) settingsBtn.addEventListener('click', () => settingsModal && settingsModal.classList.add('show'));
+    if (settingsClose) settingsClose.addEventListener('click', () => settingsModal && settingsModal.classList.remove('show'));
+
+    // Global listener for "Accept" buttons to show interstitial ads
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn');
+        if (!btn) return;
+        
+        const isAccept = (
+            btn.dataset.i18n === 'btn_accept' || 
+            btn.dataset.i18n === 'btn_continue' || 
+            btn.dataset.i18n === 'btn_confirm' ||
+            (btn.textContent && (
+                btn.textContent.includes(translate('btn_accept')) ||
+                btn.textContent.includes(translate('btn_continue')) ||
+                btn.textContent.includes(translate('btn_confirm'))
+            ))
+        );
+
+        if (isAccept && window.PlaygamaSDK) {
+            window.PlaygamaSDK.showInterstitial();
+        }
+    });
+
     // --- Управление кнопкой ВОЙТИ в HUD ---
     const updateAuthBtn = () => {
         const btn = document.getElementById('authBtn');
@@ -121,6 +156,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Обновляем кнопку авторизации в HUD
         updateAuthBtn();
         initAuthBtn();
+        // Tutorial first time check
+        if (!localStorage.getItem('tutorial_shown')) {
+            localStorage.setItem('tutorial_shown', 'true');
+            const tm = document.getElementById('tutorialModal');
+            if (tm) tm.classList.add('show');
+        }
+
         // game_ready отправляем только ПОСЛЕ applyData — всегда с финальными данными
         try {
             if (window.PlaygamaSDK && window.PlaygamaSDK.isBridgeReady()) {

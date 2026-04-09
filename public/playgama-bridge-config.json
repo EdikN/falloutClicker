@@ -7,6 +7,12 @@
     },
     "sendAnalyticsEvents": false,
     "disableLoadingLogo": true,
+    "forciblySetPlatformId": "game_monetize",
+    "platforms": {
+        "game_monetize": {
+            "gameId": "5nrq667huplf20c4k9edb10l6lphzljk"
+        }
+    },
     "payments": [
         {
             "id": "no_ads",

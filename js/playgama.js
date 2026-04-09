@@ -2,7 +2,7 @@ import { SoundManager } from './audio.js';
 
 export const PlaygamaSDK = (() => {
   // Минимальный интервал между интерстишалами (секунды)
-  const AD_COOLDOWN_SEC = 120;
+  const AD_COOLDOWN_SEC = 90;
   let lastAdTime = 0;
   let bridgeReady = false;
 
@@ -337,7 +337,7 @@ export const PlaygamaSDK = (() => {
 
         // Устанавливаем минимальный интервал между интерстишалами через SDK
         try {
-          window.bridge.advertisement.setMinimumDelayBetweenInterstitial(120);
+          window.bridge.advertisement.setMinimumDelayBetweenInterstitial(90);
         } catch (_) { }
 
         // Подписка на события интерстишала — мьютим игру
