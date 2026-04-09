@@ -432,6 +432,10 @@ h2 {
   padding: 0.5rem;
 }
 
+#tutorialModal {
+  z-index: 15;
+}
+
 .overlay.show {
   display: flex;
   animation: fadeIn 0.2s;

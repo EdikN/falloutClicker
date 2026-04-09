@@ -317,7 +317,10 @@ export const PlaygamaSDK = (() => {
       }
       return Promise.reject('bridge not ready');
     },
-    isInviteFriendsSupported: () => !!(bridgeReady && window.bridge && window.bridge.social && window.bridge.social.isInviteFriendsSupported),
+    isInviteFriendsSupported: () => {
+      if (getPlatformId() === 'ok') return false;
+      return !!(bridgeReady && window.bridge && window.bridge.social && window.bridge.social.isInviteFriendsSupported);
+    },
     inviteFriends: (options) => {
       if (bridgeReady && window.bridge && window.bridge.social) {
         return window.bridge.social.inviteFriends(options);
