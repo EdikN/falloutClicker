@@ -4,6 +4,7 @@ export const PlaygamaSDK = (() => {
   // Минимальный интервал между интерстишалами (секунды)
   const AD_COOLDOWN_SEC = 90;
   let lastAdTime = 0;
+  let initTime = 0;
   let bridgeReady = false;
 
   // --- Прогресс загрузки ---
@@ -97,6 +98,15 @@ export const PlaygamaSDK = (() => {
   const canShowInterstitial = () => {
     if (!bridgeReady || !window.bridge) return false;
     const now = Date.now() / 1000;
+    
+    // Задержка первого показа для vk/ok
+    const platform = getPlatformId();
+    if ((platform === 'vk' || platform === 'ok') && lastAdTime === 0 && initTime > 0) {
+        if (now - initTime < 60) {
+            return false;
+        }
+    }
+
     return (now - lastAdTime >= AD_COOLDOWN_SEC);
   };
 
@@ -151,6 +161,7 @@ export const PlaygamaSDK = (() => {
   // --- Баннерная реклама ---
   const showBanner = (position = 'bottom', placement = 'default') => {
     if (!bridgeReady || !window.bridge || !window.bridge.advertisement.isBannerSupported) return;
+
     try {
       window.bridge.advertisement.showBanner(position, placement);
       console.log(`[PlaygamaSDK] Показ баннера: ${position}, ${placement}`);
@@ -290,6 +301,38 @@ export const PlaygamaSDK = (() => {
       });
   };
 
+  // --- Социальные функции ---
+  const social = {
+    isShareSupported: () => !!(bridgeReady && window.bridge && window.bridge.social && window.bridge.social.isShareSupported),
+    share: (options) => {
+      if (bridgeReady && window.bridge && window.bridge.social) {
+        return window.bridge.social.share(options);
+      }
+      return Promise.reject('bridge not ready');
+    },
+    isJoinCommunitySupported: () => !!(bridgeReady && window.bridge && window.bridge.social && window.bridge.social.isJoinCommunitySupported),
+    joinCommunity: (options) => {
+      if (bridgeReady && window.bridge && window.bridge.social) {
+        return window.bridge.social.joinCommunity(options);
+      }
+      return Promise.reject('bridge not ready');
+    },
+    isInviteFriendsSupported: () => !!(bridgeReady && window.bridge && window.bridge.social && window.bridge.social.isInviteFriendsSupported),
+    inviteFriends: (options) => {
+      if (bridgeReady && window.bridge && window.bridge.social) {
+        return window.bridge.social.inviteFriends(options);
+      }
+      return Promise.reject('bridge not ready');
+    },
+    isAddToFavoritesSupported: () => !!(bridgeReady && window.bridge && window.bridge.social && window.bridge.social.isAddToFavoritesSupported),
+    addToFavorites: () => {
+      if (bridgeReady && window.bridge && window.bridge.social) {
+        return window.bridge.social.addToFavorites();
+      }
+      return Promise.reject('bridge not ready');
+    }
+  };
+
   // --- Хелперы паузы звука во время рекламы и сворачивания ---
   let isAdShowing = false;
   let isPlatformHidden = false;
@@ -334,6 +377,8 @@ export const PlaygamaSDK = (() => {
       .then(() => {
         bridgeReady = true;
         setSplash(80);
+
+        initTime = Date.now() / 1000;
 
         // Устанавливаем минимальный интервал между интерстишалами через SDK
         try {
@@ -405,6 +450,7 @@ export const PlaygamaSDK = (() => {
     buyProduct, checkPurchases, getCatalog, consumePurchase,
     gameReady, setGameplayState,
     getLanguage, getPlatformId, isBridgeReady,
-    isAuthorizationSupported, isAuthorized, authorize
+    isAuthorizationSupported, isAuthorized, authorize,
+    social
   };
 })();

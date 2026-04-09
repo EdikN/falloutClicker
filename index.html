@@ -229,8 +229,27 @@
         <div class="row" style="flex-direction: column; gap: 10px; margin: 15px 0;">
           <button class="btn" id="muteBtn" title="ЗВУК ВКЛ/ВЫКЛ" data-i18n="sound_btn">🔊 ЗВУК</button>
           <button class="btn" id="tutorialBtn" title="ОБУЧЕНИЕ" data-i18n="tutorial_btn">📖 ОБУЧЕНИЕ</button>
+          <button class="btn" id="shareBtn" style="display:none;" data-i18n="share_btn">ПОДЕЛИТЬСЯ</button>
+          <button class="btn" id="joinBtn" style="display:none;" data-i18n="join_btn">ВСТУПИТЬ В ГРУППУ</button>
+          <button class="btn" id="inviteBtn" style="display:none;" data-i18n="invite_btn">ПРИГЛАСИТЬ ДРУЗЕЙ</button>
+          <button class="btn" id="favBtn" style="display:none;" data-i18n="favorite_btn">В ИЗБРАННОЕ</button>
         </div>
         <button class="btn good" id="settingsClose" data-i18n="btn_close">ЗАКРЫТЬ</button>
+      </div>
+    </div>
+
+    <!-- СОЦИАЛЬНЫЙ ПРОМПТ -->
+    <div class="overlay" id="socialModal">
+      <div class="card modal social-modal">
+        <div class="social-header">
+          <div class="social-signal-icon">📡</div>
+          <h2 data-i18n="social_title">ИЕРИХОН-СЕТЬ</h2>
+          <div class="sub social-sub" data-i18n="social_subtitle">УСИЛЕНИЕ СИГНАЛА — ПОМОГИТЕ РАСПРОСТРАНИТЬ СВЯЗЬ</div>
+        </div>
+        <div class="social-actions-list" id="socialActionsList">
+          <!-- Генерируется динамически -->
+        </div>
+        <button class="btn social-skip-btn" id="socialSkipBtn" data-i18n="social_skip">[ ПОЗЖЕ ]</button>
       </div>
     </div>
 

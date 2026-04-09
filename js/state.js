@@ -42,6 +42,11 @@ export const GameState = (() => {
       dlcSector7: false,
     },
     reviveAvailable: true,   // Доступно ли возрождение за рекламу в этом цикле
+    tutorialShown: false,    // Флаг показа обучения
+    social: {
+      done: {},              // Список выполненных соц. действий
+      lastPromptDay: 0       // День последнего промпта
+    },
 
     resources: { food: 30, water: 30, materials: 0, ammo: 0, medkits: 1, caps: 0 },
 

@@ -148,6 +148,148 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
+    // =======================================================
+    // --- СОЦИАЛЬНАЯ СИСТЕМА (SOCIAL PROMPT) ---
+    // =======================================================
+    const SocialPrompt = (() => {
+        const SOCIAL_INTERVAL = 10;
+        const STORAGE_KEY = 'social_done';
+        const LAST_DAY_KEY = 'social_last_prompt_day';
+
+        const getDone = () => GameState.get().social.done;
+        const setDone = (obj) => { GameState.get().social.done = obj; GameState.save(); };
+        const getLastDay = () => GameState.get().social.lastPromptDay;
+        const setLastDay = (day) => { GameState.get().social.lastPromptDay = day; GameState.save(); };
+
+        const ACTIONS = [
+            {
+                id: 'share', icon: '🔗',
+                titleKey: 'social_action_share_title', descKey: 'social_action_share_desc',
+                check: () => !!(window.PlaygamaSDK?.social?.isShareSupported()),
+                exec: () => {
+                    const sdk = window.PlaygamaSDK;
+                    const platform = sdk?.getPlatformId();
+                    let options = {};
+                    if (platform === 'vk') options = { link: window.location.href };
+                    return sdk?.social?.share(options) || Promise.resolve();
+                }
+            },
+            {
+                id: 'join', icon: '👥',
+                titleKey: 'social_action_join_title', descKey: 'social_action_join_desc',
+                check: () => !!(window.PlaygamaSDK?.social?.isJoinCommunitySupported()),
+                exec: () => window.PlaygamaSDK?.social?.joinCommunity() || Promise.resolve()
+            },
+            {
+                id: 'invite', icon: '📨',
+                titleKey: 'social_action_invite_title', descKey: 'social_action_invite_desc',
+                check: () => !!(window.PlaygamaSDK?.social?.isInviteFriendsSupported()),
+                exec: () => window.PlaygamaSDK?.social?.inviteFriends({ text: document.title }) || Promise.resolve()
+            },
+            {
+                id: 'fav', icon: '⭐',
+                titleKey: 'social_action_fav_title', descKey: 'social_action_fav_desc',
+                check: () => !!(window.PlaygamaSDK?.social?.isAddToFavoritesSupported()),
+                exec: () => window.PlaygamaSDK?.social?.addToFavorites() || Promise.resolve()
+            }
+        ];
+
+        const getAvailable = () => ACTIONS.filter(a => a.check());
+        const allDone = (done, available) => available.length === 0 || available.every(a => done[a.id]);
+
+        const buildModal = (done) => {
+            const list = document.getElementById('socialActionsList');
+            if (!list) return false;
+            const available = getAvailable();
+            if (available.length === 0) return false;
+            list.innerHTML = '';
+
+            available.forEach(action => {
+                const isDone = !!done[action.id];
+                const card = document.createElement('button');
+                card.className = 'social-action-card' + (isDone ? ' social-action-done' : '');
+                card.disabled = isDone;
+                card.innerHTML = `
+                    <span class="social-action-icon-wrap">${action.icon}</span>
+                    <span class="social-action-text">
+                        <span class="social-action-title">${translate(action.titleKey)}</span>
+                        <span class="social-action-desc">${translate(action.descKey)}</span>
+                    </span>
+                    <span class="${isDone ? 'social-done-badge' : 'social-action-arrow'}">${
+                        isDone ? translate('social_status_done') : '›'
+                    }</span>`;
+
+                if (!isDone) {
+                    card.onclick = () => {
+                        card.disabled = true;
+                        card.classList.add('social-action-done');
+                        const arrow = card.querySelector('.social-action-arrow');
+                        if (arrow) {
+                            arrow.className = 'social-done-badge';
+                            arrow.textContent = translate('social_status_done');
+                        }
+                        action.exec().catch(() => {});
+                        const newDone = getDone();
+                        newDone[action.id] = true;
+                        setDone(newDone);
+                        const skipBtn = document.getElementById('socialSkipBtn');
+                        if (skipBtn && allDone(newDone, getAvailable())) {
+                            skipBtn.textContent = translate('social_done_all');
+                        }
+                    };
+                }
+                list.appendChild(card);
+            });
+            return true;
+        };
+
+        const show = (currentDay) => {
+            const modal = document.getElementById('socialModal');
+            if (!modal) return;
+            if (document.querySelector('.overlay.show:not(#socialModal)')) return;
+            const done = getDone();
+            if (allDone(done, getAvailable())) return;
+            if (!buildModal(done)) return;
+            setLastDay(currentDay);
+            modal.classList.add('show');
+            const skipBtn = document.getElementById('socialSkipBtn');
+            if (skipBtn) {
+                skipBtn.textContent = translate('social_skip');
+                skipBtn.onclick = () => {
+                    modal.classList.remove('show');
+                    setLastDay(currentDay);
+                };
+            }
+        };
+
+        const checkOnDay = (day) => {
+            if (day - getLastDay() >= SOCIAL_INTERVAL) {
+                setTimeout(() => show(day), 800);
+            }
+        };
+
+        const initSettingsButtons = () => {
+            const sdk = window.PlaygamaSDK;
+            if (!sdk || !sdk.social) return;
+            ACTIONS.forEach(action => {
+                const btnMap = { share: 'shareBtn', join: 'joinBtn', invite: 'inviteBtn', fav: 'favBtn' };
+                const btn = document.getElementById(btnMap[action.id]);
+                if (btn && action.check()) {
+                    btn.style.display = '';
+                    btn.onclick = () => action.exec().catch(() => {});
+                }
+            });
+        };
+
+        return { show, checkOnDay, initSettingsButtons };
+    })();
+
+    // Слушаем смену дня из game.js
+    document.addEventListener('dayadvanced', (e) => {
+        SocialPrompt.checkOnDay(e.detail.day);
+    });
+
+
     // Финальный запуск игры — после всех проверок авторизации и загрузки
     const applyData = () => {
         GameUI.applyLanguage();
@@ -156,9 +298,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Обновляем кнопку авторизации в HUD
         updateAuthBtn();
         initAuthBtn();
+        SocialPrompt.initSettingsButtons();
         // Tutorial first time check
-        if (!localStorage.getItem('tutorial_shown')) {
-            localStorage.setItem('tutorial_shown', 'true');
+        if (!GameState.get().tutorialShown) {
+            GameState.get().tutorialShown = true;
+            GameState.save();
             const tm = document.getElementById('tutorialModal');
             if (tm) tm.classList.add('show');
         }

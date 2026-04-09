@@ -5,9 +5,14 @@
             "minimumDelay": 180
         }
     },
+    "social": {
+        "joinCommunity": {
+            "vk": "213542253",
+            "ok": "70000048656390"
+        }
+    },
     "sendAnalyticsEvents": false,
     "disableLoadingLogo": true,
-    "forciblySetPlatformId": "game_monetize",
     "platforms": {
         "game_monetize": {
             "gameId": "5nrq667huplf20c4k9edb10l6lphzljk"

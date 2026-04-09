@@ -821,6 +821,7 @@ const startDay = () => {
   }
 
   st.day++; st.phase = translate('status_exploring'); upkeep();
+  document.dispatchEvent(new CustomEvent('dayadvanced', { detail: { day: st.day } }));
   SoundManager.play('click');
   if (st.player.hp <= 0) return;
 
@@ -1147,8 +1148,8 @@ const initGame = () => {
     PlaygamaSDK.gameReady();
     PlaygamaSDK.setGameplayState('start');
 
-    // Баннер показываем только на Яндекс и только если нет статуса "без рекламы"
-    if (PlaygamaSDK.getPlatformId() === 'yandex' && !GameState.get().permanentBonuses.noAds) {
+    // Показываем баннер на поддерживаемых платформах (Yandex, VK, OK и др.), если нет бонуса "No Ads"
+    if (!GameState.get().permanentBonuses.noAds) {
       PlaygamaSDK.showBanner('bottom');
     }
   }

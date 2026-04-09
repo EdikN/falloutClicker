@@ -21,6 +21,10 @@ export const TRANSLATIONS = {
         tutorial_title: 'ОБУЧЕНИЕ',
         tutorial_desc: 'Добро пожаловать в Иерихон! Вы — клон, которому предстоит выжить в суровых условиях.<br><br><b style="color:var(--text)">МЕХАНИКА ВЫЖИВАНИЯ</b><br>Каждый день вы расходуете <b>Еду</b> и <b>Воду</b>. Если они закончатся, вы начнете быстро терять <b>Здоровье</b> и <b>Рассудок</b>.<br><br><b style="color:var(--warn)">БОЙ И СОБЫТИЯ</b><br>В вылазках вы встретите врагов и случайные события. Выбирайте действия осторожно: любой необдуманный риск может стать фатальным.<br><br><b style="color:var(--ok)">ТОРГОВЛЯ И СИНТЕЗ</b><br>Используйте <b>Кредиты</b> в Торговой сети для покупки припасов, а <b>Материалы</b> — в Синтезаторе для создания брони и мощного оружия.<br><br><b style="color:var(--bad)">СМЕРТЬ НЕ КОНЕЦ</b><br>Знания накапливаются, но кредиты и ресурсы теряются. После смерти загружается новый клон, и бесконечный цикл выживания начинается заново.',
         tutorial_action: 'ОСНОВНОЕ ДЕЙСТВИЕ: КЛИК ПО ПЕРСОНАЖУ, ЧТОБЫ ПРОШЕЛ ДЕНЬ.',
+        share_btn: 'ПОДЕЛИТЬСЯ',
+        join_btn: 'ВСТУПИТЬ В ГРУППУ',
+        invite_btn: 'ПРИГЛАСИТЬ ДРУЗЕЙ',
+        favorite_btn: 'В ИЗБРАННОЕ',
         hint_click: '<b>[ВВОД] КЛИК ПО ПЕРСОНАЖУ</b>',
         sys_init: 'ИНИЦИАЛИЗАЦИЯ СИСТЕМ...',
         btn_airdrop: '📦 ДРОН СНАБЖЕНИЯ',
@@ -187,7 +191,21 @@ export const TRANSLATIONS = {
         auth_btn_skip: 'ПРОДОЛЖИТЬ БЕЗ ВХОДА',
         auth_hud_btn: '🔑 ВОЙТИ',
         auth_btn_login_short: '🔑 ВОЙТИ',
-        auth_loading: '⏳ ВХОД...'
+        auth_loading: '⏳ ВХОД...',
+        // Social Modal
+        social_title: 'ИЕРИХОН-СЕТЬ',
+        social_subtitle: 'УСИЛЕНИЕ СИГНАЛА — ПОМОГИТЕ РАСПРОСТРАНИТЬ СВЯЗЬ',
+        social_skip: '[ ПОЗЖЕ — НАПОМНИТЬ ЧЕРЕЗ 10 ДНЕЙ ]',
+        social_done_all: '[ ВСЕ ЗАДАНИЯ ВЫПОЛНЕНЫ ]',
+        social_action_share_title: 'ПОДЕЛИТЬСЯ СИГНАЛОМ',
+        social_action_share_desc: 'Распространите координаты убежища среди выживших',
+        social_action_join_title: 'ВСТУПИТЬ В ГРУППУ',
+        social_action_join_desc: 'Присоединитесь к общине Иерихон для получения новостей',
+        social_action_invite_title: 'ПРИГЛАСИТЬ АГЕНТА',
+        social_action_invite_desc: 'Завербуйте союзника из числа ваших контактов',
+        social_action_fav_title: 'ДОБАВИТЬ В ЗАКЛАДКИ',
+        social_action_fav_desc: 'Сохраните точку входа для быстрого возврата в систему',
+        social_status_done: '✓ ВЫПОЛНЕНО'
     },
     en: {
         days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -211,6 +229,10 @@ export const TRANSLATIONS = {
         tutorial_title: 'TUTORIAL',
         tutorial_desc: 'Welcome to Jericho! You are a clone who must survive in harsh conditions.<br><br><b style="color:var(--text)">SURVIVAL MECHANICS</b><br>Every day you consume <b>Food</b> and <b>Water</b>. If they run out, you will quickly lose <b>Health</b> and <b>Mood</b>.<br><br><b style="color:var(--warn)">COMBAT & EVENTS</b><br>During expeditions, you will face enemies and random events. Choose your actions carefully: any reckless risk can be fatal.<br><br><b style="color:var(--ok)">TRADING & SYNTHESIS</b><br>Use <b>Credits</b> in the Trade Network to buy supplies, and <b>Materials</b> in the Synthesizer to craft armor and powerful weapons.<br><br><b style="color:var(--bad)">DEATH IS NOT THE END</b><br>Knowledge accumulates, but credits and resources are lost. Upon death, a new clone is loaded, and the endless survival cycle begins anew.',
         tutorial_action: 'KEY ACTION: CLICK ON THE CHARACTER TO PASS A DAY.',
+        share_btn: 'SHARE',
+        join_btn: 'JOIN COMMUNITY',
+        invite_btn: 'INVITE FRIENDS',
+        favorite_btn: 'ADD TO FAVORITES',
         hint_click: '<b>[INPUT] CLICK ON CHARACTER</b>',
         sys_init: 'SYSTEMS INITIALIZING...',
         btn_airdrop: '📦 SUPPLY DRONE',
@@ -376,7 +398,21 @@ export const TRANSLATIONS = {
         auth_btn_skip: 'CONTINUE WITHOUT LOGIN',
         auth_hud_btn: '🔑 LOGIN',
         auth_btn_login_short: '🔑 LOGIN',
-        auth_loading: '⏳ LOGGING IN...'
+        auth_loading: '⏳ LOGGING IN...',
+        // Social Modal
+        social_title: 'JERICHO-NET',
+        social_subtitle: 'SIGNAL BOOST — HELP SPREAD THE CONNECTION',
+        social_skip: '[ LATER — REMIND IN 10 DAYS ]',
+        social_done_all: '[ ALL TASKS COMPLETED ]',
+        social_action_share_title: 'BROADCAST SIGNAL',
+        social_action_share_desc: 'Share the shelter coordinates with survivors',
+        social_action_join_title: 'JOIN COMMUNITY',
+        social_action_join_desc: 'Join the Jericho community for updates',
+        social_action_invite_title: 'RECRUIT AN AGENT',
+        social_action_invite_desc: 'Recruit an ally from your contacts',
+        social_action_fav_title: 'ADD TO BOOKMARKS',
+        social_action_fav_desc: 'Save the entry point for quick return to the system',
+        social_status_done: '✓ COMPLETED'
     }
 };
 
