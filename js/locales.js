@@ -205,7 +205,9 @@ export const TRANSLATIONS = {
         social_action_invite_desc: 'Завербуйте союзника из числа ваших контактов',
         social_action_fav_title: 'ДОБАВИТЬ В ЗАКЛАДКИ',
         social_action_fav_desc: 'Сохраните точку входа для быстрого возврата в систему',
-        social_status_done: '✓ ВЫПОЛНЕНО'
+        social_status_done: '✓ ВЫПОЛНЕНО',
+        social_remind_30: '[ НАПОМНИТЬ ЧЕРЕЗ 30 ДНЕЙ ]',
+        social_never: '[ НИКОГДА НЕ НАПОМИНАТЬ ]'
     },
     en: {
         days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -412,7 +414,9 @@ export const TRANSLATIONS = {
         social_action_invite_desc: 'Recruit an ally from your contacts',
         social_action_fav_title: 'ADD TO BOOKMARKS',
         social_action_fav_desc: 'Save the entry point for quick return to the system',
-        social_status_done: '✓ COMPLETED'
+        social_status_done: '✓ COMPLETED',
+        social_remind_30: '[ REMIND IN 30 DAYS ]',
+        social_never: '[ NEVER REMIND ]'
     }
 };
 

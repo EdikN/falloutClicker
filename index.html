@@ -250,7 +250,11 @@
         <div class="social-actions-list" id="socialActionsList">
           <!-- Генерируется динамически -->
         </div>
-        <button class="btn social-skip-btn" id="socialSkipBtn" data-i18n="social_skip">[ ПОЗЖЕ ]</button>
+        <div class="row" style="flex-direction: column; gap: 0.5rem; width: 100%;">
+          <button class="btn" id="socialSkipBtn" data-i18n="social_skip">[ ПОЗЖЕ ]</button>
+          <button class="btn" id="socialMonthBtn" data-i18n="social_remind_30">[ НАПОМНИТЬ ЧЕРЕЗ 30 ДНЕЙ ]</button>
+          <button class="btn bad" id="socialNeverBtn" data-i18n="social_never">[ БОЛЬШЕ НЕ НАПОМИНАТЬ ]</button>
+        </div>
       </div>
     </div>
 

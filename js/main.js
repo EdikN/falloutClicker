@@ -160,6 +160,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const setDone = (obj) => { GameState.get().social.done = obj; GameState.save(); };
         const getLastDay = () => GameState.get().social.lastPromptDay;
         const setLastDay = (day) => { GameState.get().social.lastPromptDay = day; GameState.save(); };
+        const getNeverRemind = () => GameState.get().social.neverRemind;
+        const setNeverRemind = (v) => { GameState.get().social.neverRemind = v; GameState.save(); };
 
         const ACTIONS = [
             {
@@ -252,17 +254,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!buildModal(done)) return;
             setLastDay(currentDay);
             modal.classList.add('show');
-            const skipBtn = document.getElementById('socialSkipBtn');
-            if (skipBtn) {
-                skipBtn.textContent = translate('social_skip');
-                skipBtn.onclick = () => {
-                    modal.classList.remove('show');
-                    setLastDay(currentDay);
-                };
-            }
+            
+            const btns = [
+                { id: 'socialSkipBtn', key: 'social_skip', offset: 0 },
+                { id: 'socialMonthBtn', key: 'social_remind_30', offset: 20 },
+                { id: 'socialNeverBtn', key: 'social_never', never: true }
+            ];
+
+            btns.forEach(b => {
+                const btn = document.getElementById(b.id);
+                if (btn) {
+                    btn.textContent = translate(b.key);
+                    btn.onclick = () => {
+                        modal.classList.remove('show');
+                        if (b.never) setNeverRemind(true);
+                        else setLastDay(currentDay + b.offset);
+                    };
+                }
+            });
         };
 
         const checkOnDay = (day) => {
+            if (getNeverRemind()) return;
             if (day - getLastDay() >= SOCIAL_INTERVAL) {
                 setTimeout(() => show(day), 800);
             }

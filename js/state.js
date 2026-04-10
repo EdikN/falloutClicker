@@ -45,7 +45,8 @@ export const GameState = (() => {
     tutorialShown: false,    // Флаг показа обучения
     social: {
       done: {},              // Список выполненных соц. действий
-      lastPromptDay: 0       // День последнего промпта
+      lastPromptDay: 0,      // День последнего промпта
+      neverRemind: false     // Флаг "никогда не напоминать"
     },
 
     resources: { food: 30, water: 30, materials: 0, ammo: 0, medkits: 1, caps: 0 },
