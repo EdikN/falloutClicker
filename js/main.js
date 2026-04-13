@@ -38,16 +38,23 @@ const preloadImages = () => {
         GameData.STORY_EVENTS.forEach(e => { if (e.img) imagesToLoad.add(e.img); });
     }
 
-    imagesToLoad.forEach(src => {
-        const img = new Image();
-        img.src = src;
+    const promises = Array.from(imagesToLoad).map(src => {
+        return new Promise((resolve) => {
+            const img = new Image();
+            img.onload = () => resolve();
+            img.onerror = () => resolve(); // continue even if error
+            img.src = src;
+        });
     });
+
+    return Promise.all(promises);
 };
 
 // Wait for DOM
 document.addEventListener('DOMContentLoaded', () => {
     // Prevent context menu and accidental selections
     document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
     // Prevent dragging images or elements
     document.addEventListener('dragstart', e => e.preventDefault());
 
@@ -55,15 +62,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const tutorialBtn = document.getElementById('tutorialBtn');
     const tutorialModal = document.getElementById('tutorialModal');
     const tutorialOk = document.getElementById('tutorialOk');
-    if (tutorialBtn) tutorialBtn.addEventListener('click', () => tutorialModal && tutorialModal.classList.add('show'));
-    if (tutorialOk) tutorialOk.addEventListener('click', () => tutorialModal && tutorialModal.classList.remove('show'));
+    if (tutorialBtn) tutorialBtn.addEventListener('click', () => GameUI.show('#tutorialModal', true));
+    if (tutorialOk) tutorialOk.addEventListener('click', () => GameUI.show('#tutorialModal', false));
 
     // Settings Setup
     const settingsBtn = document.getElementById('settingsBtn');
     const settingsModal = document.getElementById('settingsModal');
     const settingsClose = document.getElementById('settingsClose');
-    if (settingsBtn) settingsBtn.addEventListener('click', () => settingsModal && settingsModal.classList.add('show'));
-    if (settingsClose) settingsClose.addEventListener('click', () => settingsModal && settingsModal.classList.remove('show'));
+    if (settingsBtn) settingsBtn.addEventListener('click', () => GameUI.show('#settingsModal', true));
+    if (settingsClose) settingsClose.addEventListener('click', () => GameUI.show('#settingsModal', false));
 
     // Global listener for "Accept" buttons to show interstitial ads
     document.addEventListener('click', (e) => {
@@ -127,11 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            modal.classList.add('show');
+            GameUI.show('#authModal', true);
 
             const loginBtn = document.getElementById('authLoginBtn');
             const skipBtn  = document.getElementById('authSkipBtn');
-            const close    = () => modal.classList.remove('show');
+            const close    = () => GameUI.show('#authModal', false);
 
             // Переопределяем обработчики под этот сценарий
             loginBtn.onclick = () => {
@@ -253,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (allDone(done, getAvailable())) return;
             if (!buildModal(done)) return;
             setLastDay(currentDay);
-            modal.classList.add('show');
+            GameUI.show('#socialModal', true);
             
             const btns = [
                 { id: 'socialSkipBtn', key: 'social_skip', offset: 0 },
@@ -266,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btn) {
                     btn.textContent = translate(b.key);
                     btn.onclick = () => {
-                        modal.classList.remove('show');
+                        GameUI.show('#socialModal', false);
                         if (b.never) setNeverRemind(true);
                         else setLastDay(currentDay + b.offset);
                     };
@@ -304,9 +311,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // Финальный запуск игры — после всех проверок авторизации и загрузки
-    const applyData = () => {
+    const applyData = async () => {
         GameUI.applyLanguage();
-        preloadImages();
+        await preloadImages();
         Game.init();
         // Обновляем кнопку авторизации в HUD
         updateAuthBtn();
@@ -316,19 +323,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!GameState.get().tutorialShown) {
             GameState.get().tutorialShown = true;
             GameState.save();
-            const tm = document.getElementById('tutorialModal');
-            if (tm) tm.classList.add('show');
+            GameUI.show('#tutorialModal', true);
         }
 
         // game_ready отправляем только ПОСЛЕ applyData — всегда с финальными данными
-        try {
-            if (window.PlaygamaSDK && window.PlaygamaSDK.isBridgeReady()) {
-                window.PlaygamaSDK.gameReady();
-            } else if (window.bridge) {
-                const p = window.bridge.platform.sendMessage('game_ready');
-                if (p && typeof p.catch === 'function') p.catch(() => {});
-            }
-        } catch (_) { }
+        // Делаем задержку 500мс, чтобы убедиться что сплеш загрузки полностью скрыт
+        setTimeout(() => {
+            try {
+                if (window.PlaygamaSDK && window.PlaygamaSDK.isBridgeReady()) {
+                    window.PlaygamaSDK.gameReady();
+                    console.log('[App] game_ready sent');
+                    const overlayOpen = document.querySelector('.overlay.show');
+                    const isBattleOpen = overlayOpen && overlayOpen.id === 'battleModal';
+                    window.PlaygamaSDK.setGameplayState(overlayOpen && !isBattleOpen ? 'stop' : 'start');
+                } else if (window.bridge) {
+                    const p = window.bridge.platform.sendMessage('game_ready');
+                    if (p && typeof p.catch === 'function') p.catch(() => {});
+                    console.log('[App] game_ready sent (fallback)');
+                    const overlayOpen = document.querySelector('.overlay.show');
+                    const isBattleOpen = overlayOpen && overlayOpen.id === 'battleModal';
+                    window.bridge.platform.sendMessage(overlayOpen && !isBattleOpen ? 'gameplay_stopped' : 'gameplay_started');
+                }
+            } catch (_) { }
+        }, 500);
     };
 
     // Загрузить сохранение и запустить игру
@@ -376,12 +393,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('authModal');
         if (!modal) { onDone(); return; }
 
-        modal.classList.add('show');
+        GameUI.show('#authModal', true);
 
         const loginBtn = document.getElementById('authLoginBtn');
         const skipBtn = document.getElementById('authSkipBtn');
 
-        const close = () => modal.classList.remove('show');
+        const close = () => GameUI.show('#authModal', false);
 
         loginBtn.onclick = () => {
             close();

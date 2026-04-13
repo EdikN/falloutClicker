@@ -90,10 +90,24 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
   };
   GameState.getMeta().corpse = corpse;
   GameState.getMeta().deaths = (GameState.getMeta().deaths || 0) + 1;
+
+  // Сохраняем купленные покупки перед сбросом состояния
+  const savedBonuses = { ...st.permanentBonuses };
+  const savedPurchasedWeapons = { shotgun: st.weapons.shotgun, pickaxe: st.weapons.pickaxe };
+  const savedPurchasedArmors  = { heavy: st.armors.heavy };
+
   GameState.set(GameState.fresh());
+
+  // Восстанавливаем купленные покупки и разблокированные предметы
+  const fresh = GameState.get();
+  fresh.permanentBonuses = { ...fresh.permanentBonuses, ...savedBonuses };
+  if (savedPurchasedWeapons.shotgun)  fresh.weapons.shotgun  = true;
+  if (savedPurchasedWeapons.pickaxe)  fresh.weapons.pickaxe  = true;
+  if (savedPurchasedArmors.heavy)     fresh.armors.heavy     = true;
+
   // Bug 3 fix: restore revival state into fresh state
-  GameState.get().reviveAvailable = reviveAvailable;
-  if (savedEnemy) GameState.get().combat.enemy = savedEnemy;
+  fresh.reviveAvailable = reviveAvailable;
+  if (savedEnemy) fresh.combat.enemy = savedEnemy;
   GameState.save();
 };
 
@@ -470,7 +484,7 @@ const checkAdEvents = () => {
         text_en: 'CRITICAL SUPPLY SHORTAGE DETECTED. SUPPLY DRONE AVAILABLE.',
         choices: [
           {
-            text: translate('btn_airdrop') + (translate('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
+            text: translate('btn_airdrop') + translate('for_viewing_ads'), action: () => {
               window.PlaygamaSDK.showRewarded('airdrop', () => {
                 applyReward({ materials: 5, caps: 5, food: 3, water: 3, ammo: 10 });
                 Events.emit('ui:toast', translate('toast_airdrop')); GameState.save(); Events.emit('ui:renderMain');
@@ -494,7 +508,7 @@ const checkAdEvents = () => {
         text_en: 'CRITICAL VITAL SIGNS DROP. RECEIVE EMERGENCY RATION?',
         choices: [
           {
-            text: translate('btn_emergency') + (translate('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
+            text: translate('btn_emergency') + translate('for_viewing_ads'), action: () => {
               window.PlaygamaSDK.showRewarded('emergency_ration', () => {
                 const st = GameState.get();
                 st.player.hp = st.player.maxHp;
@@ -521,7 +535,7 @@ const checkAdEvents = () => {
         text_en: 'COMBAT STIMULANT FOUND. ACTIVATE ADRENALINE (+50% DAMAGE FOR 15 MIN)?',
         choices: [
           {
-            text: translate('btn_adrenaline') + (translate('lang') === 'ru' ? ' (за просмотр рекламы)' : ' (for viewing ads)'), action: () => {
+            text: translate('btn_adrenaline') + translate('for_viewing_ads'), action: () => {
               window.PlaygamaSDK.showRewarded('adrenaline', () => {
                 st.adBoosts.adrenaline = Date.now() + 900000;
                 Events.emit('ui:toast', translate('toast_adrenaline')); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); GameState.save();
@@ -583,10 +597,12 @@ const applyReward = r => {
 const renderMerchant = async (defaultTab = 'items') => {
   const st = GameState.get();
 
+  const isPaymentsSupported = window.PlaygamaSDK ? window.PlaygamaSDK.isPaymentsSupported() : false;
+
   GameUI.$('#merchantStock').innerHTML = `
     <div class="row" style="margin-bottom:1rem; border-bottom:1px solid var(--line);">
       <button class="pill active" id="tabItems">${translate('shop_items')}</button>
-      <button class="pill" id="tabDirector">${translate('shop_director')}</button>
+      ${isPaymentsSupported ? `<button class="pill" id="tabDirector">${translate('shop_director')}</button>` : ''}
     </div>
     <div id="shopContent"></div>
   `;
@@ -639,8 +655,10 @@ const renderMerchant = async (defaultTab = 'items') => {
   };
 
   const showDirector = () => {
+    if (!isPaymentsSupported) return;
     tabItems.classList.remove('active');
     tabDirector.classList.add('active');
+
     content.innerHTML = `<div class="sub" style="margin-bottom:1rem;">${translate('shop_desc')}</div>`;
 
     const DEFAULT_ITEMS = [
@@ -663,9 +681,21 @@ const renderMerchant = async (defaultTab = 'items') => {
     const items = DEFAULT_ITEMS.map(item => {
       const catItem = catalog.find(c => c.id === item.id);
       if (catItem) {
+        let displayPrice = item.price;
+        const platform = window.PlaygamaSDK ? window.PlaygamaSDK.getPlatformId() : '';
+        if (catItem.price != null) {
+          // VK и OK отдают цену в голосах (числом)
+          if (platform === 'vk' || platform === 'ok') {
+            displayPrice = `${catItem.price} ${translate('vk_currency')}`;
+          } else {
+            displayPrice = catItem.price;
+          }
+        } else if (catItem.priceValue) {
+          displayPrice = `${catItem.priceValue} ${catItem.priceCurrencyCode || ''}`.trim();
+        }
         return {
           ...item,
-          price: `${catItem.priceValue} ${catItem.priceCurrencyCode}`,
+          price: displayPrice,
           name: catItem.title || item.name,
           desc: catItem.description || item.desc
         };
@@ -755,8 +785,10 @@ const renderMerchant = async (defaultTab = 'items') => {
   };
 
   tabItems.onclick = showItems;
-  tabDirector.onclick = showDirector;
-  if (defaultTab === 'director') showDirector(); else showItems();
+  if (tabDirector) {
+    tabDirector.onclick = showDirector;
+  }
+  if (defaultTab === 'director' && isPaymentsSupported) showDirector(); else showItems();
 };
 
 const renderCraft = () => {
@@ -941,6 +973,11 @@ const finishFight = win => {
 
 const gameTick = ts => {
   const st = GameState.get(), c = st.combat, p = st.player, e = c.enemy; if (!c.active || !e || st.dead) return;
+  if (window.PlaygamaSDK && window.PlaygamaSDK.isAppPaused()) {
+    c.lastTs = ts;
+    requestAnimationFrame(gameTick);
+    return;
+  }
   const dt = Math.min(.08, (ts - (c.lastTs || ts)) / 1000 || .016);
   if (st.player.atkCd > 0) st.player.atkCd = Math.max(0, st.player.atkCd - dt);
 
@@ -1073,8 +1110,18 @@ GameUI.$('#rewardOk').onclick = () => { Events.emit('ui:show', { id: '#rewardMod
 
 const applyPurchase = (id) => {
   if (!id) return;
-  const upperId = id.toUpperCase();
-  const st = GameState.get(); Events.emit('ui:toast', `${translate('purchase_activated')}: ${upperId}`);
+  const PURCHASE_NAMES = {
+    no_ads:       translate('item_no_ads_name'),
+    cyber_stomach: translate('item_stomach_name'),
+    dlc_sector7:  'DLC SECTOR 7',
+    premium_caps: translate('item_premium_name'),
+    mega_pack:    translate('item_mega_name'),
+    starter_pack: translate('item_starter_name'),
+    iron_arsenal: translate('item_arsenal_name'),
+    heavy_armor:  translate('item_armor_name')
+  };
+  const itemName = PURCHASE_NAMES[id] || id.toUpperCase();
+  const st = GameState.get(); Events.emit('ui:toast', `${translate('purchase_activated')}: ${itemName}`);
   switch (id) {
     case 'no_ads':
       st.permanentBonuses.noAds = true;
@@ -1096,7 +1143,21 @@ const applyPurchase = (id) => {
 };
 
 GameUI.$('#newRun').onclick = () => {
-  SoundManager.play('click'); GameState.set(GameState.fresh()); Events.emit('ui:show', { id: '#defeatModal', on: false }); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); GameState.save(); Events.emit('ui:toast', translate('sys_init'));
+  SoundManager.play('click');
+  const cur = GameState.get();
+  const savedBonuses  = { ...cur.permanentBonuses };
+  const savedWeapons  = { shotgun: cur.weapons.shotgun, pickaxe: cur.weapons.pickaxe };
+  const savedArmors   = { heavy: cur.armors.heavy };
+  GameState.set(GameState.fresh());
+  const nf = GameState.get();
+  nf.permanentBonuses = { ...nf.permanentBonuses, ...savedBonuses };
+  if (savedWeapons.shotgun) nf.weapons.shotgun = true;
+  if (savedWeapons.pickaxe) nf.weapons.pickaxe = true;
+  if (savedArmors.heavy)    nf.armors.heavy    = true;
+  Events.emit('ui:show', { id: '#defeatModal', on: false });
+  Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
+  GameState.save();
+  Events.emit('ui:toast', translate('sys_init'));
 };
 
 GameUI.$('#res').addEventListener('click', e => {

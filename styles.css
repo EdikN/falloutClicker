@@ -29,6 +29,10 @@ img {
   user-drag: none;
 }
 
+html, body {
+  overscroll-behavior: none;
+}
+
 body {
   font-family: 'VT323', monospace;
   font-size: clamp(14px, 2.2svh, 18px);
@@ -44,6 +48,7 @@ body {
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   overscroll-behavior-y: none;
+  touch-action: pan-x pan-y;
 }
 
 #bg-layer {

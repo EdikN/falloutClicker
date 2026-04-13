@@ -21,45 +21,45 @@
     "payments": [
         {
             "id": "no_ads",
-            "playgama": {
-                "amount": 299
-            }
+            "vk": { "id": "no_ads", "price": 29, "title": "Отключить рекламу" },
+            "ok": { "id": "no_ads", "price": 29, "title": "Отключить рекламу" },
+            "playgama": { "amount": 299 }
         },
         {
             "id": "starter_pack",
-            "playgama": {
-                "amount": 149
-            }
+            "vk": { "id": "starter_pack", "price": 6, "title": "Стартовый набор" },
+            "ok": { "id": "starter_pack", "price": 6, "title": "Стартовый набор" },
+            "playgama": { "amount": 149 }
         },
         {
             "id": "premium_caps",
-            "playgama": {
-                "amount": 99
-            }
+            "vk": { "id": "premium_caps", "price": 4, "title": "Премиум крышки" },
+            "ok": { "id": "premium_caps", "price": 4, "title": "Премиум крышки" },
+            "playgama": { "amount": 99 }
         },
         {
             "id": "mega_pack",
-            "playgama": {
-                "amount": 299
-            }
+            "vk": { "id": "mega_pack", "price": 9, "title": "Мега набор" },
+            "ok": { "id": "mega_pack", "price": 9, "title": "Мега набор" },
+            "playgama": { "amount": 299 }
         },
         {
             "id": "cyber_stomach",
-            "playgama": {
-                "amount": 199
-            }
+            "vk": { "id": "cyber_stomach", "price": 9, "title": "Кибер желудок" },
+            "ok": { "id": "cyber_stomach", "price": 9, "title": "Кибер желудок" },
+            "playgama": { "amount": 199 }
         },
         {
             "id": "iron_arsenal",
-            "playgama": {
-                "amount": 249
-            }
+            "vk": { "id": "iron_arsenal", "price": 7, "title": "Железный арсенал" },
+            "ok": { "id": "iron_arsenal", "price": 7, "title": "Железный арсенал" },
+            "playgama": { "amount": 249 }
         },
         {
             "id": "heavy_armor",
-            "playgama": {
-                "amount": 399
-            }
+            "vk": { "id": "heavy_armor", "price": 12, "title": "Тяжёлая броня" },
+            "ok": { "id": "heavy_armor", "price": 12, "title": "Тяжёлая броня" },
+            "playgama": { "amount": 399 }
         }
     ]
 }

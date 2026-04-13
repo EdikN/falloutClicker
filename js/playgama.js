@@ -22,38 +22,51 @@ export const PlaygamaSDK = (() => {
   let lastSavedJson = null;
   let lastSavedKey = null;
 
-  const getStorageType = async () => {
-    if (!window.bridge || !window.bridge.STORAGE_TYPE) return null;
-    const internal = window.bridge.STORAGE_TYPE.PLATFORM_INTERNAL;
-    const local = window.bridge.STORAGE_TYPE.LOCAL_STORAGE;
-
-    if (window.bridge.storage.isSupported(internal) && window.bridge.storage.isAvailable(internal)) {
-      return internal;
+  async function tryStorageSet(storageType, key, json) {
+    try {
+      await window.bridge.storage.set(key, json, storageType);
+      console.log(`[PlaygamaSDK] Прогресс сохранён (${key}) в ${storageType}.`);
+      return true;
+    } catch (e) {
+      console.warn(`[PlaygamaSDK] Ошибка сохранения (${key}) в ${storageType}:`, e == null ? 'storage unavailable' : e);
+      return false;
     }
-    return local;
-  };
+  }
+
+  async function tryStorageGet(storageType, key) {
+    try {
+      let data = await window.bridge.storage.get(key, storageType);
+      if (data === null || data === undefined || data === '') return null;
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch (e) {}
+      }
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        return data;
+      }
+    } catch (e) {
+      console.warn(`[PlaygamaSDK] Ошибка загрузки (${key}) из ${storageType}:`, e == null ? 'storage unavailable' : e);
+    }
+    return null;
+  }
 
   const save = async (data, key = 'save') => {
     const json = typeof data === 'string' ? data : JSON.stringify(data);
     if (json === lastSavedJson && key === lastSavedKey) return;
 
     if (bridgeReady && window.bridge && window.bridge.storage) {
-      try {
-        const storageType = await getStorageType();
-        const args = [key, json];
-        if (storageType) args.push(storageType);
+      const isAuthorized = !!(window.bridge.player && window.bridge.player.isAuthorized);
+      const isCloudSupported = window.bridge.storage.isSupported('platform_internal');
 
-        window.bridge.storage.set(...args)
-          .then(() => {
-            lastSavedJson = json;
-            lastSavedKey = key;
-            console.log(`[PlaygamaSDK] Прогресс сохранён (${key}) в ${storageType || 'default'}.`);
-          })
-          .catch((err) => {
-            console.error(`[PlaygamaSDK] Ошибка сохранения (${key}):`, err == null ? 'storage unavailable' : err);
-          });
-      } catch (err) {
-        console.error('[PlaygamaSDK] Ошибка при вызове bridge.storage.set:', err);
+      let success = false;
+      if (isAuthorized && isCloudSupported) {
+        success = await tryStorageSet('platform_internal', key, json);
+      } else {
+        success = await tryStorageSet('local_storage', key, json);
+      }
+
+      if (success) {
+        lastSavedJson = json;
+        lastSavedKey = key;
       }
     }
   };
@@ -68,27 +81,35 @@ export const PlaygamaSDK = (() => {
     };
 
     if (bridgeReady && window.bridge && window.bridge.storage) {
-      try {
-        const storageType = await getStorageType();
-        const args = [key];
-        if (storageType) args.push(storageType);
+      const isAuthorized = !!(window.bridge.player && window.bridge.player.isAuthorized);
+      const isCloudSupported = window.bridge.storage.isSupported('platform_internal');
 
-        window.bridge.storage.get(...args)
-          .then(data => {
-            if (data) {
-              lastSavedJson = typeof data === 'string' ? data : JSON.stringify(data);
-              lastSavedKey = key;
-            }
-            safeCallback(data || null);
-          })
-          .catch((err) => {
-            console.error(`[PlaygamaSDK] Ошибка загрузки (${key}):`, err == null ? 'storage unavailable' : err);
-            safeCallback(null);
-          });
-      } catch (err) {
-        console.error('[PlaygamaSDK] Ошибка при вызове bridge.storage.get:', err);
-        safeCallback(null);
+      let resultData = null;
+
+      if (isAuthorized && isCloudSupported) {
+        const cloudData = await tryStorageGet('platform_internal', key);
+        if (cloudData) {
+          resultData = cloudData;
+        } else {
+          const localData = await tryStorageGet('local_storage', key);
+          if (localData) {
+            console.log('[PlaygamaSDK] Migrated from local_storage ✓');
+            resultData = localData;
+          }
+        }
+      } else {
+        const localData = await tryStorageGet('local_storage', key);
+        if (localData) {
+          resultData = localData;
+        }
       }
+
+      if (resultData) {
+        lastSavedJson = typeof resultData === 'string' ? resultData : JSON.stringify(resultData);
+        lastSavedKey = key;
+      }
+
+      safeCallback(resultData);
     } else {
       safeCallback(null);
     }
@@ -215,7 +236,7 @@ export const PlaygamaSDK = (() => {
 
   const consumePurchase = (purchaseToken) => {
     if (!bridgeReady || !window.bridge || !window.bridge.payments.isSupported) return Promise.resolve();
-    return window.bridge.payments.consume(purchaseToken)
+    return window.bridge.payments.consumePurchase(purchaseToken)
       .catch((err) => {
         console.warn('[PlaygamaSDK] Ошибка потребления покупки:', err);
       });
@@ -341,6 +362,8 @@ export const PlaygamaSDK = (() => {
   let isPlatformHidden = false;
   let isAudioMutedByPlatform = false;
 
+  const isAppPaused = () => isAdShowing || isPlatformHidden;
+
   const updateAudioState = () => {
     try {
       if (SoundManager && SoundManager.systemMute) {
@@ -363,6 +386,14 @@ export const PlaygamaSDK = (() => {
   if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', updateAudioState);
   }
+
+  const isPaymentsSupported = () => {
+    try {
+      return !!(window.bridge && window.bridge.payments && window.bridge.payments.isSupported);
+    } catch (_) {
+      return false;
+    }
+  };
 
   // --- Инициализация ---
   const init = () => {
@@ -452,7 +483,7 @@ export const PlaygamaSDK = (() => {
     showBanner, hideBanner,
     buyProduct, checkPurchases, getCatalog, consumePurchase,
     gameReady, setGameplayState,
-    getLanguage, getPlatformId, isBridgeReady,
+    getLanguage, getPlatformId, isBridgeReady, isAppPaused, isPaymentsSupported,
     isAuthorizationSupported, isAuthorized, authorize,
     social
   };

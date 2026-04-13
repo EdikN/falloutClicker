@@ -207,7 +207,9 @@ export const TRANSLATIONS = {
         social_action_fav_desc: 'Сохраните точку входа для быстрого возврата в систему',
         social_status_done: '✓ ВЫПОЛНЕНО',
         social_remind_30: '[ НАПОМНИТЬ ЧЕРЕЗ 30 ДНЕЙ ]',
-        social_never: '[ НИКОГДА НЕ НАПОМИНАТЬ ]'
+        social_never: '[ НИКОГДА НЕ НАПОМИНАТЬ ]',
+        for_viewing_ads: ' (за просмотр рекламы)',
+        vk_currency: 'голосов'
     },
     en: {
         days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -416,7 +418,9 @@ export const TRANSLATIONS = {
         social_action_fav_desc: 'Save the entry point for quick return to the system',
         social_status_done: '✓ COMPLETED',
         social_remind_30: '[ REMIND IN 30 DAYS ]',
-        social_never: '[ NEVER REMIND ]'
+        social_never: '[ NEVER REMIND ]',
+        for_viewing_ads: ' (for viewing ads)',
+        vk_currency: 'votes'
     }
 };
 
@@ -438,9 +442,27 @@ export const loc = (obj, field) => {
 
 export const translateError = (err) => {
     if (!err) return translate('err_unknown');
-    const s = String(err).toUpperCase();
-    if (s.includes('CANCELED') || s.includes('CANCELLED')) return translate('err_user_canceled');
-    if (s.includes('NOT SUPPORTED') || s.includes('НЕ ПОДДЕРЖИВАЮТСЯ')) return translate('err_not_supported');
-    if (s.includes('NOT INITIALIZED') || s.includes('НЕ ИНИЦИАЛИЗИРОВАН')) return translate('err_sdk_not_init');
-    return err;
+    
+    let msg = err;
+    if (typeof err === 'object') {
+        msg = err.message || err.error_reason || err.error_msg || JSON.stringify(err);
+    }
+    
+    const s = String(msg).toUpperCase();
+    
+    if (s.includes('CANCELED') || s.includes('CANCELLED') || s.includes('DENIED') || s.includes('ОТМЕН') || s.includes('USER_ERROR') || s.includes('ПОЛЬЗОВАТЕЛ')) {
+        return translate('err_user_canceled');
+    }
+    if (s.includes('NOT SUPPORTED') || s.includes('НЕ ПОДДЕРЖИВА')) {
+        return translate('err_not_supported');
+    }
+    if (s.includes('NOT INITIALIZED') || s.includes('НЕ ИНИЦИАЛИЗИРОВАН')) {
+        return translate('err_sdk_not_init');
+    }
+    
+    // Fallback: If the message looks like a JSON string or an object, show a generic error to prevent huge toasts
+    if (typeof msg === 'object' || String(msg).startsWith('{') || String(msg).startsWith('[')) {
+        return translate('err_unknown');
+    }
+    return msg;
 };
