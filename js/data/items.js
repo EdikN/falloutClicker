@@ -21,8 +21,8 @@ export const WEAPON_STATS = {
   };
 
   export const SHOP_ITEMS = [
-    { key: 'food', label_ru: '🍖 Паёк x6', label_en: '🍖 Ration x6', amount: 6, price: 12, type: 'resource' },
-    { key: 'water', label_ru: '💧 Вода x6', label_en: '💧 Water x6', amount: 6, price: 12, type: 'resource' },
+    { key: 'food', label_ru: '🍖 Паёк x5', label_en: '🍖 Ration x5', amount: 5, price: 20, type: 'resource' },
+    { key: 'water', label_ru: '💧 Вода x5', label_en: '💧 Water x5', amount: 5, price: 30, type: 'resource' },
     { key: 'ammo', label_ru: '⚡ Патроны x14', label_en: '⚡ Ammo x14', amount: 14, price: 15, type: 'resource' },
     { key: 'medkits', label_ru: '✚ Стимулятор x1', label_en: '✚ Stimpak x1', amount: 1, price: 25, type: 'resource' },
     { key: 'weaponWrench', label_ru: '🔧 Гаечный ключ', label_en: '🔧 Wrench', price: 45, type: 'weapon', weaponId: 'wrench' },

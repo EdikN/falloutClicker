@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
             available.forEach(action => {
                 const isDone = !!done[action.id];
                 const card = document.createElement('button');
-                card.className = 'social-action-card' + (isDone ? ' social-action-done' : '');
+                card.className = 'social-action-card social-btn-hidden' + (isDone ? ' social-action-done' : '');
                 card.disabled = isDone;
                 card.innerHTML = `
                     <span class="social-action-icon-wrap">${action.icon}</span>
@@ -271,6 +271,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btns.forEach(b => {
                 const btn = document.getElementById(b.id);
                 if (btn) {
+                    btn.classList.add('social-btn-hidden');
+                    btn.classList.remove('social-btn-visible');
                     btn.textContent = translate(b.key);
                     btn.onclick = () => {
                         GameUI.show('#socialModal', false);
@@ -279,6 +281,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     };
                 }
             });
+
+            // Reveal buttons with delay
+            setTimeout(() => {
+                const allSocialBtns = modal.querySelectorAll('.social-btn-hidden');
+                allSocialBtns.forEach(btn => {
+                    btn.classList.remove('social-btn-hidden');
+                    btn.classList.add('social-btn-visible');
+                });
+            }, 1000);
         };
 
         const checkOnDay = (day) => {

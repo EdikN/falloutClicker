@@ -20,6 +20,8 @@ export const GameUI = (() => {
     // Специфические элементы для renderMain/renderBattle
     hpFill: null, hpText: null, hpMax: null, hpLabel: null,
     moodFill: null, moodText: null, moodMax: null, moodLabel: null,
+    hungerFill: null, hungerText: null, hungerMax: null, hungerLabel: null,
+    thirstFill: null, thirstText: null, thirstMax: null, thirstLabel: null,
     pAtkHpFill: null, pAtkHpText: null, pAtkHpMax: null, pAtkHpLabel: null
   };
 
@@ -45,7 +47,9 @@ export const GameUI = (() => {
     if (DOM.statusBars) {
       DOM.statusBars.innerHTML = `
         <div id="hpCont">♥ <span class="label"></span> <span class="val"></span>/<span class="max"></span><div class='bar'><div class='fill bg-bad'></div></div></div>
-        <div id="moodCont">🧠 <span class="label"></span> <span class="val"></span>/<span class="max"></span><div class='bar'><div class='fill bg-ok'></div></div></div>`;
+        <div id="moodCont">🧠 <span class="label"></span> <span class="val"></span>/<span class="max"></span><div class='bar'><div class='fill bg-ok'></div></div></div>
+        <div id="hungerCont">🍖 <span class="label"></span> <span class="val"></span>/<span class="max"></span><div class='bar'><div class='fill' style='background:var(--warn)'></div></div></div>
+        <div id="thirstCont">💧 <span class="label"></span> <span class="val"></span>/<span class="max"></span><div class='bar'><div class='fill' style='background:#00aaff'></div></div></div>`;
       DOM.hpText = DOM.statusBars.querySelector('#hpCont .val');
       DOM.hpMax = DOM.statusBars.querySelector('#hpCont .max');
       DOM.hpLabel = DOM.statusBars.querySelector('#hpCont .label');
@@ -54,6 +58,14 @@ export const GameUI = (() => {
       DOM.moodMax = DOM.statusBars.querySelector('#moodCont .max');
       DOM.moodLabel = DOM.statusBars.querySelector('#moodCont .label');
       DOM.moodFill = DOM.statusBars.querySelector('#moodCont .fill');
+      DOM.hungerText = DOM.statusBars.querySelector('#hungerCont .val');
+      DOM.hungerMax = DOM.statusBars.querySelector('#hungerCont .max');
+      DOM.hungerLabel = DOM.statusBars.querySelector('#hungerCont .label');
+      DOM.hungerFill = DOM.statusBars.querySelector('#hungerCont .fill');
+      DOM.thirstText = DOM.statusBars.querySelector('#thirstCont .val');
+      DOM.thirstMax = DOM.statusBars.querySelector('#thirstCont .max');
+      DOM.thirstLabel = DOM.statusBars.querySelector('#thirstCont .label');
+      DOM.thirstFill = DOM.statusBars.querySelector('#thirstCont .fill');
     }
 
     if (DOM.pBars) {
@@ -106,6 +118,16 @@ export const GameUI = (() => {
     DOM.moodText.textContent = Math.round(p.mood);
     DOM.moodMax.textContent = p.maxMood;
     DOM.moodFill.style.transform = `scaleX(${clamp(p.mood / p.maxMood, 0, 1)})`;
+
+    DOM.hungerLabel.textContent = translate('hunger').toUpperCase();
+    DOM.hungerText.textContent = Math.round(p.hunger);
+    DOM.hungerMax.textContent = p.maxHunger;
+    DOM.hungerFill.style.transform = `scaleX(${clamp(p.hunger / p.maxHunger, 0, 1)})`;
+
+    DOM.thirstLabel.textContent = translate('thirst').toUpperCase();
+    DOM.thirstText.textContent = Math.round(p.thirst);
+    DOM.thirstMax.textContent = p.maxThirst;
+    DOM.thirstFill.style.transform = `scaleX(${clamp(p.thirst / p.maxThirst, 0, 1)})`;
 
     if (isAdrenaline) {
       const minutesLeft = Math.ceil((st.adBoosts.adrenaline - Date.now()) / 60000);

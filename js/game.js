@@ -473,8 +473,11 @@ const checkAdEvents = () => {
   // Bug 5 fix: increased min gap from 3 to 7 days
   if (st.day - st.adBoosts.lastAdShownDay < 7) return false;
 
-  // Bug 5 fix: per-event gap increased from 10 to 15 days
-  if ((st.resources.food < 5 || st.resources.water < 5) && (st.day - st.adBoosts.lastDroneDay >= 15)) {
+  // Дрон прилетает если мало предметов ИЛИ если шкалы опустились ниже 20%
+  const lowInventory = st.resources.food < 3 || st.resources.water < 3;
+  const lowStats = st.player.hunger < 20 || st.player.thirst < 20;
+
+  if ((lowInventory || lowStats) && (st.day - st.adBoosts.lastDroneDay >= 15)) {
     if (rng() < 0.35) {
       st.adBoosts.lastDroneDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
@@ -498,7 +501,10 @@ const checkAdEvents = () => {
     }
   }
 
-  if ((st.player.hp / st.player.maxHp < 0.5) && (st.day - st.adBoosts.lastEmergencyDay >= 15)) {
+  const lowHp = st.player.hp / st.player.maxHp < 0.5;
+  const criticalStats = st.player.hunger < 10 || st.player.thirst < 10;
+
+  if ((lowHp || criticalStats) && (st.day - st.adBoosts.lastEmergencyDay >= 15)) {
     if (rng() < 0.35) {
       st.adBoosts.lastEmergencyDay = st.day;
       st.adBoosts.lastAdShownDay = st.day;
@@ -555,17 +561,33 @@ const checkAdEvents = () => {
 // --- ЕЖЕДНЕВНЫЕ РАСХОДЫ ---
 const upkeep = () => {
   const st = GameState.get(), p = st.player;
-  const consumption = st.permanentBonuses.cyberStomach ? 1 : 2;
+  
+  // Базовое значение от 10 до 20
+  const base = 10 + rng() * 10;
+  // Множитель от активности за прошлый день: Бой (3x), Обыск (2x), Ничего (1x)
+  const act = p.lastActivity || 'none';
+  const multiplier = act === 'fight' ? 3 : (act === 'loot' ? 2 : 1);
+  
+  let consumption = Math.min(50, base * multiplier);
+  
+  // Бонус кибер-желудка оставляет 50% расхода
+  if (st.permanentBonuses.cyberStomach) {
+    consumption *= 0.5;
+  }
 
-  st.resources.food = Math.max(0, st.resources.food - consumption);
-  st.resources.water = Math.max(0, st.resources.water - consumption);
+  p.hunger = Math.max(0, p.hunger - consumption);
+  p.thirst = Math.max(0, p.thirst - consumption);
 
-  if (st.resources.food === 0) {
-    p.hp -= 5; p.mood -= 5; Events.emit('ui:toast', translate('res_food_empty')); Events.emit('ui:triggerDamage');
+  if (p.hunger <= 0) {
+    p.hp -= 5; p.mood -= 5; 
+    Events.emit('ui:toast', translate('toast_starving')); 
+    Events.emit('ui:triggerDamage');
     if (p.hp <= 0) { defeat(translate('defeat_starved')); return; }
   }
-  if (st.resources.water === 0) {
-    p.hp -= 8; p.mood -= 8; Events.emit('ui:toast', translate('res_water_empty')); Events.emit('ui:triggerDamage');
+  if (p.thirst <= 0) {
+    p.hp -= 8; p.mood -= 8; 
+    Events.emit('ui:toast', translate('toast_dehydrated')); 
+    Events.emit('ui:triggerDamage');
     if (p.hp <= 0) { defeat(translate('defeat_dehydrated')); return; }
   }
   p.mood = Math.max(0, p.mood - 1);
@@ -615,7 +637,7 @@ const renderMerchant = async (defaultTab = 'items') => {
 
   const showItems = () => {
     tabItems.classList.add('active');
-    tabDirector.classList.remove('active');
+    if (tabDirector) tabDirector.classList.remove('active');
 
     // Group items
     const groups = { resource: [], weapon: [], armor: [], upgrade: [] };
@@ -657,7 +679,7 @@ const renderMerchant = async (defaultTab = 'items') => {
   const showDirector = () => {
     if (!isPaymentsSupported) return;
     tabItems.classList.remove('active');
-    tabDirector.classList.add('active');
+    if (tabDirector) tabDirector.classList.add('active');
 
     content.innerHTML = `<div class="sub" style="margin-bottom:1rem;">${translate('shop_desc')}</div>`;
 
@@ -872,12 +894,16 @@ const startDay = () => {
   updateChapterTitle(st.day);
   Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 
+  // Сбрасываем активность перед новым днем (по умолчанию "ничего")
+  st.player.lastActivity = 'none';
+
   if (checkAdEvents()) return;
   if (checkStoryEvents()) return;
 
   const event = encounterRoll();
 
   if (event.type === 'corpse') {
+    st.player.lastActivity = 'loot';
     const corpse = event.corpse;
     GameState.getMeta().corpse = null;
     st.player.humanity = Math.max(0, st.player.humanity - 5);
@@ -893,6 +919,7 @@ const startDay = () => {
       }]
     });
   } else if (event.type === 'enemy') {
+    st.player.lastActivity = 'fight';
     st.encounter = event;
     const threat = event.enemy.threat;
     const threatLabel = threat < 25 ? translate('threat_weak') : threat < 60 ? translate('threat_medium') : threat < 120 ? translate('threat_dangerous') : translate('threat_deadly');
@@ -900,6 +927,7 @@ const startDay = () => {
     GameUI.$('#encounterYes').textContent = translate('btn_fight'); GameUI.$('#encounterNo').textContent = translate('btn_flee');
     st.phase = translate('status_combat'); Events.emit('ui:show', { id: '#encounterModal', on: true });
   } else if (event.type === 'location') {
+    st.player.lastActivity = 'loot';
     if (event.location.moodCost) {
       st.player.mood = Math.max(0, st.player.mood - event.location.moodCost);
       Events.emit('ui:toast', `${translate('mood')} -${event.location.moodCost}`);
@@ -957,7 +985,7 @@ const finishFight = win => {
     ? (() => {
       const baseCaps = Math.round(c.enemy.threat * 0.8) + Math.floor(rng() * 5);
       const r = { materials: 3 + Math.floor(rng() * 5), caps: Math.max(10, baseCaps) };
-      if (rng() < .3) r.food = 1;
+      if (rng() < .15) r.food = 1;
       applyReward(r);
       c.lastReward = r;
       GameUI.$('#doubleRewardBtn').style.display = 'block';
@@ -1164,9 +1192,21 @@ GameUI.$('#res').addEventListener('click', e => {
   const btn = e.target.closest('[data-use]'); if (!btn) return;
   const type = btn.dataset.use, st = GameState.get(), p = st.player;
   if (st.resources[type] < 1) { SoundManager.play('error'); return Events.emit('ui:toast', translate('toast_no_items')); }
+  
+  if (type === 'food' && p.hunger >= p.maxHunger) return Events.emit('ui:toast', translate('toast_full'));
+  if (type === 'water' && p.thirst >= p.maxThirst) return Events.emit('ui:toast', translate('toast_not_thirsty'));
+
   st.resources[type]--; SoundManager.play('heal');
-  if (type === 'food') { p.hp = Math.min(p.maxHp, p.hp + 6); p.mood = Math.min(p.maxMood, p.mood + 10); Events.emit('ui:toast', translate('toast_energy')); }
-  if (type === 'water') { p.hp = Math.min(p.maxHp, p.hp + 4); p.mood = Math.min(p.maxMood, p.mood + 15); Events.emit('ui:toast', translate('toast_water')); }
+  if (type === 'food') { 
+    p.hunger = Math.min(p.maxHunger, p.hunger + 35); 
+    p.hp = Math.min(p.maxHp, p.hp + 2); 
+    Events.emit('ui:toast', translate('toast_energy')); 
+  }
+  if (type === 'water') { 
+    p.thirst = Math.min(p.maxThirst, p.thirst + 45); 
+    p.mood = Math.min(p.maxMood, p.mood + 5); 
+    Events.emit('ui:toast', translate('toast_water')); 
+  }
   if (type === 'medkits') { const h = p.healPower || 30; p.hp = Math.min(p.maxHp, p.hp + h); Events.emit('ui:toast', translate('toast_healed', h)); }
   GameState.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 });
