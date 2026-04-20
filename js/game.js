@@ -747,18 +747,14 @@ const renderMerchant = async (defaultTab = 'items') => {
         <button class="btn good" style="min-width:80px;">${item.price}</button>
       `;
 
-      // Универсальный обработчик с проверкой авторизации
+      // === Fix #2: Consume ALL purchases (расходуемые) по product id ===
       const doPurchase = () => {
-        if (['starter_pack', 'premium_caps', 'mega_pack', 'cyber_stomach', 'iron_arsenal', 'heavy_armor'].includes(item.id)) {
-          window.PlaygamaSDK.buyProduct(item.id, (purchase) => {
-            applyPurchase(item.id);
-            if (purchase && purchase.purchaseToken) {
-              window.PlaygamaSDK.consumePurchase(purchase.purchaseToken);
-            }
-          }, (err) => Events.emit('ui:toast', `${translate('purchase_error')}: ${translateError(err)}`));
-        } else {
-          window.PlaygamaSDK.buyProduct(item.id, () => applyPurchase(item.id), (err) => Events.emit('ui:toast', `${translate('purchase_error')}: ${translateError(err)}`));
-        }
+        window.PlaygamaSDK.buyProduct(item.id, (purchase) => {
+          applyPurchase(item.id);
+          // Потребляем покупку по ID продукта (не по purchaseToken)
+          // Для постоянных бонусов (no_ads) тоже консюмим, чтобы очистить очередь
+          window.PlaygamaSDK.consumePurchase(item.id);
+        }, (err) => Events.emit('ui:toast', `${translate('purchase_error')}: ${translateError(err)}`));
       };
 
       div.querySelector('button').onclick = () => {
@@ -1000,12 +996,18 @@ const finishFight = win => {
 };
 
 const gameTick = ts => {
-  const st = GameState.get(), c = st.combat, p = st.player, e = c.enemy; if (!c.active || !e || st.dead) return;
+  const st = GameState.get(), c = st.combat, p = st.player, e = c.enemy;
+  if (!c.active || !e || st.dead) {
+    console.warn('[gameTick] EXIT: active=', c.active, 'enemy=', !!e, 'dead=', st.dead);
+    return;
+  }
   if (window.PlaygamaSDK && window.PlaygamaSDK.isAppPaused()) {
+    if (!c._pauseLogged) { console.warn('[gameTick] PAUSED by SDK'); c._pauseLogged = true; }
     c.lastTs = ts;
     requestAnimationFrame(gameTick);
     return;
   }
+  c._pauseLogged = false;
   const dt = Math.min(.08, (ts - (c.lastTs || ts)) / 1000 || .016);
   if (st.player.atkCd > 0) st.player.atkCd = Math.max(0, st.player.atkCd - dt);
 
@@ -1219,13 +1221,18 @@ GameUI.$('#muteBtn').onclick = () => {
 const initGame = () => {
   GameState.normalize();
 
+  // === Fix #2: Восстановление незавершённых покупок при старте ===
   if (PlaygamaSDK) {
     PlaygamaSDK.checkPurchases((purchases) => {
       if (!purchases || !Array.isArray(purchases)) return;
       purchases.forEach(p => {
         if (p && p.productId) {
           applyPurchase(p.productId);
-          if (p.purchaseToken) PlaygamaSDK.consumePurchase(p.purchaseToken);
+          // Потребляем по productId (не purchaseToken) согласно документации Playgama
+          PlaygamaSDK.consumePurchase(p.productId);
+        } else if (p && p.id) {
+          applyPurchase(p.id);
+          PlaygamaSDK.consumePurchase(p.id);
         }
       });
     });
@@ -1244,16 +1251,8 @@ const initGame = () => {
     GameState.save();
   }
 
-  // Сообщаем SDK что игра готова
-  if (PlaygamaSDK) {
-    PlaygamaSDK.gameReady();
-    PlaygamaSDK.setGameplayState('start');
-
-    // Показываем баннер на поддерживаемых платформах (Yandex, VK, OK и др.), если нет бонуса "No Ads"
-    if (!GameState.get().permanentBonuses.noAds) {
-      PlaygamaSDK.showBanner('bottom');
-    }
-  }
+  // gameReady, gameplay_state и баннер вызываются из main.js applyData()
+  // ПОСЛЕ скрытия сплеша — гарантирует корректную последовательность
 
   GameUI.applyLanguage();
   console.log('[Game] Инициализация завершена.');

@@ -31,6 +31,7 @@ img {
 
 html, body {
   overscroll-behavior: none;
+  overflow: hidden;
 }
 
 body {
@@ -47,8 +48,8 @@ body {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-  overscroll-behavior-y: none;
-  touch-action: pan-x pan-y;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 #bg-layer {
@@ -487,6 +488,9 @@ h2 {
   min-height: 0;
   padding-right: 0.3rem;
   max-height: 55vh;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 ::-webkit-scrollbar {

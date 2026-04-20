@@ -52,10 +52,13 @@ const preloadImages = () => {
 
 // Wait for DOM
 document.addEventListener('DOMContentLoaded', () => {
-    // Prevent context menu and accidental selections
+    // === Fix #1: Prevent browser scroll during gameplay ===
+    // Используем CSS touch-action вместо JS touchmove preventDefault
+    // passive:false touchmove блокирует compositor thread и лагает кнопки
+
+    // === Fix #3: Prevent context menu, text selection, long-press popups ===
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('selectstart', e => e.preventDefault());
-    // Prevent dragging images or elements
     document.addEventListener('dragstart', e => e.preventDefault());
 
     // Tutorial Setup
@@ -321,15 +324,51 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
+    // === Защита от повторного вызова gameReady ===
+    let _gameReadySent = false;
+
+    /**
+     * Скрыть сплеш и отправить gameReady платформе.
+     * Вызывается в ДВУХ сценариях:
+     *   A) Auth modal показывается → сплеш скрыть, gameReady, юзер видит модал
+     *   B) Нет auth modal → после Game.init() + рендера UI → сплеш скрыть, gameReady
+     * Флаг _gameReadySent гарантирует что gameReady отправится ровно 1 раз.
+     */
+    const sendGameReady = () => {
+        if (_gameReadySent) return;
+        _gameReadySent = true;
+
+        // Скрываем сплеш
+        if (window.Splash) {
+            window.Splash.setProgress(100);
+            window.Splash.hide();
+        }
+
+        // Отправляем gameReady платформе
+        const sdk = window.PlaygamaSDK;
+        if (sdk && sdk.isBridgeReady()) {
+            sdk.gameReady();
+            console.log('[App] game_ready sent');
+        }
+    };
+
     // Финальный запуск игры — после всех проверок авторизации и загрузки
     const applyData = async () => {
         GameUI.applyLanguage();
+
+        // Прогресс сплеша: загрузка изображений (если сплеш ещё виден)
+        if (window.Splash && !_gameReadySent) window.Splash.setProgress(92);
         await preloadImages();
+
+        // Прогресс сплеша: инициализация игры
+        if (window.Splash && !_gameReadySent) window.Splash.setProgress(96);
         Game.init();
+
         // Обновляем кнопку авторизации в HUD
         updateAuthBtn();
         initAuthBtn();
         SocialPrompt.initSettingsButtons();
+
         // Tutorial first time check
         if (!GameState.get().tutorialShown) {
             GameState.get().tutorialShown = true;
@@ -337,26 +376,25 @@ document.addEventListener('DOMContentLoaded', () => {
             GameUI.show('#tutorialModal', true);
         }
 
-        // game_ready отправляем только ПОСЛЕ applyData — всегда с финальными данными
-        // Делаем задержку 500мс, чтобы убедиться что сплеш загрузки полностью скрыт
-        setTimeout(() => {
-            try {
-                if (window.PlaygamaSDK && window.PlaygamaSDK.isBridgeReady()) {
-                    window.PlaygamaSDK.gameReady();
-                    console.log('[App] game_ready sent');
-                    const overlayOpen = document.querySelector('.overlay.show');
-                    const isBattleOpen = overlayOpen && overlayOpen.id === 'battleModal';
-                    window.PlaygamaSDK.setGameplayState(overlayOpen && !isBattleOpen ? 'stop' : 'start');
-                } else if (window.bridge) {
-                    const p = window.bridge.platform.sendMessage('game_ready');
-                    if (p && typeof p.catch === 'function') p.catch(() => {});
-                    console.log('[App] game_ready sent (fallback)');
-                    const overlayOpen = document.querySelector('.overlay.show');
-                    const isBattleOpen = overlayOpen && overlayOpen.id === 'battleModal';
-                    window.bridge.platform.sendMessage(overlayOpen && !isBattleOpen ? 'gameplay_stopped' : 'gameplay_started');
-                }
-            } catch (_) { }
-        }, 500);
+        // Сценарий B: если gameReady ещё не отправлен (не было auth modal)
+        // → скрываем сплеш и отправляем gameReady ПОСЛЕ полной отрисовки UI
+        if (!_gameReadySent) {
+            sendGameReady();
+        }
+
+        // Всегда определяем gameplay state и баннер после рендера UI
+        const sdk = window.PlaygamaSDK;
+        if (sdk && sdk.isBridgeReady()) {
+            const overlayOpen = document.querySelector('.overlay.show');
+            const isBattleOpen = overlayOpen && overlayOpen.id === 'battleModal';
+            sdk.setGameplayState(overlayOpen && !isBattleOpen ? 'stop' : 'start');
+
+            // Показываем баннер если нет бонуса "No Ads"
+            if (!GameState.get().permanentBonuses.noAds) {
+                sdk.showBanner('bottom');
+            }
+        }
+        console.log('[App] applyData complete — game fully ready.');
     };
 
     // Загрузить сохранение и запустить игру
@@ -376,22 +414,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (sdk.isAuthorized()) {
-            // Уже залогинен — сразу грузим (читает platform_internal / облако)
             console.log('[App] \u0423\u0436\u0435 \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u043e\u0432\u0430\u043d, \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043e\u0431\u043b\u0430\u043a\u0430...');
             loadAndStart();
             return;
         }
 
         if (localStorage.getItem('auth') === 'authorized' && sdk.isAuthorizationSupported()) {
-            // Был залогинен раньше — тихо авторизуемся, затем грузим облако
             console.log('[App] localStorage.auth \u043d\u0430\u0439\u0434\u0435\u043d, \u0442\u0438\u0445\u0430\u044f \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u044f...');
             sdk.authorize()
-                .catch(() => {}) // Даже если не удалось — всё равно грузим
+                .catch(() => {})
                 .finally(() => loadAndStart());
             return;
         }
 
-        // Неизвестный статус — сначала грузим, потом решаем
         loadAndStart();
     };
 
@@ -404,6 +439,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const modal = document.getElementById('authModal');
         if (!modal) { onDone(); return; }
 
+        // Сценарий A: auth modal будет показан → скрываем сплеш → gameReady
+        // Юзер видит интерактивный модал = игра "загружена"
+        sendGameReady();
+
         GameUI.show('#authModal', true);
 
         const loginBtn = document.getElementById('authLoginBtn');
@@ -415,13 +454,12 @@ document.addEventListener('DOMContentLoaded', () => {
             close();
             sdk.authorize()
                 .then(() => {
-                    // После авторизации перезагружаем — вдруг есть облачное сохранение
                     GameState.load((success) => {
                         if (!success) GameState.set(GameState.fresh());
                         onDone();
                     });
                 })
-                .catch(() => onDone()); // Отказался — запускаем без аккаунта
+                .catch(() => onDone());
         };
 
         skipBtn.onclick = () => {
@@ -433,7 +471,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Основной flow ---
     const startGame = () => {
         GameUI.applyLanguage();
-        preloadImages();
 
         const sdk = window.PlaygamaSDK;
 
@@ -447,10 +484,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Первичная загрузка сохранения
         GameState.load((hasSave) => {
             if (hasSave) {
-                // Есть сохранение — просто стартуем
                 applyData();
             } else {
-                // Нет сохранения — предлагаем авторизоваться (только первый раз)
                 GameState.set(GameState.fresh());
                 maybeShowAuthModal(() => applyData());
             }

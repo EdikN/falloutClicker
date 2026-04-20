@@ -234,11 +234,15 @@ export const PlaygamaSDK = (() => {
     }
   };
 
-  const consumePurchase = (purchaseToken) => {
+  // === Fix #2: consumePurchase принимает product ID (не purchaseToken) ===
+  const consumePurchase = (productId) => {
     if (!bridgeReady || !window.bridge || !window.bridge.payments.isSupported) return Promise.resolve();
-    return window.bridge.payments.consumePurchase(purchaseToken)
+    return window.bridge.payments.consumePurchase(productId)
+      .then(() => {
+        console.log('[PlaygamaSDK] Покупка потреблена:', productId);
+      })
       .catch((err) => {
-        console.warn('[PlaygamaSDK] Ошибка потребления покупки:', err);
+        console.warn('[PlaygamaSDK] Ошибка потребления покупки:', productId, err);
       });
   };
 
@@ -401,7 +405,7 @@ export const PlaygamaSDK = (() => {
 
     if (!window.bridge) {
       console.warn('[PlaygamaSDK] bridge не найден — работаем в автономном режиме.');
-      hideSplash();
+      // Сплеш скроет main.js после Game.init()
       return Promise.resolve();
     }
 
@@ -434,6 +438,7 @@ export const PlaygamaSDK = (() => {
         try {
           if (window.bridge.game && window.bridge.EVENT_NAME.VISIBILITY_STATE_CHANGED) {
             window.bridge.game.on(window.bridge.EVENT_NAME.VISIBILITY_STATE_CHANGED, state => {
+              console.log('[PlaygamaSDK] VISIBILITY_STATE_CHANGED:', state);
               isPlatformHidden = (state === 'hidden');
               updateAudioState();
             });
@@ -454,14 +459,15 @@ export const PlaygamaSDK = (() => {
         try {
           if (window.bridge.platform && window.bridge.EVENT_NAME.PAUSE_STATE_CHANGED) {
             window.bridge.platform.on(window.bridge.EVENT_NAME.PAUSE_STATE_CHANGED, isPaused => {
-              isPlatformHidden = isPaused; // Используем как скрытие окна
+              console.log('[PlaygamaSDK] PAUSE_STATE_CHANGED:', isPaused);
+              isPlatformHidden = isPaused;
               updateAudioState();
             });
           }
         } catch (_) { }
 
-        setSplash(100);
-        hideSplash();
+        setSplash(90);
+        // Сплеш НЕ скрываем здесь — main.js скроет ПОСЛЕ Game.init()
         console.log('[PlaygamaSDK] Инициализирован успешно.');
       })
       .catch(err => {
