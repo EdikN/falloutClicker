@@ -49,10 +49,12 @@ export const GameState = (() => {
       neverRemind: false     // Флаг "никогда не напоминать"
     },
 
-    resources: { food: 5, water: 5, materials: 0, ammo: 0, medkits: 1, caps: 0 },
+    resources: { food: 2, water: 2, materials: 0, ammo: 0, medkits: 0, caps: 0 },
 
     // Статы игрока
     player: {
+      careerLevel: 0,
+      careerName: 'Попрошайка',
       maxHp: 100, hp: 100,
       maxMood: 100, mood: 100,
       maxHunger: 100, hunger: 100,

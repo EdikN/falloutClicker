@@ -8,6 +8,32 @@ import { GameUI } from './ui.js';
 
 const rng = () => Math.random();
 const pick = arr => arr[Math.floor(rng() * arr.length)];
+
+const CAREER_LADDER = [
+  { level: 0, name: 'Попрошайка', name_en: 'Beggar', req: 0, bonus: 1 },
+  { level: 1, name: 'Сборщик бутылок', name_en: 'Bottle Collector', req: 50, bonus: 1.5 },
+  { level: 2, name: 'Грузчик', name_en: 'Loader', req: 200, bonus: 2 },
+  { level: 3, name: 'Курьер', name_en: 'Courier', req: 500, bonus: 3 },
+  { level: 4, name: 'Дворник', name_en: 'Janitor', req: 1000, bonus: 5 },
+  { level: 5, name: 'Охранник', name_en: 'Security', req: 2500, bonus: 10 },
+  { level: 6, name: 'Менеджер', name_en: 'Manager', req: 5000, bonus: 20 },
+  { level: 7, name: 'Директор', name_en: 'Director', req: 15000, bonus: 50 },
+  { level: 8, name: 'Олигарх', name_en: 'Tycoon', req: 50000, bonus: 150 }
+];
+
+const checkCareer = () => {
+  const st = GameState.get(), p = st.player;
+  const currentTotal = st.resources.caps;
+  const next = CAREER_LADDER[p.careerLevel + 1];
+  if (next && currentTotal >= next.req) {
+    p.careerLevel++;
+    const lang = (window.PlaygamaSDK && window.PlaygamaSDK.getLanguage()) || 'ru';
+    p.careerName = lang === 'ru' ? next.name : next.name_en;
+    Events.emit('ui:toast', `КНИЖКА ОБНОВЛЕНА: ${p.careerName.toUpperCase()}!`);
+    Events.emit('ui:renderTop');
+  }
+};
+
 const totalDmg = () => {
   const st = GameState.get(), p = st.player;
   const isAdrenaline = st.adBoosts.adrenaline > Date.now();
@@ -290,31 +316,23 @@ const handleCartographer = (event) => {
 const handleStoryCombat = (event) => {
   const st = GameState.get();
   const enemyData = GameData.STORY_ENEMIES[event.enemyId];
+  if (!enemyData) return;
+  
   let enemyHp = enemyData.hp;
-
-  if (st.flags && st.flags.bypassCode) {
-    enemyHp = Math.round(enemyHp * 0.7);
-    st.flags.bypassCode = false;
-    Events.emit('ui:toast', translate('bypass_code_active'));
-  }
 
   st.combat.enemy = { ...enemyData, hp: enemyHp, maxHp: enemyHp };
 
-  if (event.enemyId === 'amazon_weak') {
-    st.combat.onWin = () => {
-      Events.emit('ui:showDialogue', {
-        speaker: loc(enemyData, 'name'), img: event.img,
-        text: loc(event, 'branch_win'),
-        choices: [{ text: translate('btn_continue'), action: () => applyReward({ medkits: 2, ammo: 20 }) }]
-      });
-    };
-  }
-  else if (event.enemyId === 'amazon_full') {
-    st.combat.onWin = () => handleAmazonChoice(event);
-  }
-  else if (event.enemyId === 'boss_technician') {
-    st.combat.onWin = () => handleEnding();
-  }
+  st.combat.onWin = () => {
+    const winText = loc(event, 'text_win') || translate('battle_win');
+    Events.emit('ui:showDialogue', {
+      speaker: loc(event, 'speaker'), img: event.img,
+      text: winText,
+      choices: [{ text: translate('btn_continue'), action: () => {
+        if (event.enemyId === 'boss_mayor') handleEnding();
+        else applyReward({ medkits: 1, ammo: 10 });
+      }}]
+    });
+  };
 
   Events.emit('ui:showDialogue', {
     speaker: loc(event, 'speaker'), img: event.img, text: loc(event, 'text'),
@@ -365,20 +383,19 @@ const handleEnding = () => {
   const flags = st.flags || {};
   const humanity = st.player.humanity;
 
-  if (humanity < 20) {
-    showEndingChoice(true);
-    return;
+  if (flags.endingType === 'criminal' || (flags.criminalPath && humanity < 30)) {
+    showEnding({
+      title: translate('ending_bad_title'),
+      text: translate('ending_bad_text'),
+      score: translate('ending_bad_score', Math.round(humanity), st.day)
+    });
   }
-
-  if (flags.savedDrifter && flags.mercyAmazon && humanity >= 70) {
+  else if (flags.hasEvidence && humanity >= 50) {
     showEnding({
       title: translate('ending_mercy_title'),
       text: translate('ending_mercy_text'),
       score: translate('ending_mercy_score', Math.round(humanity), st.day)
     });
-  }
-  else if (!flags.savedDrifter && !flags.mercyAmazon) {
-    showEndingChoice(false);
   }
   else {
     showEnding({
@@ -613,6 +630,7 @@ const encounterRoll = () => {
 const applyReward = r => {
   const st = GameState.get();
   Object.entries(r).forEach(([k, v]) => st.resources[k] = (st.resources[k] || 0) + v);
+  checkCareer();
   Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
 };
 
@@ -649,11 +667,11 @@ const renderMerchant = async (defaultTab = 'items') => {
     let html = '';
     const renderGroup = (arr, title) => {
       if (!arr || arr.length === 0) return;
-      html += `<h3 style="margin-top:0.5rem;">${title}</h3>`;
+      html += `<div class="sub" style="margin: 1.5rem 0 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem;">${title}</div>`;
       html += arr.map(item =>
-        `<div class='shopItem'>
-         <div>${loc(item, 'label')}</div>
-         <button class='btn good' data-buy='${item.i}'>${item.price} ${translate('credits').slice(0, 2).toUpperCase()}</button>
+        `<div class='shopItem' style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+         <div style="font-weight: 600;">${loc(item, 'label')}</div>
+         <button class='btn good' data-buy='${item.i}' style="width: auto; padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 10px;">🪙 ${item.price}</button>
        </div>`
       ).join('');
     };
@@ -819,18 +837,24 @@ const renderCraft = () => {
   });
 
   // Bug 2 fix: show current material count at top
-  let html = `<div class="synth-resources">${translate('materials').toUpperCase()}: <span class="synth-mats">${st.resources.materials}</span> | ${translate('ammo').toUpperCase()}: <span class="synth-mats">${st.resources.ammo}</span></div>`;
+  let html = `<div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; justify-content: center;">
+    <div class="pill">📦 ${st.resources.materials}</div>
+    <div class="pill">🔋 ${st.resources.ammo}</div>
+  </div>`;
   const renderGroup = (arr, title) => {
     if (!arr || arr.length === 0) return;
-    html += `<h3 style="margin-top:0.5rem;">${title}</h3>`;
+    html += `<div class="sub" style="margin: 1.5rem 0 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem;">${title}</div>`;
     html += arr.map(item => {
-      const costStr = item.ammo > 0 ? `${translate('materials')}: ${item.materials} | ${translate('ammo')}: ${item.ammo}` : `${translate('materials')}: ${item.materials}`;
-      return `<div class='shopItem'>
-      <div>${loc(item, 'label')}
-        <div class='sub'>${loc(item, 'desc')}</div>
-        <div class='sub'>${translate('cost_label', costStr)}</div>
+      const costStr = item.ammo > 0 ? `📦 ${item.materials} | 🔋 ${item.ammo}` : `📦 ${item.materials}`;
+      return `<div class='shopItem' style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin-bottom: 0.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <div style="font-weight: 700; color: var(--primary);">${loc(item, 'label')}</div>
+          <div style="font-size: 0.8rem; opacity: 0.7; margin: 0.2rem 0;">${loc(item, 'desc')}</div>
+          <div style="font-size: 0.75rem; font-weight: 800; color: var(--secondary);">${costStr}</div>
+        </div>
+        <button class='btn good' data-craft='${item.i}' style="width: auto; padding: 0.6rem 1rem; font-size: 0.8rem; border-radius: 10px;">${translate('btn_create')}</button>
       </div>
-      <button class='btn good' data-craft='${item.i}'>${translate('btn_create')}</button>
     </div>`;
     }).join('');
   };
@@ -933,7 +957,11 @@ const startDay = () => {
     GameUI.$('#encounterYes').textContent = translate('btn_search'); GameUI.$('#encounterNo').textContent = translate('btn_ignore');
     st.phase = translate('status_exploring'); Events.emit('ui:show', { id: '#encounterModal', on: true });
   } else {
-    applyReward({ materials: 2 + Math.floor(rng() * 3), caps: 1 + Math.floor(rng() * 2) });
+    const careerBonus = CAREER_LADDER[st.player.careerLevel].bonus;
+    applyReward({ 
+      materials: Math.floor((2 + Math.floor(rng() * 3)) * careerBonus), 
+      caps: Math.floor((1 + Math.floor(rng() * 2)) * careerBonus) 
+    });
     Events.emit('ui:toast', translate('day_calm'));
     Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
   }
@@ -979,8 +1007,12 @@ const finishFight = win => {
 
   let txt = win
     ? (() => {
+      const careerBonus = CAREER_LADDER[st.player.careerLevel].bonus;
       const baseCaps = Math.round(c.enemy.threat * 0.8) + Math.floor(rng() * 5);
-      const r = { materials: 3 + Math.floor(rng() * 5), caps: Math.max(10, baseCaps) };
+      const r = { 
+        materials: Math.floor((3 + Math.floor(rng() * 5)) * careerBonus), 
+        caps: Math.floor(Math.max(10, baseCaps) * careerBonus) 
+      };
       if (rng() < .15) r.food = 1;
       applyReward(r);
       c.lastReward = r;
