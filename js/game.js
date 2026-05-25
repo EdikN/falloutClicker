@@ -188,7 +188,13 @@ const handleBarWoman = (event) => {
       Events.emit('ui:showDialogue', {
         speaker: loc(event, 'speaker'), img: event.img,
         text: loc(event, 'branch_negotiate_success'),
-        choices: [{ text: translate('btn_accept'), action: () => { applyReward({ food: 5, water: 5, ammo: 10 }); st.flags.paidBarWoman = false; } }]
+        choices: [{ text: translate('btn_accept'), action: () => {
+          applyReward({ food: 5, water: 5, ammo: 10 });
+          st.flags.paidBarWoman = false;
+          st.flags.evidenceCount = (st.flags.evidenceCount || 0) + 1;
+          Events.emit('ui:toast', translate('lang') === 'ru' ? 'ПОЛУЧЕНА УЛИКА №2' : 'CLUE #2 OBTAINED');
+          GameState.save();
+        } }]
       });
     } else {
       Events.emit('ui:showDialogue', { speaker: loc(event, 'speaker'), img: event.img, text: translate('bar_woman_negotiate_fail') });
@@ -198,6 +204,9 @@ const handleBarWoman = (event) => {
     if (st.resources.caps < 50) return Events.emit('ui:toast', translate('toast_not_enough_caps', 50));
     st.resources.caps -= 50;
     st.flags.paidBarWoman = true;
+    st.flags.evidenceCount = (st.flags.evidenceCount || 0) + 1;
+    Events.emit('ui:toast', translate('lang') === 'ru' ? 'ПОЛУЧЕНА УЛИКА №2' : 'CLUE #2 OBTAINED');
+    GameState.save();
     Events.emit('ui:showDialogue', { speaker: loc(event, 'speaker'), img: event.img, text: loc(event, 'branch_pay') });
   };
   const fight = () => {
@@ -205,6 +214,9 @@ const handleBarWoman = (event) => {
     const enemy = { name_ru: 'Вышибала из бара', name_en: 'Bar Bouncer', hp: 55, dmg: 10, atk: 3.5, img: 'img/portrait_bar.webp', icon: '[👊]' };
     st.combat.enemy = { ...enemy, maxHp: enemy.hp };
     st.combat.onWin = () => {
+      st.flags.evidenceCount = (st.flags.evidenceCount || 0) + 1;
+      Events.emit('ui:toast', translate('lang') === 'ru' ? 'ПОЛУЧЕНА УЛИКА №2' : 'CLUE #2 OBTAINED');
+      GameState.save();
       Events.emit('ui:showDialogue', { speaker: loc(event, 'speaker'), img: event.img, text: translate('bar_woman_fight_win') });
     };
     beginFight();
@@ -229,6 +241,9 @@ const handleDrifterRescue = (event) => {
     st.player.humanity = Math.min(100, st.player.humanity + 15);
     Events.emit('ui:toast', translate('toast_humanity', '+15'));
     st.combat.onWin = () => {
+      st.flags.evidenceCount = (st.flags.evidenceCount || 0) + 1;
+      Events.emit('ui:toast', translate('lang') === 'ru' ? 'ПОЛУЧЕНА УЛИКА №5' : 'CLUE #5 OBTAINED');
+      GameState.save();
       Events.emit('ui:showDialogue', {
         speaker: translate('drifter_echo'), speaker_en: 'DRIFTER', img: event.img,
         text: loc(event, 'branch_save_success'),
@@ -382,6 +397,7 @@ const handleEnding = () => {
   const st = GameState.get();
   const flags = st.flags || {};
   const humanity = st.player.humanity;
+  const hasEvidence = (flags.evidenceCount || 0) >= 3 || flags.hasEvidence;
 
   if (flags.endingType === 'criminal' || (flags.criminalPath && humanity < 30)) {
     showEnding({
@@ -390,12 +406,31 @@ const handleEnding = () => {
       score: translate('ending_bad_score', Math.round(humanity), st.day)
     });
   }
-  else if (flags.hasEvidence && humanity >= 50) {
-    showEnding({
-      title: translate('ending_mercy_title'),
-      text: translate('ending_mercy_text'),
-      score: translate('ending_mercy_score', Math.round(humanity), st.day)
-    });
+  else if (flags.endingType === 'justice' || (!flags.criminalPath && humanity >= 30)) {
+    if (hasEvidence && humanity >= 50) {
+      showEnding({
+        title: translate('ending_mercy_title'),
+        text: translate('ending_mercy_text'),
+        score: translate('ending_mercy_score', Math.round(humanity), st.day)
+      });
+    }
+    else if (hasEvidence) {
+      showEnding({
+        title: translate('ending_neutral_title'),
+        text: translate('ending_neutral_text'),
+        score: translate('ending_neutral_score', Math.round(humanity), st.day)
+      });
+    }
+    else {
+      // Провал: улик недостаточно, охрана Мэра скручивает вас
+      const title = translate('lang') === 'ru' ? '🚨 КРАХ РАССЛЕДОВАНИЯ' : '🚨 INVESTIGATION CRASH';
+      const text = translate('lang') === 'ru'
+        ? 'У вас не оказалось достаточно улик (нужно как минимум 3), чтобы доказать преступления Мэра в Секторе 4 перед прессой и ОМОНом. Мэр легко назвал вас сумасшедшим бродягой, охрана скрутила вас, стёрла память и запустила новый цикл.'
+        : 'You did not have enough evidence (need at least 3) to prove the Mayor\'s crimes in Sector 4 to the press and police. The Mayor easily labeled you a crazy drifter, and his guards wiped your memory, starting a new cycle.';
+      const score = translate('lang') === 'ru' ? `ПРОВАЛ | Улик собрано: ${flags.evidenceCount || 0}/3 | ДЕНЬ ${st.day}` : `FAILURE | Clues collected: ${flags.evidenceCount || 0}/3 | DAY ${st.day}`;
+      
+      showEnding({ title, text, score });
+    }
   }
   else {
     showEnding({

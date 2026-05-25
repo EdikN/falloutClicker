@@ -24,6 +24,7 @@ except ImportError:
 # --- Настройки ---
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 IMG_DIR = os.path.join(PROJECT_ROOT, "img")
+PUBLIC_IMG_DIR = os.path.join(PROJECT_ROOT, "public", "img")
 BACKUP_DIR = os.path.join(PROJECT_ROOT, "imgOld")
 WEBP_QUALITY = 90
 
@@ -33,6 +34,7 @@ FILES_TO_PATCH = [
     os.path.join(PROJECT_ROOT, "styles.css"),
     os.path.join(PROJECT_ROOT, "js", "data.js"),
     os.path.join(PROJECT_ROOT, "js", "game.js"),
+    os.path.join(PROJECT_ROOT, "js", "data", "story.js"),
 ]
 
 
@@ -68,10 +70,12 @@ def convert_to_webp(png_files: list[str]):
     converted = []
     errors = []
 
+    os.makedirs(PUBLIC_IMG_DIR, exist_ok=True)
+
     for fname in png_files:
         src_path = os.path.join(IMG_DIR, fname)
         webp_name = os.path.splitext(fname)[0] + ".webp"
-        dst_path = os.path.join(IMG_DIR, webp_name)
+        dst_path = os.path.join(PUBLIC_IMG_DIR, webp_name)
 
         try:
             with Image.open(src_path) as img:

@@ -154,10 +154,10 @@ export const GameUI = (() => {
     DOM.thirstFill.style.transform = `scaleX(${clamp(p.thirst / p.maxThirst, 0, 1)})`;
 
     const ARMOR_IMAGES = {
-      'none': 'img/char_base.png',
-      'light': 'img/char_light.png',
-      'medium': 'img/char_leather.png',
-      'heavy': 'img/char_suit.png'
+      'none': 'img/char_base.webp',
+      'light': 'img/char_light.webp',
+      'medium': 'img/char_leather.webp',
+      'heavy': 'img/char_suit.webp'
     };
     if (DOM.charImg) {
       const currentArmor = p.armorId || 'none';
@@ -210,14 +210,14 @@ export const GameUI = (() => {
       if (atkFill) atkFill.style.transform = `scaleX(${clamp(cdPerc, 0, 1)})`;
 
       if (p.atkCd > 0) {
+        DOM.atk.firstChild.textContent = `${translate('atk').toUpperCase()} [${p.atkCd.toFixed(1)}s]`;
         if (!DOM.atk.classList.contains('is-cd')) {
-          DOM.atk.firstChild.textContent = translate('dodge').toUpperCase();
           DOM.atk.classList.add('is-cd');
           DOM.atk.disabled = true;
         }
       } else {
         if (DOM.atk.classList.contains('is-cd')) {
-          DOM.atk.firstChild.textContent = translate('atk');
+          DOM.atk.firstChild.textContent = translate('atk').toUpperCase();
           DOM.atk.classList.remove('is-cd');
           DOM.atk.disabled = false;
         }
@@ -305,11 +305,19 @@ export const GameUI = (() => {
       if (onComplete) onComplete();
       return;
     }
-    el.innerHTML = ''; let i = 0;
+    el.innerHTML = '';
+    let i = 0;
+    let lastSoundTime = 0;
+    const charsPerTick = 4;
     const tick = () => {
       if (i < text.length) {
-        el.innerHTML += text.charAt(i); i++;
-        if (i % 3 === 0) SoundManager.play('hover');
+        el.innerHTML += text.substr(i, charsPerTick);
+        i += charsPerTick;
+        const now = Date.now();
+        if (now - lastSoundTime > 90) {
+          SoundManager.play('hover');
+          lastSoundTime = now;
+        }
         setTimeout(tick, speed);
       } else if (onComplete) onComplete();
     };
@@ -334,7 +342,7 @@ export const GameUI = (() => {
     choicesCont.style.display = choices.length ? 'grid' : 'none';
 
     show('#storyModal', true);
-    typeText($('#storyText'), actualText, 15, () => {
+    typeText($('#storyText'), actualText, 8, () => {
       okBtn.disabled = false;
       if (choices.length) {
         choices.forEach(c => {

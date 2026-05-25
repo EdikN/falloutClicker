@@ -24,7 +24,8 @@ export const GameState = (() => {
       drifterMet: 0,            // Счётчик встреч с Бродягой
       cartographerMet: false,   // Встретил Картографа
       amazonImplant: false,     // Получил имплант Амазонки (убил её)
-      endingReached: false      // Финал достигнут
+      endingReached: false,     // Финал достигнут
+      evidenceCount: 0          // Количество собранных улик против Мэра
     },
 
     // === МОНЕТИЗАЦИЯ ===
