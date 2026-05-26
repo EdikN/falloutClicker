@@ -19,7 +19,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 10, speaker: 'ОБРЫВОК ГАЗЕТЫ', speaker_en: 'SCRAP OF PAPER', img: 'img/event_abandoned_office.webp',
+    day: 10, speaker: 'ОБРЫВОК ГАЗЕТЫ', speaker_en: 'SCRAP OF PAPER', img: 'img/event_newspaper.webp',
     text_ru: 'Ветер швыряет вам в лицо мокрую страницу из корпоративного вестника «Иерихона». На главной полосе — Мэр Артёмов объявляет о закрытии проекта Сектора 4 и «исчезновении» его основателя Андрея Данилова. «Будущее города под контролем Мэрии», гласит подпись.',
     text_en: 'The wind throws a wet page from the "Jericho" corporate bulletin into your face. On the front page — Mayor Artyomov announces the shutdown of the Sector 4 project and the "disappearance" of its founder Andrey Danilov. "The city\'s future is under Mayor\'s control," reads the caption.',
     choices: [
@@ -28,7 +28,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 20, speaker: 'СТАРЫЙ ЗНАКОМЫЙ', speaker_en: 'OLD ACQUAINTANCE', img: 'img/char_semyon.webp',
+    day: 20, speaker: 'СТАРЫЙ ЗНАКОМЫЙ', speaker_en: 'OLD ACQUAINTANCE', img: 'img/char_head_of_security.webp',
     text_ru: 'Мимо проходит бездомный, в котором вы узнаете своего бывшего начальника службы безопасности «Иерихона». Он смотрит на вас, в ужасе расширяя глаза: «Директор Данилов? Но вас же ликвидировали в лаборатории памяти...» — и тут же убегает.',
     text_en: 'A homeless man passes by, and you recognize your former "Jericho" head of security. He looks at you, eyes widening in horror: "Director Danilov? But you were liquidated in the memory lab..." — and immediately runs away.',
     choices: [
@@ -58,7 +58,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 40, speaker: 'ПОТЕРЯННЫЙ КОШЕЛЕК', speaker_en: 'LOST WALLET', img: 'img/event_port.webp',
+    day: 40, speaker: 'ПОТЕРЯННЫЙ КОШЕЛЕК', speaker_en: 'LOST WALLET', img: 'img/event_wallet.webp',
     text_ru: 'В сточной канаве у роскошного КПП Сектора 4 вы находите кожаное портмоне. Внутри — 100 рублей и электронная визитка вашего бывшего корпоративного конкурента, ныне работающего на Мэра.',
     text_en: 'In a gutter near the luxurious Sector 4 checkpoint, you find a leather wallet. Inside is 100 rubles and an electronic business card of your former corporate competitor, now working for the Mayor.',
     choices: [
@@ -67,7 +67,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 50, speaker: 'СЛУХИ У КОСТРА', speaker_en: 'CAMPFIRE RUMORS', img: 'img/char_semyon.webp',
+    day: 50, speaker: 'СЛУХИ У КОСТРА', speaker_en: 'CAMPFIRE RUMORS', img: 'img/event_campfire.webp',
     text_ru: '— Говорят, Князь выжил, — шепчутся бродяги у бочки с огнем. — Он проберется в ядро Сектора 4 и взломает сеть клонирования Мэра. \nОни не знают, что вы стоите рядом с ними.',
     text_en: '— They say the Prince survived, — the drifters whisper by the fire barrel. — He will break into Sector 4 core and hack the Mayor\'s cloning network. \nThey don\'t know you are standing next to them.',
     choices: [
@@ -76,7 +76,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 55, id: 'bar_woman', speaker: 'ОБИЖЕННАЯ ЖЕНЩИНА', speaker_en: 'OFFENDED WOMAN', img: 'img/char_katya.webp',
+    day: 55, id: 'bar_woman', speaker: 'ОБИЖЕННАЯ ЖЕНЩИНА', speaker_en: 'OFFENDED WOMAN', img: 'img/char_lab_technician_female.webp',
     isBranching: true,
     text_ru: 'В неоновом баре вы видите, как крупный вышибала трясет лаборантку за плечи, требуя архивные данные «Иерихона». Она плачет: «Я не знаю коды доступа Сектора 4!»',
     text_en: 'In a neon bar, you see a large bouncer shaking a lab technician by the shoulders, demanding "Jericho" archive data. She is crying: "I don\'t know the Sector 4 access codes!"',
@@ -94,7 +94,7 @@ export const STORY_EVENTS = [
     text_en_win: 'The police cyborg is defeated. You take his decryptor. Now you can hear Sector 4 patrol chatter.'
   },
   {
-    day: 70, speaker: 'УЛИЧНАЯ БАНДА', speaker_en: 'STREET GANG', img: 'img/char_gang_leader.webp',
+    day: 70, speaker: 'УЛИЧНАЯ БАНДА', speaker_en: 'STREET GANG', img: 'img/char_street_gang.webp',
     text_ru: 'Трое уличных рейдеров в неоновых масках преграждают вам дорогу: — Слышь, дед, за проход по нашей свалке надо платить. Или рубли на бочку, или твоя печень пойдет на запчасти.',
     text_en: 'Three street raiders in neon masks block your path: — Hey old man, you gotta pay to cross our junkyard. Either rubles on the barrel, or your liver will go for spare parts.',
     choices: [
@@ -109,7 +109,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 80, speaker: 'СТАРЫЙ СОПЕРНИК', speaker_en: 'OLD RIVAL', img: 'img/char_mayor.webp',
+    day: 80, speaker: 'СТАРЫЙ СОПЕРНИК', speaker_en: 'OLD RIVAL', img: 'img/char_deputy.webp',
     text_ru: 'Через КПП Сектора 4 проезжает бронированный лимузин. В окне вы видите своего бывшего заместителя, который помог Мэру уничтожить вас. Он попивает дорогой синтетический напиток.',
     text_en: 'An armored limousine passes through the Sector 4 checkpoint. In the window, you see your former deputy who helped the Mayor destroy you. He is sipping an expensive synthetic drink.',
     choices: [
@@ -118,7 +118,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 90, speaker: 'НОЧНОЙ КИОСК', speaker_en: 'NIGHT KIOSK', img: 'img/event_port.webp',
+    day: 90, speaker: 'НОЧНОЙ КИОСК', speaker_en: 'NIGHT KIOSK', img: 'img/event_kiosk.webp',
     text_ru: 'Продавец корпоративного киоска «Иерихона» уснул, оставив окно открытым. На прилавке лежат чистые карты памяти и медикаменты.',
     text_en: 'The "Jericho" corporate kiosk clerk fell asleep, leaving the window open. Blank memory cards and meds are lying on the counter.',
     choices: [
@@ -174,7 +174,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 130, speaker: 'ТАЙНОЕ ПОСЛАНИЕ', speaker_en: 'SECRET MESSAGE', img: 'img/char_katya.webp',
+    day: 130, speaker: 'ТАЙНОЕ ПОСЛАНИЕ', speaker_en: 'SECRET MESSAGE', img: 'img/event_secret_note.webp',
     text_ru: 'Под вашим матрасом вы находите записку. «Князь, мы знаем, что ты жив. Соберись. В Секторе 4 готовится что-то страшное. Мэр Артёмов хочет полностью выжечь Внешнее Кольцо».',
     text_en: 'Under your mattress, you find a note. "Prince, we know you are alive. Get ready. Something terrible is being prepared in Sector 4. Mayor Artyomov wants to burn down the Outer Ring entirely."',
     choices: [
@@ -183,7 +183,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 140, speaker: 'ПОДПОЛЬНЫЙ БОЙ', speaker_en: 'UNDERGROUND FIGHT', img: 'img/char_shark.webp',
+    day: 140, speaker: 'ПОДПОЛЬНЫЙ БОЙ', speaker_en: 'UNDERGROUND FIGHT', img: 'img/char_queen_of_streets.webp',
     text_ru: 'Вас приглашают на закрытый турнир в коллекторах. Ставки — еда, патроны и жизнь. Вы выходите на арену против огромной «Королевы улиц» — синта-дезертира.',
     text_en: 'You are invited to a closed tournament in the sewers. Stakes — food, ammo, and life. You enter the arena against the massive "Street Queen" — a rogue corporate synth.',
     isCombat: true, enemyId: 'queen',
@@ -191,7 +191,7 @@ export const STORY_EVENTS = [
     text_en_win: 'The crowd roars. You proved your strength on the streets of the Outer Ring.'
   },
   {
-    day: 145, id: 'drifter_rescue', speaker: 'РАНЕНЫЙ ЛАБОРАНТ', speaker_en: 'WOUNDED TECH', img: 'img/char_hacker.webp',
+    day: 145, id: 'drifter_rescue', speaker: 'РАНЕНЫЙ ЛАБОРАНТ', speaker_en: 'WOUNDED TECH', img: 'img/char_wounded_tech.webp',
     isBranching: true,
     text_ru: 'Вы слышите рык и крики из-за забора. Огромная кибер-собака Мэрии прижала к стене лаборанта «Иерихона» и рвет его одежду. Он не выживет без помощи.',
     text_en: 'You hear a growl and screams from behind the fence. A massive corporate cyber-dog has pinned a "Jericho" lab tech against the wall. He won\'t survive without help.',
@@ -217,7 +217,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 160, speaker: 'ВЗЛОМ СЕТИ', speaker_en: 'NETWORK BREACH', img: 'img/event_abandoned_office.webp',
+    day: 160, speaker: 'ВЗЛОМ СЕТИ', speaker_en: 'NETWORK BREACH', img: 'img/event_network_breach.webp',
     text_ru: 'Если у вас в команде есть хакер, вы можете попытаться проникнуть в защищенную сеть Мэрии для поиска планов ОМОНа.',
     text_en: 'If you have a hacker in your team, you can try to breach the Mayor\'s secure network to look for police plans.',
     choices: [
@@ -262,7 +262,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 200, speaker: 'ПОКУШЕНИЕ', speaker_en: 'ASSASSINATION ATTEMPT', img: 'img/char_shark.webp',
+    day: 200, speaker: 'ПОКУШЕНИЕ', speaker_en: 'ASSASSINATION ATTEMPT', img: 'img/event_assassins.webp',
     text_ru: 'Двое элитных наемных убийц корпорации настигают вас в переулке. Мэр Артёмов понял, что вы подобрались слишком близко к тайнам Сектора 4.',
     text_en: 'Two elite corporate assassins catch up with you in an alley. Mayor Artyomov realized you got too close to Sector 4 secrets.',
     isCombat: true, enemyId: 'assassin',
@@ -278,7 +278,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 215, id: 'cartographer', speaker: 'КАРТОГРАФ', speaker_en: 'CARTOGRAPHER', img: 'img/char_hacker.webp',
+    day: 215, id: 'cartographer', speaker: 'КАРТОГРАФ', speaker_en: 'CARTOGRAPHER', img: 'img/char_cartographer.webp',
     isBranching: true,
     text_ru: 'Странный человек в плаще, обвешанном схемами вентиляции, преграждает вам путь: «Я знаю все туннели Сектора 4. Хочешь обойти охранные турели Мэра?»',
     text_en: 'A strange man in a coat covered in ventilation blueprints blocks your path: "I know all the Sector 4 tunnels. Want to bypass the Mayor\'s security turrets?"',
@@ -314,7 +314,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 230, speaker: 'ВЕРБОВКА', speaker_en: 'RECRUITMENT', img: 'img/char_shark.webp',
+    day: 230, speaker: 'ВЕРБОВКА', speaker_en: 'RECRUITMENT',
     text_ru: 'С помощью ресурсов из порта вы можете нанять уличных киборгов в свою личную кибер-банду, чтобы штурмовать Мэрию.',
     text_en: 'Using resources from the port, you can hire street cyborgs into your personal cyber-gang to storm City Hall.',
     choices: [
@@ -332,7 +332,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 240, speaker: 'ПРОТЕСТЫ', speaker_en: 'PROTESTS', img: 'img/char_guard.webp',
+    day: 240, speaker: 'ПРОТЕСТЫ', speaker_en: 'PROTESTS',
     text_ru: 'Тысячи бездомных вышли к границам Сектора 4, требуя прекратить чипирование. Корпоративный спецназ ОМОН готовится к жесткому разгону.',
     text_en: 'Thousands of drifters marched to the borders of Sector 4, demanding an end to chip implants. Corporate Riot Police are preparing for a violent dispersal.',
     choices: [
@@ -361,7 +361,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 260, speaker: 'ЛОГОВО В ПОДЗЕМЕЛЬЕ', speaker_en: 'SEWER HIDEOT', img: 'img/event_abandoned_office.webp',
+    day: 260, speaker: 'ЛОГОВО В ПОДЗЕМЕЛЬЕ', speaker_en: 'SEWER HIDEOT',
     text_ru: 'Вы закрепились в заброшенном техническом бункере под Сектором 4. Все системы готовы для финального проникновения к Мэру.',
     text_en: 'You secured a base in an abandoned technical bunker beneath Sector 4. All systems are ready for the final infiltration to the Mayor.',
     choices: [
@@ -397,7 +397,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 280, speaker: 'САБОТАЖ ГАЛА-УЖИНА', speaker_en: 'GALA SABOTAGE', img: 'img/event_office.webp',
+    day: 280, speaker: 'САБОТАЖ ГАЛА-УЖИНА', speaker_en: 'GALA SABOTAGE',
     text_ru: 'Мэр устраивает банкет для инвесторов. Вы можете отравить вентиляцию токсином или украсть главную ключ-карту доступа к лифту личного кабинета Мэра.',
     text_en: 'The Mayor is hosting a banquet for investors. You can poison the ventilation with toxin or steal the main keycard for the Mayor\'s private office elevator.',
     choices: [
@@ -406,7 +406,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 290, speaker: 'СОН О ПРОШЛОМ', speaker_en: 'DREAM OF PAST', img: 'img/event_abandoned_office.webp',
+    day: 290, speaker: 'СОН О ПРОШЛОМ', speaker_en: 'DREAM OF PAST', img: 'img/event_office.webp',
     text_ru: 'Вам снится ваша семья. Вы еще директор «Иерихона», вы еще человек. Проснувшись на ржавом матрасе, вы понимаете: пути назад нет.',
     text_en: 'You dream of your family. You are still the Director of "Jericho", you are still human. Waking up on a rusty mattress, you realize: there is no turning back.',
     choices: [
@@ -414,7 +414,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 300, speaker: 'СБОР ЛЕЙТЕНАНТОВ', speaker_en: 'GATHERING LIEUTENANTS', img: 'img/char_shark.webp',
+    day: 300, speaker: 'СБОР ЛЕЙТЕНАНТОВ', speaker_en: 'GATHERING LIEUTENANTS',
     text_ru: 'Ваша уличная армия киборгов готова. Вы стоите на ящике перед толпой во Внешнем Кольце: «Завтра мы вернем себе Сектор 4!»',
     text_en: 'Your street cyborg army is ready. You stand on a crate before the crowd in the Outer Ring: "Tomorrow we take back Sector 4!"',
     choices: [
@@ -422,7 +422,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 310, speaker: 'ПОЖАР В ТРУЩОБАХ', speaker_en: 'SLUM FIRE', img: 'img/event_abandoned_office.webp',
+    day: 310, speaker: 'ПОЖАР В ТРУЩОБАХ', speaker_en: 'SLUM FIRE',
     text_ru: 'Мэр отдал приказ выжечь Внешнее Кольцо. Тысячи жителей в ловушке. Ваш бункер горит.',
     text_en: 'The Mayor ordered to burn down the Outer Ring. Thousands of residents are trapped. Your bunker is burning.',
     choices: [
@@ -431,7 +431,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 320, speaker: 'ОСАДА', speaker_en: 'SIEGE', img: 'img/char_petrenko.webp',
+    day: 320, speaker: 'ОСАДА', speaker_en: 'SIEGE',
     text_ru: 'Весь район окружен силами безопасности Мэра. Роботы и киборги прочесывают руины. Вы зажаты в депо.',
     text_en: 'The entire district is surrounded by the Mayor\'s security forces. Robots and cyborgs comb the ruins. You are pinned down in the depot.',
     isCombat: true, enemyId: 'security',
@@ -455,7 +455,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 350, speaker: 'МЭР АРТЁМОВ', speaker_en: 'MAYOR ARTYOMOV', img: 'img/event_office.webp',
+    day: 350, speaker: 'МЭР АРТЁМОВ', speaker_en: 'MAYOR ARTYOMOV', img: 'img/char_mayor.webp',
     text_ru: 'Финал. Вы в его роскошном кабинете. Мэр оборачивается, ухмыляясь: «Ты пришел посадить меня с помощью своих улик? Или пришел убить меня и занять это теплое кресло корпорации «Иерихон»?»',
     text_en: 'The finale. You are in his luxurious office. The Mayor turns around, smirking: "Did you come to jail me with your evidence? Or did you come to kill me and take this warm seat of the "Jericho" corporation?"',
     choices: [

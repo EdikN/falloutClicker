@@ -20,12 +20,12 @@ export const ENEMIES = [
   ];
 
   export const STORY_ENEMIES = {
-    thug: { name_ru: 'Сержант Петренко', name_en: 'Sergeant Petrenko', hp: 100, dmg: 12, atk: 3.5, armor: 0.1, img: 'img/char_petrenko.webp', icon: '👮' },
-    queen: { name_ru: 'Королева улиц', name_en: 'Street Queen', hp: 250, dmg: 32, atk: 2.5, armor: 0.2, img: 'img/char_gang_leader.webp', icon: '👑' },
-    boss_mayor: { name_ru: 'Мэр Артёмов (БОСС)', name_en: 'Mayor Artyomov (BOSS)', hp: 600, dmg: 50, atk: 2.2, armor: 0.45, img: 'img/char_mayor.webp', icon: '🏛️' },
-    security: { name_ru: 'Личная охрана Мэра', name_en: 'Mayor\'s Security', hp: 150, dmg: 18, atk: 3.0, armor: 0.2, img: 'img/char_guard.webp', icon: '🕶️' },
-    assassin: { name_ru: 'Наемный убийца', name_en: 'Assassin', hp: 120, dmg: 35, atk: 2.0, armor: 0.1, img: 'img/char_shark.webp', icon: '🗡️' },
-    riot_squad: { name_ru: 'Отряд ОМОН', name_en: 'Riot Squad', hp: 200, dmg: 20, atk: 4.0, armor: 0.3, img: 'img/char_guard.webp', icon: '🛡️' },
-    guard_dog: { name_ru: 'Служебный пес', name_en: 'Guard Dog', hp: 80, dmg: 25, atk: 2.5, img: 'img/enemy_cyber_dog.webp', icon: '🐕' },
-    drifter_enemy: { name_ru: 'Дикая кибер-собака', name_en: 'Feral Cyber-Dog', hp: 60, dmg: 8, atk: 2.5, img: 'img/enemy_cyber_dog.webp', icon: '🐕' }
+    thug: { name_ru: 'Сержант Петренко', name_en: 'Sergeant Petrenko', hp: 100, dmg: 10, baseDmg: 10, atk: 3.5, armor: 0.1, img: 'img/char_petrenko.webp', icon: '👮' },
+    queen: { name_ru: 'Королева улиц', name_en: 'Street Queen', hp: 250, dmg: 20, baseDmg: 20, atk: 2.5, armor: 0.2, img: 'img/char_gang_leader.webp', icon: '👑' },
+    boss_mayor: { name_ru: 'Мэр Артёмов (БОСС)', name_en: 'Mayor Artyomov (BOSS)', hp: 600, dmg: 35, baseDmg: 35, atk: 2.2, armor: 0.45, img: 'img/char_mayor.webp', icon: '🏗️' },
+    security: { name_ru: 'Личная охрана Мэра', name_en: 'Mayor\'s Security', hp: 150, dmg: 14, baseDmg: 14, atk: 3.0, armor: 0.2, img: 'img/char_guard.webp', icon: '🕶️' },
+    assassin: { name_ru: 'Наемный убийца', name_en: 'Assassin', hp: 120, dmg: 22, baseDmg: 22, atk: 2.0, armor: 0.1, img: 'img/char_shark.webp', icon: '🗡️' },
+    riot_squad: { name_ru: 'Отряд ОМОН', name_en: 'Riot Squad', hp: 200, dmg: 16, baseDmg: 16, atk: 4.0, armor: 0.3, img: 'img/char_guard.webp', icon: '🛡️' },
+    guard_dog: { name_ru: 'Служебный пес', name_en: 'Guard Dog', hp: 80, dmg: 16, baseDmg: 16, atk: 2.5, img: 'img/enemy_cyber_dog.webp', icon: '🐕' },
+    drifter_enemy: { name_ru: 'Дикая кибер-собака', name_en: 'Feral Cyber-Dog', hp: 60, dmg: 8, baseDmg: 8, atk: 2.5, img: 'img/enemy_cyber_dog.webp', icon: '🐕' }
   };

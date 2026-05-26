@@ -146,7 +146,7 @@ export const PlaygamaSDK = (() => {
 
   // --- Реклама за награду ---
   // onRewarded вызывается ТОЛЬКО когда state === 'rewarded'
-  const showRewarded = (placement, onRewarded) => {
+  const showRewarded = (placement, onRewarded, onFailed) => {
     if (!bridgeReady || !window.bridge) {
       // В dev-режиме без моста — всегда даём награду
       if (onRewarded) onRewarded();
@@ -158,11 +158,16 @@ export const PlaygamaSDK = (() => {
       return;
     }
 
+    let _rewardCalled = false;
     const handler = (state) => {
-      if (state === 'rewarded') {
+      if (state === 'rewarded' && !_rewardCalled) {
+        _rewardCalled = true;
         if (onRewarded) onRewarded();
       }
       if (state === 'closed' || state === 'failed') {
+        if (state === 'failed' && !_rewardCalled) {
+          if (onFailed) onFailed();
+        }
         try {
           window.bridge.advertisement.off(window.bridge.EVENT_NAME.REWARDED_STATE_CHANGED, handler);
         } catch (_) { }

@@ -34,6 +34,20 @@
 
   --font-mono: 'Space Mono', monospace;
   --font-sans: 'Outfit', sans-serif;
+
+  /* Stacking Context (Z-Indices) */
+  --z-bg-base: -4;
+  --z-bg-grid: -3;
+  --z-bg-rain: -2;
+  --z-page: 2;
+  --z-hud-base: 5;
+  --z-hud-stage: 6;
+  --z-hud-char: 8;
+  --z-hud-floating: 10;
+  --z-hud-header: 12;
+  --z-hud-nav: 15;
+  --z-toast: 100;
+  --z-overlay: 200;
 }
 
 /* GLOBAL SETUP */
@@ -75,7 +89,7 @@ h1, h2, h3, h4, .user-role, .day-tag, .goal-tag, .slot-label, .slot-val, .tab-la
   inset: 0;
   background-image: linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
   background-size: 30px 30px;
-  z-index: -3;
+  z-index: var(--z-bg-grid);
   pointer-events: none;
 }
 
@@ -85,7 +99,7 @@ h1, h2, h3, h4, .user-role, .day-tag, .goal-tag, .slot-label, .slot-val, .tab-la
   background: radial-gradient(circle at center, #0d1515 0%, #081010 100%), url('/img/background.webp');
   background-size: cover;
   background-position: center;
-  z-index: -4;
+  z-index: var(--z-bg-base);
   filter: grayscale(0.3) contrast(1.15) brightness(0.45);
 }
 
@@ -95,7 +109,7 @@ h1, h2, h3, h4, .user-role, .day-tag, .goal-tag, .slot-label, .slot-val, .tab-la
   inset: 0;
   background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 243, 255, 0.02) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.005), rgba(0, 255, 0, 0.002), rgba(0, 0, 255, 0.005));
   background-size: 100% 4px, 6px 100%;
-  z-index: -2;
+  z-index: var(--z-bg-rain);
   pointer-events: none;
   opacity: 0.8;
 }
@@ -124,7 +138,7 @@ h1, h2, h3, h4, .user-role, .day-tag, .goal-tag, .slot-label, .slot-val, .tab-la
   flex-direction: column;
   justify-content: space-between;
   gap: 0.5rem;
-  z-index: 2;
+  z-index: var(--z-page);
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
@@ -151,7 +165,7 @@ h1, h2, h3, h4, .user-role, .day-tag, .goal-tag, .slot-label, .slot-val, .tab-la
   justify-content: space-between;
   align-items: center;
   position: relative;
-  z-index: 10;
+  z-index: var(--z-hud-header);
 }
 
 @media (min-width: 1024px) {
@@ -317,7 +331,7 @@ h1, h2, h3, h4, .user-role, .day-tag, .goal-tag, .slot-label, .slot-val, .tab-la
   box-shadow: var(--panel-shadow);
   display: flex;
   transition: all 0.3s ease;
-  z-index: 5;
+  z-index: var(--z-hud-base);
 }
 
 /* LEFT Resource Pod */
@@ -532,7 +546,7 @@ button.pill-btn:active {
   align-items: center;
   min-height: 250px;
   position: relative;
-  z-index: 6;
+  z-index: var(--z-hud-stage);
   width: 100%;
 }
 
@@ -547,7 +561,7 @@ button.pill-btn:active {
 /* CINEMATIC OBJECTIVE CARD STRIP */
 .objective-card-wrapper {
   width: 100%;
-  z-index: 10;
+  z-index: var(--z-hud-floating);
   padding: 0 0.2rem;
 }
 
@@ -626,7 +640,7 @@ button.pill-btn:active {
   border: none;
   outline: none;
   cursor: pointer;
-  z-index: 3;
+  z-index: var(--z-hud-char);
   width: 100%;
   height: 100%;
   display: flex;
@@ -670,7 +684,7 @@ button.pill-btn:active {
   align-items: center;
   gap: 0.4rem;
   width: 100%;
-  z-index: 10;
+  z-index: var(--z-hud-floating);
 }
 
 .action-btn-glowing {
@@ -745,7 +759,7 @@ button.pill-btn:active {
   justify-content: space-around;
   align-items: center;
   padding: 0 0.5rem env(safe-area-inset-bottom, 0px) 0.5rem;
-  z-index: 1005;
+  z-index: var(--z-hud-nav);
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.85);
   transition: all 0.3s ease;
 }
@@ -834,8 +848,9 @@ button.pill-btn:active {
   display: none;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-overlay);
   padding: 1rem;
+  overflow-y: auto;
 }
 
 
@@ -858,6 +873,7 @@ button.pill-btn:active {
   z-index: 5;
   width: 100%;
   max-width: 380px;
+  margin: auto; /* Centers the modal and allows scrolling if taller than screen */
   background: var(--glass-border);
   border-radius: 0px; /* Sharp tactical edges */
   padding: 1.5rem;
@@ -906,7 +922,8 @@ button.pill-btn:active {
   width: 100%;
   max-height: 160px;
   border-radius: 4px;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: var(--bg-darker);
   border: 1px solid rgba(0, 243, 255, 0.2);
   box-shadow: 0 6px 16px rgba(0,0,0,0.65);
 }
@@ -1247,7 +1264,7 @@ button.pill-btn:active {
   align-items: center;
   gap: 0.4rem;
   pointer-events: none;
-  z-index: 10000;
+  z-index: var(--z-toast);
 }
 
 .toast {
@@ -2096,7 +2113,8 @@ button.pill-btn:active {
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
-  object-fit: cover;
+  object-fit: contain;
+  background-color: var(--bg-darker);
   transition: transform 0.3s ease;
 }
 
@@ -2141,7 +2159,8 @@ button.pill-btn:active {
   width: 100%;
   max-height: 160px;
   border-radius: 12px;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: var(--bg-darker);
   border: 1px solid var(--glass-border);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
   margin-bottom: 0.5rem;

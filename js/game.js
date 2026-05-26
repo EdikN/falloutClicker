@@ -548,14 +548,33 @@ const showEnding = ({ title, text, score }) => {
 };
 
 // --- НОВЫЙ ПРОТИВНИК ---
+// Нелинейная формула урона через броню:
+// Вместо dmg*(1-ac), используем dmg / (1 + ac*K), где K=3.5 для heavy
+// heavy(0.45): делитель = 1 + 0.45*3.5 = 2.575 → урон/2.57 вместо /1.82
+// Минимальный урон = 5% от базового dmg врага (не захардкоденная 1)
+export const calcIncomingDmg = (rawDmg, armorClass, baseEnemyDmg) => {
+  if (!armorClass || armorClass <= 0) return rawDmg;
+  const K = 3.5; // коэффициент нелинейности
+  const reduced = rawDmg / (1 + armorClass * K);
+  // Минимум = 5% от базового dmg врага, но не больше 3
+  const minDmg = Math.max(1, Math.floor((baseEnemyDmg || rawDmg) * 0.05));
+  return Math.max(minDmg, Math.round(reduced));
+};
+
 const newEnemy = elite => {
   const st = GameState.get(), base = pick(elite ? GameData.ELITE_ENEMIES : GameData.ENEMIES);
-  const scale = elite
+  // Cap масштабирования: рост замедляется после дня 100, чтобы не делать боссов one-shot убийцами
+  const rawScale = elite
     ? (1 + Math.pow(st.day / 12, 1.25))
     : (1 + Math.pow(st.day / 15, 1.15));
-  const maxHp = Math.round(base.hp * scale);
-  const dmg = Math.round(base.dmg * scale);
-  return { ...base, elite, maxHp, hp: maxHp, dmg, threat: Math.round(maxHp / 8 + dmg * 1.5) };
+  // Мягкий cap: HP масштабируется полностью, урон — ограничен
+  const hpScale = rawScale;
+  const dmgScale = elite
+    ? Math.min(rawScale, 1 + Math.pow(Math.min(st.day, 100) / 12, 1.1))
+    : Math.min(rawScale, 1 + Math.pow(Math.min(st.day, 120) / 15, 1.05));
+  const maxHp = Math.round(base.hp * hpScale);
+  const dmg = Math.round(base.dmg * dmgScale);
+  return { ...base, elite, maxHp, hp: maxHp, dmg, baseDmg: base.dmg, threat: Math.round(maxHp / 8 + dmg * 1.5) };
 };
 
 const checkAdEvents = () => {
@@ -1130,9 +1149,12 @@ const gameTick = ts => {
   if (c.enemyAtk <= 0) {
     if (c.dodge > 0) { Events.emit('ui:toast', translate('dodge_success')); }
     else {
-      let dmg = e.dmg;
-      if (p.armorClass) dmg = Math.round(dmg * (1 - p.armorClass));
-      p.hp -= Math.max(1, dmg);
+      // Нелинейная формула: dmg / (1 + armorClass * 3.5)
+      // heavy(0.45): ~2.57x снижение. linear было только 1.82x
+      const rawDmg = e.dmg;
+      const baseDmg = e.baseDmg || rawDmg;
+      const finalDmg = calcIncomingDmg(rawDmg, p.armorClass, baseDmg);
+      p.hp -= finalDmg;
       p.mood = Math.max(0, p.mood - 1); Events.emit('ui:triggerDamage');
       if (p.hp <= 0) { defeat(`${translate('liquidated')}: ${loc(e, 'name').toUpperCase()}`); return; }
     }
@@ -1233,10 +1255,18 @@ GameUI.$('#reviveBtn').onclick = () => {
 
 GameUI.$('#doubleRewardBtn').onclick = () => {
   if (window.PlaygamaSDK) {
-    window.PlaygamaSDK.showRewarded('double_loot', () => {
-      const r = GameState.get().combat.lastReward;
-      if (r) { applyReward(r); Events.emit('ui:toast', translate('toast_loot_doubled')); GameUI.$('#doubleRewardBtn').style.display = 'none'; }
-    });
+    GameUI.$('#doubleRewardBtn').style.display = 'none'; // защита от двойного клика
+    window.PlaygamaSDK.showRewarded(
+      'double_loot',
+      () => {
+        const r = GameState.get().combat.lastReward;
+        if (r) { applyReward(r); Events.emit('ui:toast', translate('toast_loot_doubled')); }
+      },
+      () => {
+        // реклама не показалась — вернуть кнопку
+        GameUI.$('#doubleRewardBtn').style.display = 'block';
+      }
+    );
   }
 };
 

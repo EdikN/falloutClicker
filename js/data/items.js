@@ -17,7 +17,7 @@ export const WEAPON_STATS = {
     none: { name_ru: 'ЛОХМОТЬЯ', name_en: 'RAGS', hp: 0, armorClass: 0 },
     light: { name_ru: 'ВАТНИК', name_en: 'PADDED JACKET', hp: 25, armorClass: 0.1 },
     medium: { name_ru: 'КОЖАНКА', name_en: 'LEATHER JACKET', hp: 50, armorClass: 0.25 },
-    heavy: { name_ru: 'ДЕЛОВОЙ КОСТЮМ', name_en: 'BUSINESS SUIT', hp: 100, armorClass: 0.45 }
+    heavy: { name_ru: 'ДЕЛОВОЙ КОСТЮМ', name_en: 'BUSINESS SUIT', hp: 150, armorClass: 0.45 }
   };
 
   export const SHOP_ITEMS = [
