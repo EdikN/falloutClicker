@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ru"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>КАРМАНЫ - Инвентарь</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&amp;family=Outfit:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#849495",
+                      "on-error": "#690005",
+                      "surface-container": "#192122",
+                      "error": "#ffb4ab",
+                      "surface-variant": "#2e3637",
+                      "inverse-primary": "#00696f",
+                      "primary-container": "#00f3ff",
+                      "outline-variant": "#3a494b",
+                      "on-tertiary-fixed": "#221b00",
+                      "on-primary-container": "#006b71",
+                      "surface-container-low": "#151d1e",
+                      "surface-dim": "#0d1515",
+                      "tertiary-fixed-dim": "#e8c426",
+                      "on-primary-fixed": "#002022",
+                      "surface-container-high": "#232b2c",
+                      "tertiary-fixed": "#ffe173",
+                      "tertiary-container": "#ffd93d",
+                      "inverse-on-surface": "#2a3232",
+                      "primary-fixed-dim": "#00dce6",
+                      "surface-container-lowest": "#081010",
+                      "on-secondary-fixed-variant": "#6700b5",
+                      "secondary-fixed": "#efdbff",
+                      "on-secondary": "#480081",
+                      "primary": "#e3fdff",
+                      "tertiary": "#fff7e9",
+                      "on-tertiary-fixed-variant": "#554500",
+                      "secondary": "#dcb8ff",
+                      "background": "#0d1515",
+                      "surface": "#0d1515",
+                      "on-tertiary": "#3b2f00",
+                      "on-error-container": "#ffdad6",
+                      "inverse-surface": "#dce4e4",
+                      "on-tertiary-container": "#725e00",
+                      "error-container": "#93000a",
+                      "secondary-container": "#7701d0",
+                      "on-surface": "#dce4e4",
+                      "surface-container-highest": "#2e3637",
+                      "secondary-fixed-dim": "#dcb8ff",
+                      "on-surface-variant": "#b9cacb",
+                      "on-background": "#dce4e4",
+                      "on-secondary-fixed": "#2c0051",
+                      "surface-tint": "#00dce6",
+                      "surface-bright": "#333b3b",
+                      "on-primary": "#00373a",
+                      "primary-fixed": "#6ff6ff",
+                      "on-primary-fixed-variant": "#004f53",
+                      "on-secondary-container": "#dcb7ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "48px",
+                      "xl": "80px",
+                      "md": "24px",
+                      "lg": "48px",
+                      "base": "8px",
+                      "sm": "12px",
+                      "xs": "4px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "label-sm": ["Space Mono"],
+                      "body-lg": ["Outfit"],
+                      "headline-md": ["Space Mono"],
+                      "headline-lg": ["Space Mono"],
+                      "label-lg": ["Space Mono"],
+                      "display-lg": ["Space Mono"],
+                      "body-md": ["Outfit"],
+                      "headline-sm": ["Space Mono"],
+                      "headline-lg-mobile": ["Space Mono"]
+              },
+              "fontSize": {
+                      "label-sm": ["11px", {"lineHeight": "1.0", "letterSpacing": "0.12em", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                      "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                      "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                      "label-lg": ["14px", {"lineHeight": "1.0", "letterSpacing": "0.12em", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400"}],
+                      "headline-sm": ["18px", {"lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["28px", {"lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+      </script>
+<style>
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+        }
+        .neon-text-glow {
+            text-shadow: 0 0 8px rgba(0, 243, 255, 0.8);
+        }
+        .glass-panel {
+            background-color: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(0, 243, 255, 0.16);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen overflow-hidden flex flex-col font-body-md select-none">
+<!-- CRT Overlay -->
+<div class="fixed inset-0 scanlines"></div>
+<!-- Background Image -->
+<div class="fixed inset-0 z-[-1] bg-cover bg-center opacity-30" data-alt="A gritty, dystopian urban alleyway at night. Neon signs reflect in puddles on the cracked concrete. The scene is illuminated by harsh, flickering cyan and magenta lights, creating high contrast against the deep shadows. The atmosphere is dense and atmospheric, perfectly suited for a cyberpunk survival interface." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAamcMi54wZu_ZNbWdmPZlKKfFCzTfBXyUDxIjKQKt5LdLmIKIa-hLqKZ6NxgEreWv3pvZkNfj9tqvMH43dHMAruyGjNZKN1IK25xlgpWgdVHzeAKy6awJbqOBBoodJ_r9FkvL7peWS3wCE4wblFL0KkLisU2HrsMF9IP3EGiLgHqM09ffH23sEncUvAdip09OopK2GZSLXKM7JRaECSxch18DGCNjzC7VAEojZ1ZgqD_AJeLdr1Q6KQS4wlKA4Drqs-X4CX3Bh0EUA');"></div>
+<!-- TopNavBar (Shared Component) -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-mobile py-base bg-surface-container/85 backdrop-blur-[25px] border-b border-primary-container/10 shadow-[0_0_15px_rgba(0,243,255,0.2)]">
+<div class="font-headline-lg-mobile text-primary-container drop-shadow-[0_0_15px_rgba(0,243,255,0.4)]">ИНВЕНТАРЬ</div>
+<div class="flex gap-md text-primary-container">
+<button class="hover:text-primary-container hover:bg-surface-variant/50 transition-all duration-150 p-base rounded min-h-[44px] min-w-[44px] flex items-center justify-center"><span class="material-symbols-outlined">settings</span></button>
+</div>
+</nav>
+<!-- SideNavBar (Shared Component) -->
+<!-- BottomNavBar (Shared Component) - Mobile Only -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-end pb-sm px-margin-mobile bg-surface-container/80 backdrop-blur-[30px] border-t border-primary-container/20 shadow-[0_-5px_20px_rgba(0,243,255,0.3)] rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary-container hover:scale-110 transition-transform font-label-sm text-label-sm w-16 h-[56px]" href="#">
+<span class="material-symbols-outlined mb-xs">home</span>
+<span>Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary-container hover:scale-110 transition-transform font-label-sm text-label-sm w-16 h-[56px]" href="#">
+<span class="material-symbols-outlined mb-xs">shopping_cart</span>
+<span>Market</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary-container drop-shadow-[0_0_8px_rgba(0,243,255,0.8)] brightness-150 font-label-sm text-label-sm w-16 h-[56px]" href="#">
+<span class="material-symbols-outlined mb-xs">inventory_2</span>
+<span>Inventory</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary-container hover:scale-110 transition-transform font-label-sm text-label-sm w-16 h-[56px]" href="#">
+<span class="material-symbols-outlined mb-xs">build</span>
+<span>Workshop</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary-container hover:scale-110 transition-transform font-label-sm text-label-sm w-16 h-[56px]" href="#">
+<span class="material-symbols-outlined mb-xs">map</span>
+<span>Map</span>
+</a>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col pt-[70px] pb-[80px] px-margin-mobile gap-sm relative h-full overflow-y-auto">
+<!-- Categories -->
+<section class="glass-panel w-full flex-shrink-0 relative">
+<div class="absolute top-2 right-2 font-label-sm text-label-sm text-primary-container/50 hidden">ID:CT-01</div>
+<div class="flex flex-row overflow-x-auto hide-scrollbar p-xs gap-xs">
+<button class="bg-primary-container text-on-primary-container border border-primary-container shadow-[0_0_10px_rgba(0,243,255,0.6)] font-label-lg text-label-lg px-md py-sm text-center flex items-center justify-center min-w-[100px] min-h-[44px] group transition-all rounded-sm flex-1">
+<span>ОРУЖИЕ</span>
+</button>
+<button class="bg-transparent text-on-surface-variant border border-transparent hover:border-primary-container/50 hover:bg-surface-variant/30 font-label-lg text-label-lg px-md py-sm text-center flex items-center justify-center min-w-[100px] min-h-[44px] group transition-all rounded-sm flex-1">
+<span>БРОНЯ</span>
+</button>
+<button class="bg-transparent text-on-surface-variant border border-transparent hover:border-primary-container/50 hover:bg-surface-variant/30 font-label-lg text-label-lg px-md py-sm text-center flex items-center justify-center min-w-[100px] min-h-[44px] group transition-all rounded-sm flex-1">
+<span>ВЕЩИ</span>
+</button>
+</div>
+</section>
+<!-- Middle Pane: Item List -->
+<section class="glass-panel w-full flex flex-col relative overflow-hidden flex-shrink-0">
+<div class="absolute top-2 right-2 font-label-sm text-label-sm text-primary-container/50 hidden">ID:IT-LIST</div>
+<div class="p-sm border-b border-primary-container/20 flex justify-between items-center bg-surface-container-high/50">
+<h2 class="font-headline-sm text-headline-sm text-on-surface uppercase tracking-wider">Содержимое</h2>
+<div class="font-label-sm text-label-sm text-on-surface-variant">4 / 12 СЛОТОВ</div>
+</div>
+<div class="flex-1 overflow-y-auto p-xs flex flex-col gap-xs custom-scrollbar">
+<!-- Item: Selected -->
+<div class="border border-primary-container bg-primary-container/10 p-xs flex items-center gap-sm cursor-pointer neon-glow relative group min-h-[72px]">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary-container"></div>
+<div class="w-12 h-12 bg-surface-container border border-primary-container/30 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl text-primary-container">front_hand</span>
+</div>
+<div class="flex-1">
+<div class="font-headline-sm text-[16px] text-primary-container uppercase">ПМ "Искра"</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-xs hidden sm:block">Состояние: 85% | Вес: 0.73 кг</div>
+</div>
+<div class="font-label-sm flex flex-col items-end gap-1">
+<span class="text-primary-container px-2 py-1 bg-primary-container/20 border border-primary-container/50">ЭКИП.</span>
+</div>
+</div>
+<!-- Item: Unselected -->
+<div class="border border-outline-variant/30 bg-surface-container/50 hover:bg-surface-variant/40 p-xs flex items-center gap-sm cursor-pointer transition-colors group min-h-[72px]">
+<div class="w-12 h-12 bg-surface-container border border-outline-variant/50 flex items-center justify-center shrink-0 group-hover:border-primary-container/30 transition-colors">
+<span class="material-symbols-outlined text-2xl text-on-surface-variant group-hover:text-primary-container/80 transition-colors">bomb</span>
+</div>
+<div class="flex-1">
+<div class="font-headline-sm text-[16px] text-on-surface group-hover:text-primary-container transition-colors uppercase">Граната РГД-5</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-xs hidden sm:block">Урон: Осколочный | Вес: 0.31 кг</div>
+</div>
+<div class="font-label-lg text-label-lg text-on-surface-variant/50 group-hover:text-primary-container/50 px-sm py-xs border border-transparent">
+                        X2
+                    </div>
+</div>
+<!-- Item: Unselected -->
+<div class="border border-outline-variant/30 bg-surface-container/50 hover:bg-surface-variant/40 p-xs flex items-center gap-sm cursor-pointer transition-colors group min-h-[72px]">
+<div class="w-12 h-12 bg-surface-container border border-outline-variant/50 flex items-center justify-center shrink-0 group-hover:border-primary-container/30 transition-colors">
+<span class="material-symbols-outlined text-2xl text-on-surface-variant group-hover:text-primary-container/80 transition-colors">hardware</span>
+</div>
+<div class="flex-1">
+<div class="font-headline-sm text-[16px] text-on-surface group-hover:text-primary-container transition-colors uppercase">Монтировка</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-xs hidden sm:block">Состояние: 40% | Вес: 2.5 кг</div>
+</div>
+</div>
+<!-- Item: Unselected -->
+<div class="border border-outline-variant/30 bg-surface-container/50 hover:bg-surface-variant/40 p-xs flex items-center gap-sm cursor-pointer transition-colors group min-h-[72px]">
+<div class="w-12 h-12 bg-surface-container border border-outline-variant/50 flex items-center justify-center shrink-0 group-hover:border-primary-container/30 transition-colors">
+<span class="material-symbols-outlined text-2xl text-on-surface-variant group-hover:text-primary-container/80 transition-colors">kitchen</span>
+</div>
+<div class="flex-1">
+<div class="font-headline-sm text-[16px] text-on-surface group-hover:text-primary-container transition-colors uppercase">Сухпай ИРП-Б</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant mt-xs hidden sm:block">Питательность: Высокая | Вес: 1.5 кг</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Pane: Inspection View -->
+<section class="glass-panel w-full flex flex-col relative overflow-hidden flex-shrink-0">
+<div class="absolute top-2 right-2 font-label-sm text-label-sm text-primary-container/50 hidden">ID:INSP-VW</div>
+<!-- Cinematic Image -->
+<div class="h-32 border-b border-primary-container/20 relative flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1584907600850-258d4a946e30?q=80&amp;w=2070&amp;auto=format&amp;fit=crop')] bg-cover bg-center" data-alt="A macro shot of a sleek, dark metallic handgun lying on a high-tech illuminated surface. The gun has cyan glowing accents along its slide and grip, indicating sci-fi technology. The lighting is dramatic, with deep shadows and harsh highlights emphasizing the weapon's angular geometry. The overall aesthetic is dark, cyberpunk, and dangerous.">
+<div class="absolute inset-0 bg-surface-container/60 backdrop-blur-sm"></div>
+<!-- Holographic projection effect -->
+<div class="relative z-10 text-center animate-pulse">
+<span class="material-symbols-outlined text-[64px] text-primary-container drop-shadow-[0_0_20px_rgba(0,243,255,1)]" style="font-variation-settings: 'FILL' 0, 'wght' 200;">front_hand</span>
+</div>
+</div>
+<div class="p-sm flex-1 flex flex-col overflow-y-auto">
+<h3 class="font-headline-lg text-headline-lg text-primary-container uppercase leading-none neon-text-glow mb-xs">ПМ "Искрa"</h3>
+<div class="font-label-sm text-label-sm text-secondary mb-sm">ТИП: ЛИЧНОЕ ОРУЖИЕ</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 gap-xs mb-sm">
+<div class="bg-surface-container-high p-xs border border-outline-variant/30 flex justify-between items-center">
+<div class="font-label-sm text-[10px] text-on-surface-variant">УРОН</div>
+<div class="font-headline-sm text-[16px] text-on-surface">24 <span class="text-primary-container text-[10px]">КИН</span></div>
+</div>
+<div class="bg-surface-container-high p-xs border border-outline-variant/30 flex justify-between items-center">
+<div class="font-label-sm text-[10px] text-on-surface-variant">ВЕС</div>
+<div class="font-headline-sm text-[16px] text-on-surface">0.73 <span class="text-on-surface-variant text-[10px]">КГ</span></div>
+</div>
+<div class="bg-surface-container-high p-xs border border-outline-variant/30 flex justify-between items-center col-span-2">
+<div class="font-label-sm text-[10px] text-on-surface-variant">ОТДАЧА</div>
+<div class="w-1/2 h-3 flex gap-1">
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container"></div>
+<div class="flex-1 bg-primary-container/30"></div>
+<div class="flex-1 bg-primary-container/30"></div>
+<div class="flex-1 bg-primary-container/30"></div>
+</div>
+</div>
+</div>
+<!-- Equip Action -->
+<div class="mt-auto pt-sm border-t border-primary-container/20">
+<button class="w-full bg-primary-container text-on-primary-container font-headline-sm text-headline-sm uppercase tracking-widest py-sm hover:bg-primary transition-colors neon-glow relative overflow-hidden group min-h-[44px]">
+<div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-200"></div>
+<span class="relative z-10 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">bolt</span>
+                            ЭКИПИРОВАТЬ
+                        </span>
+</button>
+</div>
+</div>
+</section>
+</main>
+<style>
+        /* Custom Scrollbar for list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(46, 54, 55, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 243, 255, 0.5);
+            border-radius: 2px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 243, 255, 0.8);
+        }
+        
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>

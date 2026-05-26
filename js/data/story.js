@@ -76,7 +76,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 55, id: 'bar_woman', speaker: 'ОБИЖЕННАЯ ЖЕНЩИНА', speaker_en: 'OFFENDED WOMAN', img: 'img/portrait_bar.webp',
+    day: 55, id: 'bar_woman', speaker: 'ОБИЖЕННАЯ ЖЕНЩИНА', speaker_en: 'OFFENDED WOMAN', img: 'img/char_katya.webp',
     isBranching: true,
     text_ru: 'В неоновом баре вы видите, как крупный вышибала трясет лаборантку за плечи, требуя архивные данные «Иерихона». Она плачет: «Я не знаю коды доступа Сектора 4!»',
     text_en: 'In a neon bar, you see a large bouncer shaking a lab technician by the shoulders, demanding "Jericho" archive data. She is crying: "I don\'t know the Sector 4 access codes!"',
@@ -191,7 +191,7 @@ export const STORY_EVENTS = [
     text_en_win: 'The crowd roars. You proved your strength on the streets of the Outer Ring.'
   },
   {
-    day: 145, id: 'drifter_rescue', speaker: 'РАНЕНЫЙ ЛАБОРАНТ', speaker_en: 'WOUNDED TECH', img: 'img/portrait_drifter.webp',
+    day: 145, id: 'drifter_rescue', speaker: 'РАНЕНЫЙ ЛАБОРАНТ', speaker_en: 'WOUNDED TECH', img: 'img/char_hacker.webp',
     isBranching: true,
     text_ru: 'Вы слышите рык и крики из-за забора. Огромная кибер-собака Мэрии прижала к стене лаборанта «Иерихона» и рвет его одежду. Он не выживет без помощи.',
     text_en: 'You hear a growl and screams from behind the fence. A massive corporate cyber-dog has pinned a "Jericho" lab tech against the wall. He won\'t survive without help.',
@@ -278,7 +278,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 215, id: 'cartographer', speaker: 'КАРТОГРАФ', speaker_en: 'CARTOGRAPHER', img: 'img/portrait_drifter.webp',
+    day: 215, id: 'cartographer', speaker: 'КАРТОГРАФ', speaker_en: 'CARTOGRAPHER', img: 'img/char_hacker.webp',
     isBranching: true,
     text_ru: 'Странный человек в плаще, обвешанном схемами вентиляции, преграждает вам путь: «Я знаю все туннели Сектора 4. Хочешь обойти охранные турели Мэра?»',
     text_en: 'A strange man in a coat covered in ventilation blueprints blocks your path: "I know all the Sector 4 tunnels. Want to bypass the Mayor\'s security turrets?"',
@@ -406,7 +406,7 @@ export const STORY_EVENTS = [
     ]
   },
   {
-    day: 290, speaker: 'СОН О ПРОШЛОМ', speaker_en: 'DREAM OF PAST', img: 'img/portrait_archive.webp',
+    day: 290, speaker: 'СОН О ПРОШЛОМ', speaker_en: 'DREAM OF PAST', img: 'img/event_abandoned_office.webp',
     text_ru: 'Вам снится ваша семья. Вы еще директор «Иерихона», вы еще человек. Проснувшись на ржавом матрасе, вы понимаете: пути назад нет.',
     text_en: 'You dream of your family. You are still the Director of "Jericho", you are still human. Waking up on a rusty mattress, you realize: there is no turning back.',
     choices: [

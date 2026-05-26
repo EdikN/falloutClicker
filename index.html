@@ -7,12 +7,15 @@
   <title>URBAN SURVIVOR: RISE OF THE HOBO</title>
   <!-- Playgama Bridge SDK -->
   <script src="playgama-bridge.js"></script>
+  <!-- Google Fonts for Cyberpunk Theme -->
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Outfit:wght@100..900&display=swap" rel="stylesheet" />
 </head>
 
 <body>
-  <!-- Mesh gradients ambient layer -->
+  <!-- Ambient & Rain effects -->
   <div id="bg-mesh"></div>
   <div id="bg-layer"></div>
+  <div class="rain-overlay"></div>
   
   <div class="dashboard-container">
     <!-- MODERN HUD HEADER -->
@@ -26,51 +29,80 @@
           <span class="cycle-count" id="deathCount">ПОПЫТОК: 0</span>
         </div>
       </div>
+      
       <div class="header-actions">
+        <button class="btn auth-hud-btn" id="authBtn" style="display: none;" data-i18n="auth_hud_btn">🔑 ВОЙТИ</button>
         <div class="header-pill caps-pill" id="capsTop">🪙 0</div>
         <button class="icon-btn" id="settingsBtn" title="НАСТРОЙКИ">⚙️</button>
       </div>
     </header>
 
-    <!-- MAIN APP SCREEN -->
-    <main class="app">
-      <section class="center">
-        <!-- FLOATING HERO CARD -->
-        <div class="hero-card">
-          <div class="hero-badge-row">
-            <span class="goal-tag" id="currentGoal" data-i18n="goal_survive">[ЦЕЛЬ: ВЫЖИТЬ]</span>
+    <!-- MAIN APP SCREEN (CYBERPUNK HUD GRID) -->
+    <main class="app game-hud-layout">
+      <!-- LEFT SIDE PANEL (RESOURCES POD) -->
+      <section class="side-panel left-panel" id="res">
+        <!-- Generated dynamically in ui.js -->
+      </section>
+
+      <!-- CENTER CHARACTER STAGE -->
+      <section class="center-stage">
+        <!-- Floating Objective/Day Tag -->
+        <div class="objective-card-wrapper">
+          <div class="goal-objective-card">
             <span class="day-tag" id="day">📅 ДЕНЬ 1</span>
+            <span class="goal-tag" id="currentGoal" data-i18n="goal_survive">[ЦЕЛЬ: ВЫЖИТЬ]</span>
           </div>
-          
+        </div>
+
+        <!-- Full-Body Character (Expanded Bounds) -->
+        <div class="character-container">
+          <div class="char-backglow"></div>
           <button id="charBtn">
             <img src="img/person_modern.webp" alt="ВЫЖИВШИЙ" />
           </button>
-          
+        </div>
+
+        <!-- Action Area -->
+        <div class="action-area">
           <div class="active-weapon-tag" id="weaponPill">⚔️ КУЛАКИ</div>
         </div>
 
         <div class="hint" data-i18n="hint_click">КЛИКНИ ПО ГЕРОЮ, ЧТОБЫ ПРОЖИТЬ ДЕНЬ</div>
+      </section>
 
-        <!-- STATS PANEL CARD -->
-        <div class="statusBars" id="statusBars">
-          <!-- Generated dynamically in ui.js -->
-        </div>
-
-        <!-- RESOURCE SLOTS -->
-        <div class="res" id="res"></div>
+      <!-- RIGHT SIDE PANEL (STATS PROGRESS BARS POD) -->
+      <section class="side-panel right-panel" id="statusBars">
+        <!-- Generated dynamically in ui.js -->
       </section>
     </main>
 
-    <!-- FLOATING DOCK NAVIGATION -->
-    <nav class="nav-dock">
-      <button class="dock-btn" id="merchantBtn" data-i18n="btn_merchant">РЫНОК</button>
-      <button class="dock-btn" id="equipBtn" data-i18n="btn_inventory">ИНВЕНТАРЬ</button>
-      <button class="dock-btn" id="craftBtn" data-i18n="btn_synth">КРАФТ</button>
+    <!-- UNIFIED HIGH-TECH CONSOLE SHELF -->
+    <nav class="bottom-nav-shelf">
+      <button class="tab-btn active" id="homeTab" title="ГЛАВНАЯ">
+        <span class="led-indicator"></span>
+        <span class="tab-icon">🏠</span>
+        <span class="tab-label">ГЛАВНАЯ</span>
+      </button>
+      <button class="tab-btn" id="merchantTab" title="РЫНОК">
+        <span class="led-indicator"></span>
+        <span class="tab-icon">🪙</span>
+        <span class="tab-label">РЫНОК</span>
+      </button>
+      <button class="tab-btn" id="equipTab" title="ИНВЕНТАРЬ">
+        <span class="led-indicator"></span>
+        <span class="tab-icon">🎒</span>
+        <span class="tab-label">КАРМАНЫ</span>
+      </button>
+      <button class="tab-btn" id="craftTab" title="МАСТЕРСКАЯ">
+        <span class="led-indicator"></span>
+        <span class="tab-icon">🛠️</span>
+        <span class="tab-label">КРАФТ</span>
+      </button>
     </nav>
 
     <!-- MODAL OVERLAYS -->
     <div class="overlay" id="storyModal">
-      <div class="modal">
+      <div class="modal story-modal-layout">
         <h2 id="storySpeaker">СОБЫТИЕ</h2>
         <div class="modal-content-wrap">
           <img id="storyPortrait" src="" alt="Портрет" />
@@ -82,9 +114,9 @@
     </div>
 
     <div class="overlay" id="encounterModal">
-      <div class="modal">
+      <div class="modal encounter-modal-layout">
         <h2 data-i18n="event_warning">ЧТО ТЫ СДЕЛАЕШЬ?</h2>
-        <div id="encounterText" class="scrollable"></div>
+        <div id="encounterText" class="event-text-container"></div>
         <div class="row modal-btn-row">
           <button class="btn good" id="encounterYes" data-i18n="btn_confirm">ДА</button>
           <button class="btn bad" id="encounterNo" data-i18n="btn_cancel">НЕТ</button>
@@ -93,32 +125,65 @@
     </div>
 
     <div class="overlay" id="battleModal">
-      <div class="modal">
+      <div class="modal battle-modal-layout">
+        <!-- Battle Header Title Row -->
         <div class="battle-header">
-          <h2 data-i18n="battle_mode">РАЗБОРКА</h2>
+          <h2 data-i18n="battle_mode" class="warning-title">РАЗБОРКА</h2>
           <div class="battle-timer" id="battleTimer">00.0s</div>
         </div>
-        <div class="statusBars" id="pBars" style="background: none; border: none; padding: 0;"></div>
+        
+        <!-- Enemy Card Container -->
         <div class="enemy-card">
-          <div id="enemyName">—</div>
-          <img id="enemyImg" src="" alt="Враг" />
-          <div class="bar enemy-bar">
-            <div class="fill bg-bad" id="eHp"></div>
+          <!-- Portrait Frame with Glitch Overlay -->
+          <div class="enemy-portrait-frame">
+            <div class="enemy-portrait-inner">
+              <img id="enemyImg" src="" alt="Враг" />
+              <div class="enemy-portrait-glitch"></div>
+            </div>
           </div>
-          <div class="telegraph-sub" id="telegraph" data-i18n="waiting_attack">[ОЖИДАНИЕ]</div>
-          <div class="bar enemy-bar">
-            <div class="fill bg-ok" id="teleFill"></div>
+          
+          <!-- Enemy Info and HP -->
+          <div class="enemy-combat-info">
+            <div class="enemy-info-row">
+              <div class="enemy-name-col">
+                <span id="enemyName">—</span>
+              </div>
+              <span id="enemyLevel" class="enemy-level-badge">LVL.0</span>
+            </div>
+            
+            <!-- Health Bar -->
+            <div class="bar enemy-bar red-bar">
+              <div class="fill bg-bad" id="eHp"></div>
+            </div>
+            
+            <!-- Telegraph upcoming attack timer and bar -->
+            <div class="telegraph-container">
+              <div class="bar enemy-bar telegraph-bar">
+                <div class="fill bg-ok" id="teleFill"></div>
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- Player Details Strip and Vital Health Bar -->
+        <div class="player-combat-card">
+          <div class="player-combat-header">
+            <span class="player-combat-name" id="playerCombatName">PLAYER_ONE</span>
+            <span class="player-combat-weapon" id="playerCombatWeapon">⚔️ КУЛАКИ</span>
+          </div>
+          <div class="statusBars" id="pBars" style="background: none; border: none; padding: 0; margin-top: 0.25rem;"></div>
+        </div>
+
+        <!-- Combat Action Control Grid -->
         <div class="battle-actions">
-          <button class="btn good" id="atk">
+          <button class="btn btn-cyber" id="atk">
             УДАР
             <div class="cd-bar" id="atkFill"></div>
           </button>
-          <button class="btn secondary-combat-btn" id="dodge">УВОРОТ</button>
-          <button class="btn secondary-combat-btn" id="med">💊</button>
+          <button class="btn btn-cyber secondary-combat-btn" id="dodge">УВОРОТ</button>
+          <button class="btn btn-cyber secondary-combat-btn" id="med">💊</button>
         </div>
-        <button class="btn bad" id="retreat" data-i18n="retreat">УБЕЖАТЬ</button>
+        <button class="btn btn-cyber bad" id="retreat" data-i18n="retreat">УБЕЖАТЬ</button>
       </div>
     </div>
 
@@ -183,6 +248,70 @@
         <button class="btn good close-btn" id="settingsClose" data-i18n="btn_close">ЗАКРЫТЬ</button>
       </div>
     </div>
+
+    <!-- SYSTEM MODALS -->
+    <div class="overlay" id="tutorialModal">
+      <div class="modal scroll-modal">
+        <h2 data-i18n="tutorial_title">КАК ВЫЖИТЬ?</h2>
+        <div id="tutorialDesc" class="scrollable" data-i18n="tutorial_desc">
+          <!-- Populated from locales.js -->
+        </div>
+        <div class="tutorial-highlight" data-i18n="tutorial_action" style="font-size: 0.8rem; font-weight: 800; color: var(--success); text-align: center; margin-top: 0.5rem; text-transform: uppercase;">
+          ГЛАВНОЕ: КЛИКАЙТЕ ПО ПЕРСОНАЖУ, ЧТОБЫ ПРОЖИТЬ ДЕНЬ.
+        </div>
+        <button class="btn good close-btn" id="tutorialOk" data-i18n="btn_close">ЗАКРЫТЬ</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="authModal">
+      <div class="modal">
+        <h2 data-i18n="auth_title">КТО ВЫ?</h2>
+        <div class="auth-benefits-stack">
+          <div class="auth-benefit-item">
+            <span class="benefit-icon">☁️</span>
+            <div class="benefit-text">
+              <div class="benefit-title" data-i18n="auth_benefit_cloud">СОХРАНЕНИЯ</div>
+              <div class="benefit-desc" data-i18n="auth_benefit_cloud_desc">Прогресс будет с вами на любом устройстве</div>
+            </div>
+          </div>
+          <div class="auth-benefit-item">
+            <span class="benefit-icon">🎁</span>
+            <div class="benefit-text">
+              <div class="benefit-title" data-i18n="auth_benefit_purchase">ВАШИ ВЕЩИ</div>
+              <div class="benefit-desc" data-i18n="auth_benefit_purchase_desc">Все покупки привязываются к профилю</div>
+            </div>
+          </div>
+        </div>
+        <button class="btn good" id="authLoginBtn" data-i18n="auth_btn_login">⚡ ПРЕДСТАВИТЬСЯ</button>
+        <button class="btn close-btn" id="authSkipBtn" data-i18n="auth_btn_skip">ИДТИ АНОНИМОМ</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="socialModal">
+      <div class="modal scroll-modal">
+        <h2 data-i18n="social_title">САРАФАННОЕ РАДИО</h2>
+        <div class="sub-title" data-i18n="social_subtitle" style="font-size: 0.75rem; text-align: center; opacity: 0.8; margin-top: -0.5rem;">ПОМОГИТЕ ДРУГИМ УЗНАТЬ О ЖИЗНИ НА УЛИЦЕ</div>
+        <div id="socialActionsList" class="scrollable">
+          <!-- Dynamic cards rendered in main.js -->
+        </div>
+        <div class="social-actions-footer" style="display: flex; flex-direction: column; gap: 0.5rem; width: 100%;">
+          <button class="btn good close-btn" id="socialSkipBtn" data-i18n="social_skip">[ ПОЗЖЕ — ЧЕРЕЗ 10 ДНЕЙ ]</button>
+          <button class="btn close-btn" id="socialMonthBtn" data-i18n="social_remind_30">[ ЧЕРЕЗ 30 ДНЕЙ ]</button>
+          <button class="btn close-btn" id="socialNeverBtn" data-i18n="social_never">[ НИКОГДА НЕ СПРАШИВАТЬ ]</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="endingModal">
+      <div class="modal ending-layout">
+        <h2 id="endingTitle" class="ending-title">ФИНАЛ</h2>
+        <div id="endingText" class="scrollable"></div>
+        <div id="endingScore" class="ending-score"></div>
+        <button class="btn good" id="endingOkBtn" data-i18n="btn_continue">НОВАЯ ПОПЫТКА</button>
+      </div>
+    </div>
+
+
 
     <div class="toastWrap" id="toasts"></div>
   </div>

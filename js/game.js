@@ -9,6 +9,51 @@ import { GameUI } from './ui.js';
 const rng = () => Math.random();
 const pick = arr => arr[Math.floor(rng() * arr.length)];
 
+// Premium Redesign Helpers
+export const getItemImage = (item) => {
+  if (item.key === 'food') return 'img/payments/food.webp';
+  if (item.key === 'water') return 'img/payments/energy.webp';
+  if (item.key === 'ammo') return 'img/payments/ammunition.webp';
+  if (item.key === 'medkits') return 'img/payments/exploration.webp';
+  if (item.key === 'materials') return 'img/payments/repair.webp';
+  if (item.type === 'weapon' || item.unlock || item.weaponId) return 'img/payments/weapons.webp';
+  if (item.type === 'armor' || item.armorId) return 'img/payments/armor.webp';
+  return 'img/payments/exploration.webp';
+};
+
+export const getItemId = (item, index) => {
+  const nameStr = item.key || item.label_en || item.name_en || (item.unlock ? 'wep' : '') || 'ITM';
+  const code = nameStr.substring(0, 3).toUpperCase();
+  const num = (index * 137 + 101) % 900 + 100;
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const char = chars[(index * 7) % chars.length];
+  return `ID:${num}-${char}`;
+};
+
+const getDirectorItemImage = (id) => {
+  if (id === 'no_ads') return 'img/payments/exploration.webp';
+  if (id === 'starter_pack') return 'img/payments/repair.webp';
+  if (id === 'premium_caps') return 'img/payments/exploration.webp';
+  if (id === 'mega_pack') return 'img/payments/exploration.webp';
+  if (id === 'cyber_stomach') return 'img/payments/food.webp';
+  if (id === 'iron_arsenal') return 'img/payments/weapons.webp';
+  if (id === 'heavy_armor') return 'img/payments/armor.webp';
+  return 'img/payments/exploration.webp';
+};
+
+const addCombatLog = (msg, type = '') => {
+  const list = GameUI.$('#combatLogList');
+  if (!list) return;
+  const p = document.createElement('p');
+  if (type) p.className = `log-${type}`;
+  p.textContent = `> ${msg}`;
+  list.appendChild(p);
+  list.scrollTop = list.scrollHeight;
+  while (list.children.length > 30) {
+    list.children[0].remove();
+  }
+};
+
 const CAREER_LADDER = [
   { level: 0, name: 'Попрошайка', name_en: 'Beggar', req: 0, bonus: 1 },
   { level: 1, name: 'Сборщик бутылок', name_en: 'Bottle Collector', req: 50, bonus: 1.5 },
@@ -1129,17 +1174,46 @@ const actMed = () => {
 };
 
 /* ---------- ПРИВЯЗКА СОБЫТИЙ ---------- */
-GameUI.$('#charBtn').onclick = startDay;
-GameUI.$('#merchantBtn').onclick = async () => {
-  await renderMerchant();
-  Events.emit('ui:show', { id: '#merchantModal', on: true });
+const setActiveTab = (tabId) => {
+  const tabs = ['#homeTab', '#merchantTab', '#equipTab', '#craftTab'];
+  tabs.forEach(id => {
+    const el = GameUI.$(id);
+    if (el) el.classList.toggle('active', id === tabId);
+  });
 };
-GameUI.$('#merchantClose').onclick = () => Events.emit('ui:show', { id: '#merchantModal', on: false });
-GameUI.$('#equipBtn').onclick = () => { Events.emit('ui:renderEquipment', { onSwitchWeapon: switchWeapon, onSwitchArmor: switchArmor }); Events.emit('ui:show', { id: '#equipModal', on: true }); };
-GameUI.$('#equipClose').onclick = () => Events.emit('ui:show', { id: '#equipModal', on: false });
-GameUI.$('#craftBtn').onclick = () => { renderCraft(); Events.emit('ui:show', { id: '#craftModal', on: true }); };
-GameUI.$('#craftClose').onclick = () => Events.emit('ui:show', { id: '#craftModal', on: false });
+
+const switchTab = (tabId, modalId = null) => {
+  setActiveTab(tabId);
+  const modals = ['#merchantModal', '#equipModal', '#craftModal'];
+  modals.forEach(mId => {
+    Events.emit('ui:show', { id: mId, on: mId === modalId });
+  });
+};
+
+GameUI.$('#charBtn').onclick = startDay;
+
+GameUI.$('#homeTab').onclick = () => switchTab('#homeTab');
+
+GameUI.$('#merchantTab').onclick = async () => {
+  await renderMerchant();
+  switchTab('#merchantTab', '#merchantModal');
+};
+GameUI.$('#merchantClose').onclick = () => switchTab('#homeTab');
+
+GameUI.$('#equipTab').onclick = () => {
+  Events.emit('ui:renderEquipment', { onSwitchWeapon: switchWeapon, onSwitchArmor: switchArmor });
+  switchTab('#equipTab', '#equipModal');
+};
+GameUI.$('#equipClose').onclick = () => switchTab('#homeTab');
+
+GameUI.$('#craftTab').onclick = () => {
+  renderCraft();
+  switchTab('#craftTab', '#craftModal');
+};
+GameUI.$('#craftClose').onclick = () => switchTab('#homeTab');
+
 GameUI.$('#storyOk').onclick = () => Events.emit('ui:show', { id: '#storyModal', on: false });
+
 
 GameUI.$('#reviveBtn').onclick = () => {
   if (window.PlaygamaSDK) {

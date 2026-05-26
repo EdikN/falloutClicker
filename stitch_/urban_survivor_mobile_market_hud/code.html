@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Urban Survivor - Market HUD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&amp;family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#849495",
+                      "on-error": "#690005",
+                      "surface-container": "#192122",
+                      "error": "#ffb4ab",
+                      "surface-variant": "#2e3637",
+                      "inverse-primary": "#00696f",
+                      "primary-container": "#00f3ff",
+                      "outline-variant": "#3a494b",
+                      "on-tertiary-fixed": "#221b00",
+                      "on-primary-container": "#006b71",
+                      "surface-container-low": "#151d1e",
+                      "surface-dim": "#0d1515",
+                      "tertiary-fixed-dim": "#e8c426",
+                      "on-primary-fixed": "#002022",
+                      "surface-container-high": "#232b2c",
+                      "tertiary-fixed": "#ffe173",
+                      "tertiary-container": "#ffd93d",
+                      "inverse-on-surface": "#2a3232",
+                      "primary-fixed-dim": "#00dce6",
+                      "surface-container-lowest": "#081010",
+                      "on-secondary-fixed-variant": "#6700b5",
+                      "secondary-fixed": "#efdbff",
+                      "on-secondary": "#480081",
+                      "primary": "#e3fdff",
+                      "tertiary": "#fff7e9",
+                      "on-tertiary-fixed-variant": "#554500",
+                      "secondary": "#dcb8ff",
+                      "background": "#0d1515",
+                      "surface": "#0d1515",
+                      "on-tertiary": "#3b2f00",
+                      "on-error-container": "#ffdad6",
+                      "inverse-surface": "#dce4e4",
+                      "on-tertiary-container": "#725e00",
+                      "error-container": "#93000a",
+                      "secondary-container": "#7701d0",
+                      "on-surface": "#dce4e4",
+                      "surface-container-highest": "#2e3637",
+                      "secondary-fixed-dim": "#dcb8ff",
+                      "on-surface-variant": "#b9cacb",
+                      "on-background": "#dce4e4",
+                      "on-secondary-fixed": "#2c0051",
+                      "surface-tint": "#00dce6",
+                      "surface-bright": "#333b3b",
+                      "on-primary": "#00373a",
+                      "primary-fixed": "#6ff6ff",
+                      "on-primary-fixed-variant": "#004f53",
+                      "on-secondary-container": "#dcb7ff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "48px",
+                      "xl": "80px",
+                      "md": "24px",
+                      "lg": "48px",
+                      "base": "8px",
+                      "sm": "12px",
+                      "xs": "4px",
+                      "gutter": "24px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "label-sm": [
+                              "Space Mono"
+                      ],
+                      "body-lg": [
+                              "Outfit"
+                      ],
+                      "headline-md": [
+                              "Space Mono"
+                      ],
+                      "headline-lg": [
+                              "Space Mono"
+                      ],
+                      "label-lg": [
+                              "Space Mono"
+                      ],
+                      "display-lg": [
+                              "Space Mono"
+                      ],
+                      "body-md": [
+                              "Outfit"
+                      ],
+                      "headline-sm": [
+                              "Space Mono"
+                      ],
+                      "headline-lg-mobile": [
+                              "Space Mono"
+                      ]
+              },
+              "fontSize": {
+                      "label-sm": [
+                              "11px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.12em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.08em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.08em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-lg": [
+                              "14px",
+                              {
+                                      "lineHeight": "1.0",
+                                      "letterSpacing": "0.12em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "1.1",
+                                      "letterSpacing": "0.1em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "1.6",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-sm": [
+                              "18px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.08em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "1.2",
+                                      "letterSpacing": "0.08em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+<style>
+        .cyber-clip { clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+        .cyber-clip-alt { clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 15px 100%, 0 calc(100% - 15px)); }
+        
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .bg-rainy-city {
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen overflow-x-hidden font-body-md">
+<div class="scanlines"></div>
+<!-- Background Wrapper -->
+<div class="fixed inset-0 z-[-1] bg-rainy-city" data-alt="A gritty cyberpunk cityscape at night during a heavy downpour. Neon signs reflect off the wet, cracked pavement. The atmosphere is dense and chaotic, illuminated by harsh, glowing cyan and violet lights amidst deep, overwhelming shadows. A high-tech, low-life aesthetic perfect for an underground market interface." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAH8_gNdkajqf9QpFgLPXuJsIJEVdfZg9XofblT-mLb9Y6J4Eje-qgIGXai-f6wf8MNh0uYUMAx9_mygRyN2ZSbQOEHFJ6g1i4y3uZck9aqkmy2Co3FfB_Zn8MPaIWVQ4cVJhO6MNj7wrWzTArPMiu0kTCj1sQYDSpnJpvVAjP-MN7Bst4jNXG-YYPNDOx62k6GJNdDyP8POLBrOiPdqEoF9qztHGMgS0EqvW3wXUJFZeUp35BnRB8WRYfYteq4jR_1vN6t49HSkZ6m');">
+<div class="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="pt-margin-mobile pb-[100px] px-margin-mobile min-h-screen flex flex-col gap-sm">
+<!-- Header -->
+<header class="flex justify-between items-end mb-sm">
+<div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">BLACK MARKET_</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-xs text-sm">SECURE CONNECTION ESTABLISHED.</p>
+</div>
+</header>
+<!-- Horizontal Filters -->
+<div class="flex overflow-x-auto pb-sm gap-sm no-scrollbar">
+<button class="flex items-center gap-xs px-sm py-xs bg-primary-container/20 border border-primary-container text-primary-container font-label-lg text-label-lg whitespace-nowrap rounded-sm">
+<span class="material-symbols-outlined text-sm">hardware</span>
+                         ALL_GEAR
+                     </button>
+<button class="flex items-center gap-xs px-sm py-xs text-on-surface-variant bg-surface-container/85 border border-primary-container/16 hover:border-primary-container/50 font-label-lg text-label-lg whitespace-nowrap rounded-sm transition-colors">
+<span class="material-symbols-outlined text-sm">restaurant</span>
+                         RATIONS
+                     </button>
+<button class="flex items-center gap-xs px-sm py-xs text-on-surface-variant bg-surface-container/85 border border-primary-container/16 hover:border-primary-container/50 font-label-lg text-label-lg whitespace-nowrap rounded-sm transition-colors">
+<span class="material-symbols-outlined text-sm">construction</span>
+                         SCRAP
+                     </button>
+<button class="flex items-center gap-xs px-sm py-xs text-on-surface-variant bg-surface-container/85 border border-primary-container/16 hover:border-primary-container/50 font-label-lg text-label-lg whitespace-nowrap rounded-sm transition-colors">
+<span class="material-symbols-outlined text-sm">security</span>
+                         DEFENSE
+                     </button>
+</div>
+<!-- Vertical Catalog List -->
+<div class="flex-1">
+<div class="flex flex-col gap-sm">
+<!-- Item 1 -->
+<div class="bg-surface-container/85 backdrop-blur-[25px] border border-primary-container/16 p-sm flex gap-sm cyber-clip group relative overflow-hidden h-32 items-center">
+<div class="absolute top-xs right-xs font-label-sm text-[9px] text-on-surface-variant z-10">ID:994-A</div>
+<div class="w-24 h-full bg-surface-variant/50 relative border border-primary-container/10 flex items-center justify-center p-xs shrink-0">
+<img class="max-h-full object-contain mix-blend-screen group-hover:scale-110 transition-transform duration-300" data-alt="A glowing, high-tech plasma battery cell against a dark, metallic grid background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPxDHFQCSWoI-I7VwO2dD4zIk5dw9MTKKR9LYX_WaxiP2-V6ykX4wVnhUUSY-4dU7jDkHxafXvub8M7C-WRRsgfEqJ4HbFUL1_14-r9SB0P1BqI479SnVRDEfLNmyyjRVS2jhZzDivf2YjZMcICckZKhlrMv-rOsm3qRv3OlmOEDIs3IIPgvUuOETk-AFOfITnqPq0UuNNY9hNta_m1NuUQz13c4LL_CrhisImG1sxZ2Sj3U2en7-mK4thCYq7Kgjj1uetnjFCL9kY"/>
+</div>
+<div class="flex flex-col justify-between h-full py-xs flex-1 min-w-0">
+<div>
+<h3 class="font-headline-sm text-base text-on-surface truncate">PLASMA_CELL_V3</h3>
+<p class="font-body-md text-sm text-on-surface-variant line-clamp-1">High yield energy.</p>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="font-headline-sm text-base text-primary-container drop-shadow-[0_0_8px_rgba(0,243,255,0.6)]">
+                                450 🪙
+                            </div>
+<button class="bg-primary-container text-on-primary-container font-label-lg text-sm px-sm py-xs cyber-clip hover:bg-primary-fixed hover:shadow-[0_0_15px_rgba(0,243,255,0.8)] transition-all">
+                                BUY
+                            </button>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-surface-container/85 backdrop-blur-[25px] border border-primary-container/16 p-sm flex gap-sm cyber-clip group relative overflow-hidden h-32 items-center">
+<div class="absolute top-xs right-xs font-label-sm text-[9px] text-on-surface-variant z-10">ID:102-X</div>
+<div class="w-24 h-full bg-surface-variant/50 relative border border-primary-container/10 flex items-center justify-center p-xs shrink-0">
+<img class="max-h-full object-contain mix-blend-screen group-hover:scale-110 transition-transform duration-300" data-alt="A synthetic nutrient block wrapped in tarnished silver foil." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwZdEJEUE_o8RCtSx3HHCzqXX--JvhJq0QGqIqsqhFN5KReVwLZguofMuLbalGWkFpqxnBTGvchq8ConMEVf-Y1eOETnO-jxLQiA6USwMgpXcihTdzY4Qk0fqXE1RYnZa59nqGH8q1pTKVTA_aoNW1lxK4P2KDjLniY-hJU0_oWLK3TuB6ddxDsSMEpr5GUatnGX3toQo_W1LFR075uQrdpUdBsLTUi2WFHEVFwRkrZpnkMpHqFdatv8tlb1U0HzqkXdJQv21zcrtI"/>
+</div>
+<div class="flex flex-col justify-between h-full py-xs flex-1 min-w-0">
+<div>
+<h3 class="font-headline-sm text-base text-on-surface truncate">SYNTH_RATION_PACK</h3>
+<p class="font-body-md text-sm text-on-surface-variant line-clamp-1">Caloric paste.</p>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="font-headline-sm text-base text-primary-container drop-shadow-[0_0_8px_rgba(0,243,255,0.6)]">
+                                50 🪙
+                            </div>
+<button class="bg-primary-container text-on-primary-container font-label-lg text-sm px-sm py-xs cyber-clip hover:bg-primary-fixed hover:shadow-[0_0_15px_rgba(0,243,255,0.8)] transition-all">
+                                BUY
+                            </button>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-surface-container/85 backdrop-blur-[25px] border border-primary-container/16 p-sm flex gap-sm cyber-clip group relative overflow-hidden h-32 items-center">
+<div class="absolute top-xs right-xs font-label-sm text-[9px] text-on-surface-variant z-10">ID:771-K</div>
+<div class="w-24 h-full bg-surface-variant/50 relative border border-primary-container/10 flex items-center justify-center p-xs shrink-0">
+<img class="max-h-full object-contain mix-blend-screen group-hover:scale-110 transition-transform duration-300" data-alt="A custom-built, scavenged cybernetic optical implant." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDHOELRo02eIaiADqB2c2IZprXz0cRXYWEF563uaCQOhSJCODqH9jPorV04dXdeCgPZvYrEdbrLS_T-5OeB5CO2bDiog3GS_ETEih0-wqDDFpueYtmvdu-toqJFauhD1INPZLOd53-J41vYxfGvoz9aaKEUNdiKXG9gWCDoSLv3M7J8xLhMkPoVv515gf6Mrt4N06Ua07IFoa9D1hLFHeARfS42_xfQCecerLzWS6EF1ZeA3thW16OoIE9npIkgfvy1GCsFcihgBE8m"/>
+</div>
+<div class="flex flex-col justify-between h-full py-xs flex-1 min-w-0">
+<div>
+<h3 class="font-headline-sm text-base text-on-surface truncate">OPTIC_IMPLANT_MKII</h3>
+<p class="font-body-md text-sm text-on-surface-variant line-clamp-1">Night vision.</p>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="font-headline-sm text-base text-primary-container drop-shadow-[0_0_8px_rgba(0,243,255,0.6)]">
+                                1200 🪙
+                            </div>
+<button class="bg-primary-container text-on-primary-container font-label-lg text-sm px-sm py-xs cyber-clip hover:bg-primary-fixed hover:shadow-[0_0_15px_rgba(0,243,255,0.8)] transition-all">
+                                BUY
+                            </button>
+</div>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="bg-surface-container/85 backdrop-blur-[25px] border border-primary-container/16 p-sm flex gap-sm cyber-clip group relative overflow-hidden h-32 items-center">
+<div class="absolute top-xs right-xs font-label-sm text-[9px] text-on-surface-variant z-10">ID:005-B</div>
+<div class="w-24 h-full bg-surface-variant/50 relative border border-primary-container/10 flex items-center justify-center p-xs shrink-0">
+<img class="max-h-full object-contain mix-blend-screen group-hover:scale-110 transition-transform duration-300" data-alt="A rusted, heavy-duty servo motor salvaged from an industrial mech." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhUKUxKSjo59N0yrMLVK5i6UxIXbnUZiD7dc8gBjg1XNt9mn8hniRbqGIHa5aIRikrGZaM9AVO8ogV7LtC8okl_L8kWeI9KSkYJlcUlTwt1bIk0HZSwEo_gIYqwJjsvuYRupbjz9G4kiOFK0_eaHXocgXtHIDI1zUIjI5OfX-1wZsP0paNLOgrs_WgSfurkr35OMvp8yTNvsVC2cWgeuUxVt1-0yFTBwQKzMQL-2Gk8Ao6U8b8zLNoDRK1eblyWLHhNW4YeTcWgKxq"/>
+</div>
+<div class="flex flex-col justify-between h-full py-xs flex-1 min-w-0">
+<div>
+<h3 class="font-headline-sm text-base text-on-surface truncate">HEAVY_SERVO_MOTOR</h3>
+<p class="font-body-md text-sm text-on-surface-variant line-clamp-1">Mech repair part.</p>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="font-headline-sm text-base text-primary-container drop-shadow-[0_0_8px_rgba(0,243,255,0.6)]">
+                                300 🪙
+                            </div>
+<button class="bg-primary-container text-on-primary-container font-label-lg text-sm px-sm py-xs cyber-clip hover:bg-primary-fixed hover:shadow-[0_0_15px_rgba(0,243,255,0.8)] transition-all">
+                                BUY
+                            </button>
+</div>
+</div>
+</div>
+<!-- Item 5 -->
+<div class="bg-surface-container/85 backdrop-blur-[25px] border border-primary-container/16 p-sm flex gap-sm cyber-clip group relative overflow-hidden h-32 items-center opacity-60">
+<div class="absolute top-xs right-xs font-label-sm text-[9px] text-error z-10">OUT_OF_STOCK</div>
+<div class="w-24 h-full bg-surface-variant/30 relative border border-primary-container/10 flex items-center justify-center p-xs shrink-0 grayscale">
+<img class="max-h-full object-contain mix-blend-screen" data-alt="A sleek, matte black tactical sidearm with neon cyan targeting sights." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD86fPDM9eZPxjtuvp09PyApaTQAdmVlvdj75gR1FlO4Yv18bmPcztyDCM9qBQQS6gxC4FW0Ta938X-Yt6WRmoPgVjpX1iUZQJKbUOpTlv_J5aLfJDYIlZFjw7s7N56HQK2_6ElauRSEsUMN7B1iR3IQSoGSGxXlBqTdeBpwamcsbTV3lIuzk5z-QiXnYj_OnqCmUBr8jryubiB-NbZZ9qWONdyBTimnXXQ8iyzGtiQwC1M6BctUbzQlMJxdA4KOe_ovz6D_L60JQX0"/>
+</div>
+<div class="flex flex-col justify-between h-full py-xs flex-1 min-w-0">
+<div>
+<h3 class="font-headline-sm text-base text-on-surface truncate line-through decoration-error">MAG-PISTOL_9MM</h3>
+<p class="font-body-md text-sm text-on-surface-variant line-clamp-1">Magnetic rounds.</p>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="font-headline-sm text-base text-on-surface-variant">
+                                850 🪙
+                            </div>
+<button class="bg-surface-variant text-on-surface-variant font-label-lg text-sm px-sm py-xs cyber-clip cursor-not-allowed" disabled="">
+                                BUY
+                            </button>
+</div>
+</div>
+</div>
+<!-- Item 6 -->
+<div class="bg-surface-container/85 backdrop-blur-[25px] border border-primary-container/16 p-sm flex gap-sm cyber-clip group relative overflow-hidden h-32 items-center">
+<div class="absolute top-xs right-xs font-label-sm text-[9px] text-on-surface-variant z-10">ID:442-J</div>
+<div class="w-24 h-full bg-surface-variant/50 relative border border-primary-container/10 flex items-center justify-center p-xs shrink-0">
+<img class="max-h-full object-contain mix-blend-screen group-hover:scale-110 transition-transform duration-300" data-alt="A small, glowing vial of liquid med-gel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiPk8L_mZSbiKHsd9imheRfwatTKkvIDaH_Q_3DT3NpsZkxvhByb27gl1EMVSOsl-9dlq8EuGtB6vJ6Pp1ijgVOLyTF_nMyKPMaYIS6pMdLmR0WEFGuppxBq8O9vPqWSV1-fwSXdToRQpj_76v8H06eTGQ_KFEVnKZhcn6URbq3yQpXLARJVhd_3T9Y4HckGAH8lEXio8BQVWmsB0xcswkMxRiTyNH4j4B65VNf2EfyBv-3LVRi5WuWJnfTSWmQgUtXPcHGus7cX1A"/>
+</div>
+<div class="flex flex-col justify-between h-full py-xs flex-1 min-w-0">
+<div>
+<h3 class="font-headline-sm text-base text-on-surface truncate">STIM_PACK_RAW</h3>
+<p class="font-body-md text-sm text-on-surface-variant line-clamp-1">Unrefined healing.</p>
+</div>
+<div class="flex justify-between items-center mt-auto">
+<div class="font-headline-sm text-base text-primary-container drop-shadow-[0_0_8px_rgba(0,243,255,0.6)]">
+                                150 🪙
+                            </div>
+<button class="bg-primary-container text-on-primary-container font-label-lg text-sm px-sm py-xs cyber-clip hover:bg-primary-fixed hover:shadow-[0_0_15px_rgba(0,243,255,0.8)] transition-all">
+                                BUY
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container/80 backdrop-blur-[30px] fixed bottom-0 left-0 w-full z-50 flex justify-around items-end pb-sm px-sm rounded-t-xl shadow-[0_-5px_20px_rgba(0,243,255,0.3)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary-container hover:scale-110 transition-transform py-sm" href="#">
+<span class="material-symbols-outlined mb-xs" style="font-variation-settings: 'FILL' 0;">home</span>
+<span class="font-label-sm text-[10px]">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary-container drop-shadow-[0_0_8px_rgba(0,243,255,0.8)] py-sm animate-pulse scale-95 brightness-150" href="#">
+<span class="material-symbols-outlined mb-xs" style="font-variation-settings: 'FILL' 1;">shopping_cart</span>
+<span class="font-label-sm text-[10px]">Market</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary-container hover:scale-110 transition-transform py-sm" href="#">
+<span class="material-symbols-outlined mb-xs" style="font-variation-settings: 'FILL' 0;">inventory_2</span>
+<span class="font-label-sm text-[10px]">Inventory</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary-container hover:scale-110 transition-transform py-sm" href="#">
+<span class="material-symbols-outlined mb-xs" style="font-variation-settings: 'FILL' 0;">build</span>
+<span class="font-label-sm text-[10px]">Workshop</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant/60 hover:text-primary-container hover:scale-110 transition-transform py-sm" href="#">
+<span class="material-symbols-outlined mb-xs" style="font-variation-settings: 'FILL' 0;">map</span>
+<span class="font-label-sm text-[10px]">Map</span>
+</a>
+</nav>
+<!-- Player Balance Bar -->
+<div class="fixed bottom-[72px] left-0 w-full z-40 px-margin-mobile py-sm pointer-events-none flex justify-center">
+<div class="bg-surface-container-highest/90 backdrop-blur-md border border-primary-container/30 px-md py-sm cyber-clip-alt shadow-[0_0_20px_rgba(0,243,255,0.15)] flex items-center gap-sm pointer-events-auto w-full justify-between">
+<span class="font-label-lg text-sm text-on-surface-variant">FUNDS_REMAINING:</span>
+<span class="font-headline-lg-mobile text-xl text-primary-container drop-shadow-[0_0_10px_rgba(0,243,255,0.8)]">
+                14,250 🪙
+            </span>
+</div>
+</div>
+</body></html>

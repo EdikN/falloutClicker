@@ -17,7 +17,9 @@ export const GameUI = (() => {
     telegraph: null, teleFill: null,
     atk: null, atkFill: null, dodge: null,
     toasts: null,
-    charImg: null,
+    charImg: null, headerAvatar: null,
+    enemyId: null, enemySubname: null, enemyLevel: null,
+    playerCombatName: null, playerCombatWeapon: null,
     // Специфические элементы для renderMain/renderBattle
     hpFill: null, hpText: null, hpMax: null, hpLabel: null,
     moodFill: null, moodText: null, moodMax: null, moodLabel: null,
@@ -45,25 +47,31 @@ export const GameUI = (() => {
     DOM.dodge = $('#dodge');
     DOM.toasts = $('#toasts');
     DOM.charImg = $('#charBtn img');
+    DOM.headerAvatar = $('#headerAvatar');
+    DOM.enemyId = $('#enemyId');
+    DOM.enemySubname = $('#enemySubname');
+    DOM.enemyLevel = $('#enemyLevel');
+    DOM.playerCombatName = $('#playerCombatName');
+    DOM.playerCombatWeapon = $('#playerCombatWeapon');
 
     // Предварительное создание статической структуры для статус-баров во избежание innerHTML в цикле
     if (DOM.statusBars) {
       DOM.statusBars.innerHTML = `
-        <div id="hpCont">
-          <div class="val-row"><span class="label"></span><span class="text-val"><span class="val"></span>/<span class="max"></span></span></div>
-          <div class="bar"><div class="fill bg-bad"></div></div>
+        <div id="hpCont" class="status-slot">
+          <div class="slot-title-row"><span class="slot-label label"></span><span class="slot-val"><span class="val"></span>/<span class="max"></span></span></div>
+          <div class="slot-bar-track"><div class="slot-bar-fill fill"></div></div>
         </div>
-        <div id="moodCont">
-          <div class="val-row"><span class="label"></span><span class="text-val"><span class="val"></span>/<span class="max"></span></span></div>
-          <div class="bar"><div class="fill bg-ok"></div></div>
+        <div id="moodCont" class="status-slot">
+          <div class="slot-title-row"><span class="slot-label label"></span><span class="slot-val"><span class="val"></span>/<span class="max"></span></span></div>
+          <div class="slot-bar-track"><div class="slot-bar-fill fill"></div></div>
         </div>
-        <div id="hungerCont">
-          <div class="val-row"><span class="label"></span><span class="text-val"><span class="val"></span>/<span class="max"></span></span></div>
-          <div class="bar"><div class="fill"></div></div>
+        <div id="hungerCont" class="status-slot">
+          <div class="slot-title-row"><span class="slot-label label"></span><span class="slot-val"><span class="val"></span>/<span class="max"></span></span></div>
+          <div class="slot-bar-track"><div class="slot-bar-fill fill"></div></div>
         </div>
-        <div id="thirstCont">
-          <div class="val-row"><span class="label"></span><span class="text-val"><span class="val"></span>/<span class="max"></span></span></div>
-          <div class="bar"><div class="fill"></div></div>
+        <div id="thirstCont" class="status-slot">
+          <div class="slot-title-row"><span class="slot-label label"></span><span class="slot-val"><span class="val"></span>/<span class="max"></span></span></div>
+          <div class="slot-bar-track"><div class="slot-bar-fill fill"></div></div>
         </div>`;
       DOM.hpText = DOM.statusBars.querySelector('#hpCont .val');
       DOM.hpMax = DOM.statusBars.querySelector('#hpCont .max');
@@ -85,9 +93,9 @@ export const GameUI = (() => {
 
     if (DOM.pBars) {
       DOM.pBars.innerHTML = `
-        <div id="pAtkHpCont">
-          <div class="val-row"><span class="label"></span><span class="text-val"><span class="val"></span>/<span class="max"></span></span></div>
-          <div class="bar"><div class="fill bg-bad"></div></div>
+        <div id="pAtkHpCont" class="status-slot" style="width: 100%;">
+          <div class="slot-title-row"><span class="slot-label label"></span><span class="slot-val"><span class="val"></span>/<span class="max"></span></span></div>
+          <div class="slot-bar-track"><div class="slot-bar-fill fill"></div></div>
         </div>`;
       DOM.pAtkHpText = DOM.pBars.querySelector('.val');
       DOM.pAtkHpMax = DOM.pBars.querySelector('.max');
@@ -133,25 +141,35 @@ export const GameUI = (() => {
     let dmgStr = `${Math.round(p.baseDmg + p.dmgBonus)}`;
 
     // Обновляем текст и бары напрямую (уже созданные в initCache)
-    DOM.hpLabel.textContent = translate('health').toUpperCase();
+    DOM.hpLabel.textContent = "🩸 " + translate('health').toUpperCase();
     DOM.hpText.textContent = Math.round(p.hp);
     DOM.hpMax.textContent = p.maxHp;
     DOM.hpFill.style.transform = `scaleX(${clamp(p.hp / p.maxHp, 0, 1)})`;
 
-    DOM.moodLabel.textContent = translate('mood').toUpperCase();
+    DOM.moodLabel.textContent = "🧠 " + translate('mood').toUpperCase();
     DOM.moodText.textContent = Math.round(p.mood);
     DOM.moodMax.textContent = p.maxMood;
     DOM.moodFill.style.transform = `scaleX(${clamp(p.mood / p.maxMood, 0, 1)})`;
 
-    DOM.hungerLabel.textContent = translate('hunger').toUpperCase();
+    DOM.hungerLabel.textContent = "🍗 " + translate('hunger').toUpperCase();
     DOM.hungerText.textContent = Math.round(p.hunger);
     DOM.hungerMax.textContent = p.maxHunger;
     DOM.hungerFill.style.transform = `scaleX(${clamp(p.hunger / p.maxHunger, 0, 1)})`;
 
-    DOM.thirstLabel.textContent = translate('thirst').toUpperCase();
+    DOM.thirstLabel.textContent = "💧 " + translate('thirst').toUpperCase();
     DOM.thirstText.textContent = Math.round(p.thirst);
     DOM.thirstMax.textContent = p.maxThirst;
     DOM.thirstFill.style.transform = `scaleX(${clamp(p.thirst / p.maxThirst, 0, 1)})`;
+
+    // Dynamic warning class trigger for low stats (<25%)
+    const hpSlot = DOM.statusBars.querySelector('#hpCont');
+    if (hpSlot) hpSlot.classList.toggle('slot-low', p.hp / p.maxHp < 0.25);
+    const moodSlot = DOM.statusBars.querySelector('#moodCont');
+    if (moodSlot) moodSlot.classList.toggle('slot-low', p.mood / p.maxMood < 0.25);
+    const hungerSlot = DOM.statusBars.querySelector('#hungerCont');
+    if (hungerSlot) hungerSlot.classList.toggle('slot-low', p.hunger / p.maxHunger < 0.25);
+    const thirstSlot = DOM.statusBars.querySelector('#thirstCont');
+    if (thirstSlot) thirstSlot.classList.toggle('slot-low', p.thirst / p.maxThirst < 0.25);
 
     const ARMOR_IMAGES = {
       'none': 'img/char_base.webp',
@@ -165,19 +183,22 @@ export const GameUI = (() => {
       if (DOM.charImg.getAttribute('src') !== newSrc) {
         DOM.charImg.src = newSrc;
       }
+      if (DOM.headerAvatar && DOM.headerAvatar.getAttribute('src') !== newSrc) {
+        DOM.headerAvatar.src = newSrc;
+      }
     }
     if (isAdrenaline) {
       const minutesLeft = Math.ceil((st.adBoosts.adrenaline - Date.now()) / 60000);
-      dmgStr = `${Math.round((p.baseDmg + p.dmgBonus) * 1.5)} <span style="color:var(--primary); font-size:0.8em">(+50% | ${minutesLeft}m)</span>`;
+      dmgStr = `${Math.round((p.baseDmg + p.dmgBonus) * 1.5)}⚡`;
     }
 
     DOM.res.innerHTML = `
-      <button class='pill pill-btn' data-use='food' style="background: rgba(57, 255, 20, 0.1); border-color: rgba(57, 255, 20, 0.2)">🍗 ${st.resources.food}</button>
-      <button class='pill pill-btn' data-use='water' style="background: rgba(0, 242, 255, 0.1); border-color: rgba(0, 242, 255, 0.2)">💧 ${st.resources.water}</button>
-      <button class='pill pill-btn' data-use='medkits' style="background: rgba(255, 45, 85, 0.1); border-color: rgba(255, 45, 85, 0.2)">🩹 ${st.resources.medkits}</button>
-      <div class='pill'>📦 ${st.resources.materials}</div>
-      <div class='pill'>🔋 ${st.resources.ammo}</div>
-      <div class='pill'>🔥 ${dmgStr}</div>`;
+      <button class='pill pill-btn' data-use='food' title="${translate('food')}">🍗 <span>${st.resources.food}</span></button>
+      <button class='pill pill-btn' data-use='water' title="${translate('water')}">💧 <span>${st.resources.water}</span></button>
+      <button class='pill pill-btn' data-use='medkits' title="${translate('medkits')}">🩹 <span>${st.resources.medkits}</span></button>
+      <div class='pill' title="${translate('materials')}">📦 <span>${st.resources.materials}</span></div>
+      <div class='pill' title="${translate('ammo')}">🔋 <span>${st.resources.ammo}</span></div>
+      <div class='pill' title="${translate('damage')}">🔥 <span>${dmgStr}</span></div>`;
   };
 
   const renderBattle = () => {
@@ -200,8 +221,34 @@ export const GameUI = (() => {
     }
 
     DOM.eHp.style.transform = `scaleX(${clamp(e.hp / e.maxHp, 0, 1)})`;
-    DOM.telegraph.textContent = `[${translate('waiting_attack').toUpperCase()}: ${Math.max(0, c.enemyAtk).toFixed(1)}s]`;
+    if (DOM.telegraph) {
+      DOM.telegraph.textContent = `[${translate('waiting_attack').toUpperCase()}: ${Math.max(0, c.enemyAtk).toFixed(1)}s]`;
+    }
     DOM.teleFill.style.transform = `scaleX(${clamp(1 - c.enemyAtk / e.atk, 0, 1)})`;
+
+    // Update enemy card details
+    if (DOM.enemyId) {
+      const code = (e.name_en || 'ENM').substring(0, 3).toUpperCase();
+      const num = (e.maxHp * 17 + e.dmg * 31) % 9000 + 1000;
+      DOM.enemyId.textContent = `ID: ${code}-${num}`;
+    }
+    if (DOM.enemySubname) {
+      DOM.enemySubname.textContent = (e.name_en || '').toUpperCase().replace(/\s+/g, '_');
+    }
+    if (DOM.enemyLevel) {
+      DOM.enemyLevel.textContent = `LVL.${e.threat || 1}`;
+    }
+
+    // Update player combat strip details
+    if (DOM.playerCombatName) {
+      DOM.playerCombatName.textContent = (p.careerName || 'SURVIVOR').toUpperCase();
+    }
+    if (DOM.playerCombatWeapon) {
+      const wepId = p.weaponId || 'fists';
+      const w = GameData.WEAPON_STATS[wepId] || GameData.WEAPON_STATS.fists;
+      const weaponStr = w ? loc(w, 'name') : (p.weaponName || '???');
+      DOM.playerCombatWeapon.textContent = `⚔️ ${weaponStr.toUpperCase()}`;
+    }
 
     // КД Игрока
     if (DOM.atk) {
@@ -258,9 +305,9 @@ export const GameUI = (() => {
     const st = GameState.get();
     let imgHtml = '';
     if (img) {
-      imgHtml = `<div style="text-align: center; margin: 0.5rem 0;"><img src="${img}" style="max-width: 100%; max-height: 25vh; border: 1px solid var(--glass-border); border-radius: 16px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); object-fit: contain;" /></div>`;
+      imgHtml = `<div class="event-image-wrap"><img src="${img}" class="event-image" /></div>`;
     }
-    $('#encounterText').innerHTML = `<div class='pill'>${icon} ${title}</div>${imgHtml}<div style='margin-top:0.6rem;'>${desc}</div>`;
+    $('#encounterText').innerHTML = `<div class="event-header-pill">${icon} ${title}</div>${imgHtml}<div class="event-description">${desc}</div>`;
   };
 
   const show = (id, on) => {
@@ -365,24 +412,35 @@ export const GameUI = (() => {
     const listCont = $('#equipList');
     listCont.innerHTML = '';
 
-    Object.keys(st.weapons).forEach(id => {
+    Object.keys(st.weapons).forEach((id, index) => {
       if (!st.weapons[id]) return;
       const w = GameData.WEAPON_STATS[id];
       if (!w) return;
 
       const isEquipped = st.player.weaponId === id || (!st.player.weaponId && (st.player.weaponName === w.name_ru || st.player.weaponName === w.name_en));
+      const imgUrl = 'img/payments/weapons.webp';
+      const itemId = `ID:WEP-${101 + index}`;
+      const desc = `${translate('damage')}: ${w.dmg} | ${w.isGun ? '🔫' : '🔪'}`;
 
       const div = document.createElement('div');
       div.className = 'shopItem';
-      div.style.cssText = 'background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;';
       div.innerHTML = `
-        <div>
-          <div style="font-weight: 700; color: var(--primary);">${loc(w, 'name')}</div>
-          <div style="font-size: 0.75rem; opacity: 0.7;">${translate('damage')}: ${w.dmg} | ${w.isGun ? '🔫' : '🔪'}</div>
+        <div class="shopItem-id">${itemId}</div>
+        <div class="shopItem-img-wrap">
+          <img class="shopItem-img" src="${imgUrl}" alt="${loc(w, 'name')}" />
         </div>
-        <button class='btn ${isEquipped ? 'good' : ''}' data-equip-w='${id}' style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: 10px;">
-          ${isEquipped ? translate('equipped') : translate('equip')}
-        </button>
+        <div class="shopItem-details">
+          <div>
+            <h3 class="shopItem-title">${loc(w, 'name')}</h3>
+            <p class="shopItem-desc">${desc}</p>
+          </div>
+          <div class="shopItem-action-row">
+            <div class="shopItem-price">${isEquipped ? 'ACTIVE' : 'READY'}</div>
+            <button class='btn ${isEquipped ? 'good' : ''}' data-equip-w='${id}'>
+              ${isEquipped ? translate('equipped') : translate('equip')}
+            </button>
+          </div>
+        </div>
       `;
       const btn = div.querySelector('[data-equip-w]');
       btn.onclick = () => {
@@ -395,29 +453,39 @@ export const GameUI = (() => {
     });
 
     const aTitle = document.createElement('div');
-    aTitle.className = 'sub';
-    aTitle.style.cssText = 'margin: 1.5rem 0 0.5rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.3rem;';
+    aTitle.className = 'sub-header';
     aTitle.textContent = translate('defense').toUpperCase();
     listCont.appendChild(aTitle);
 
-    Object.keys(st.armors).forEach(id => {
+    Object.keys(st.armors).forEach((id, index) => {
       if (!st.armors[id]) return;
       const a = GameData.ARMOR_STATS[id];
       if (!a) return;
 
       const isEquipped = st.player.armorId === id || (!st.player.armorId && (st.player.armorName === a.name_ru || st.player.armorName === a.name_en));
+      const imgUrl = 'img/payments/armor.webp';
+      const itemId = `ID:ARM-${101 + index}`;
+      const desc = `🛡️ ${Math.round(a.armorClass * 100)}% | 🩸 +${a.hp}`;
 
       const div = document.createElement('div');
       div.className = 'shopItem';
-      div.style.cssText = 'background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 12px; padding: 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;';
       div.innerHTML = `
-        <div>
-          <div style="font-weight: 700; color: var(--secondary);">${loc(a, 'name')}</div>
-          <div style="font-size: 0.75rem; opacity: 0.7;">🛡️ ${Math.round(a.armorClass * 100)}% | 🩸 +${a.hp}</div>
+        <div class="shopItem-id">${itemId}</div>
+        <div class="shopItem-img-wrap">
+          <img class="shopItem-img" src="${imgUrl}" alt="${loc(a, 'name')}" />
         </div>
-        <button class='btn ${isEquipped ? 'good' : ''}' data-equip-a='${id}' style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: 10px;">
-          ${isEquipped ? translate('equipped') : translate('equip')}
-        </button>
+        <div class="shopItem-details">
+          <div>
+            <h3 class="shopItem-title">${loc(a, 'name')}</h3>
+            <p class="shopItem-desc">${desc}</p>
+          </div>
+          <div class="shopItem-action-row">
+            <div class="shopItem-price">${isEquipped ? 'ACTIVE' : 'READY'}</div>
+            <button class='btn ${isEquipped ? 'good' : ''}' data-equip-a='${id}'>
+              ${isEquipped ? translate('equipped') : translate('equip')}
+            </button>
+          </div>
+        </div>
       `;
       const btn = div.querySelector('[data-equip-a]');
       btn.onclick = () => {

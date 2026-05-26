@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>РАЗБОРКА - Urban Survivor HUD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Outfit:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "outline": "#849495",
+                        "on-error": "#690005",
+                        "surface-container": "#192122",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#2e3637",
+                        "inverse-primary": "#00696f",
+                        "primary-container": "#00f3ff",
+                        "outline-variant": "#3a494b",
+                        "on-tertiary-fixed": "#221b00",
+                        "on-primary-container": "#006b71",
+                        "surface-container-low": "#151d1e",
+                        "surface-dim": "#0d1515",
+                        "tertiary-fixed-dim": "#e8c426",
+                        "on-primary-fixed": "#002022",
+                        "surface-container-high": "#232b2c",
+                        "tertiary-fixed": "#ffe173",
+                        "tertiary-container": "#ffd93d",
+                        "inverse-on-surface": "#2a3232",
+                        "primary-fixed-dim": "#00dce6",
+                        "surface-container-lowest": "#081010",
+                        "on-secondary-fixed-variant": "#6700b5",
+                        "secondary-fixed": "#efdbff",
+                        "on-secondary": "#480081",
+                        "primary": "#e3fdff",
+                        "tertiary": "#fff7e9",
+                        "on-tertiary-fixed-variant": "#554500",
+                        "secondary": "#dcb8ff",
+                        "background": "#0d1515",
+                        "surface": "#0d1515",
+                        "on-tertiary": "#3b2f00",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#dce4e4",
+                        "on-tertiary-container": "#725e00",
+                        "error-container": "#93000a",
+                        "secondary-container": "#7701d0",
+                        "on-surface": "#dce4e4",
+                        "surface-container-highest": "#2e3637",
+                        "secondary-fixed-dim": "#dcb8ff",
+                        "on-surface-variant": "#b9cacb",
+                        "on-background": "#dce4e4",
+                        "on-secondary-fixed": "#2c0051",
+                        "surface-tint": "#00dce6",
+                        "surface-bright": "#333b3b",
+                        "on-primary": "#00373a",
+                        "primary-fixed": "#6ff6ff",
+                        "on-primary-fixed-variant": "#004f53",
+                        "on-secondary-container": "#dcb7ff"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "margin-desktop": "48px",
+                        "xl": "80px",
+                        "md": "24px",
+                        "lg": "48px",
+                        "base": "8px",
+                        "sm": "12px",
+                        "xs": "4px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px"
+                    },
+                    fontFamily: {
+                        "label-sm": ["Space Mono"],
+                        "body-lg": ["Outfit"],
+                        "headline-md": ["Space Mono"],
+                        "headline-lg": ["Space Mono"],
+                        "label-lg": ["Space Mono"],
+                        "display-lg": ["Space Mono"],
+                        "body-md": ["Outfit"],
+                        "headline-sm": ["Space Mono"],
+                        "headline-lg-mobile": ["Space Mono"]
+                    },
+                    fontSize: {
+                        "label-sm": ["11px", { lineHeight: "1.0", letterSpacing: "0.12em", fontWeight: "700" }],
+                        "body-lg": ["18px", { lineHeight: "1.6", letterSpacing: "0.01em", fontWeight: "400" }],
+                        "headline-md": ["24px", { lineHeight: "1.2", letterSpacing: "0.08em", fontWeight: "700" }],
+                        "headline-lg": ["32px", { lineHeight: "1.2", letterSpacing: "0.08em", fontWeight: "700" }],
+                        "label-lg": ["14px", { lineHeight: "1.0", letterSpacing: "0.12em", fontWeight: "700" }],
+                        "display-lg": ["48px", { lineHeight: "1.1", letterSpacing: "0.1em", fontWeight: "700" }],
+                        "body-md": ["16px", { lineHeight: "1.6", letterSpacing: "0.01em", fontWeight: "400" }],
+                        "headline-sm": ["18px", { lineHeight: "1.2", letterSpacing: "0.08em", fontWeight: "700" }],
+                        "headline-lg-mobile": ["28px", { lineHeight: "1.2", letterSpacing: "0.08em", fontWeight: "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .scanlines {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+        }
+        .neon-border {
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4), inset 0 0 15px rgba(0, 243, 255, 0.4);
+        }
+        .flicker:hover {
+            animation: flicker 0.15s infinite;
+        }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background overflow-hidden relative h-screen w-screen selection:bg-primary-container selection:text-on-primary-container">
+<!-- Background Layer -->
+<div class="absolute inset-0 z-0 bg-cover bg-center opacity-40 mix-blend-luminosity" data-alt="A gritty cyberpunk city street at night, heavily raining. Neon reflections in puddles. Dark, chaotic urban environment with towering monolithic structures looming in the mist. High-tech, low-life aesthetic with deep shadows and harsh, artificial lighting. Cinematic depth of field." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCkmK682j5TOfKlnkQ0bAvkZ-RPhOzlzXvdMLVx2MvKuCTTgGmAJY-MTceo1IOBglzqNQM11Qloq26IPhnV8UM7M7ZpVDiA4aaMwBxfcctWo9nmsdL5i-91ZeD84X3tCqvoUqvHageSqHRK0cC6OyQfkHhYw5yNOA3AQ2ou9sRDeFbVKQT2y8uzU4YsRrs-k9x2OW9qesnTgcX9UPkFI8b3GuxX8a8Z7ek5MnJhC95ekJs6OHgXZVxPuMQexeIjb2rQXC3cDEVdB8cl')">
+</div>
+<!-- CRT Overlay -->
+<div class="absolute inset-0 z-10 scanlines pointer-events-none opacity-50 mix-blend-overlay"></div>
+<!-- Main HUD Container -->
+<div class="relative z-20 w-full h-full flex flex-col p-4 sm:p-6 md:p-8">
+<!-- Top: Enemy Status & Portrait -->
+<div class="flex flex-col items-center w-full max-w-md mx-auto gap-4 mt-2">
+<!-- Enemy Portrait Frame -->
+<div class="relative w-40 h-40 sm:w-48 sm:h-48 md:w-56 md:h-56 neon-border border border-primary-container p-1 sm:p-2 bg-surface-container/40 backdrop-blur-md transform hover:scale-[1.02] transition-transform duration-300 group">
+<div class="absolute top-0 right-0 p-1 sm:p-2 font-label-sm text-label-sm text-primary-container/70 z-30">ID: THG-8992</div>
+<!-- Inner Container -->
+<div class="w-full h-full relative overflow-hidden border border-primary-container/30">
+<img alt="Gritty cyborg enemy" class="w-full h-full object-cover mix-blend-lighten opacity-80 group-hover:opacity-100 transition-opacity duration-300 filter contrast-125 saturate-50 sepia-[0.2] hue-rotate-180" data-alt="A close-up, high-fidelity portrait of a menacing cyberpunk street thug or cyborg. Gritty, dirty, metallic augmentations visible on the face and neck. Intense, aggressive expression. Dark, dramatic lighting with harsh cyan and red edge lights. Cinematic, photorealistic rendering." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgH3J-lLVQ31zhpnMeTFYBK_pJeY-X0pgVJUsX0OMSUrc7mACXyvnzyxyvaJ9Tl4yCLiEzD-OnXV_4Gas7j2ZAxdywIM4Aign8AZPPffg4AiFri_-I0TTwNMfB-MTnrjMeVzN9Ems06NKWnENAiBD2aT7TYGmiCrwUnFTyFLDyAhSbazPhGiwAr_BLLJeHoix6bFyObaIL4wCJimllug_ZIWPqgL0pxKBBfp7_AUFOqZjUc0CWu7AKp2lNquiBsruUk0hvh-ZHOPQI"/>
+<!-- Glitch/Scan Overlay -->
+<div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9InRyYW5zcGFyZW50Ii8+PHJlY3Qgd2lkdGg9IjQiIGhlaWdodD0iMSIgZmlsbD0icmdiYSgwLCAyNDMsIDI1NSwgMC4xKSIvPjwvc3ZnPg==')] opacity-30 mix-blend-overlay"></div>
+</div>
+</div>
+<!-- Enemy Health Bar & Info -->
+<div class="flex flex-col gap-1 sm:gap-2 w-full max-w-sm px-2">
+<div class="flex justify-between items-end">
+<div class="flex flex-col">
+<span class="font-headline-sm sm:font-headline-md text-headline-sm sm:text-headline-md text-error tracking-widest drop-shadow-[0_0_8px_rgba(255,180,171,0.6)] uppercase">РАЗБОРКА</span>
+<span class="font-label-sm text-label-sm text-on-background tracking-widest mt-0.5">CYBER_THUG_09</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-label-sm text-label-sm text-on-surface-variant">LVL.42</span>
+</div>
+</div>
+<!-- Enemy Health Bar -->
+<div class="h-3 sm:h-4 w-full bg-surface-container-high border border-error/30 relative overflow-hidden mt-1">
+<div class="absolute top-0 left-0 h-full bg-error w-[75%] shadow-[0_0_10px_rgba(255,180,171,0.8)] transition-all duration-300"></div>
+</div>
+</div>
+</div>
+<!-- Middle: Combat Log -->
+<div class="flex-1 flex flex-col justify-end w-full max-w-md mx-auto py-4 min-h-0">
+<div class="h-28 sm:h-36 w-full bg-surface-container/60 backdrop-blur-[15px] border-l border-t border-primary-container/20 p-3 sm:p-4 flex flex-col">
+<div class="font-label-sm text-label-sm text-primary-container mb-2 border-b border-primary-container/20 pb-1 flex justify-between items-center">
+<span>SYS.LOG // TACTICAL</span>
+<button class="material-symbols-outlined text-primary-container/70 hover:text-primary-container text-[16px] focus:outline-none">keyboard_arrow_down</button>
+</div>
+<div class="flex-1 overflow-y-auto font-label-sm text-[10px] sm:text-label-sm text-on-surface-variant flex flex-col gap-1.5 opacity-80 pb-1">
+<p>&gt; INITIATING COMBAT SEQUENCE...</p>
+<p class="text-error">&gt; ENEMY DETECTED: CYBER_THUG_09</p>
+<p>&gt; ANALYZING WEAKNESSES...</p>
+<p class="text-secondary">&gt; ARMOR PLATING: COMPROMISED (34%)</p>
+<p>&gt; AWAITING COMMAND INPUT.</p>
+</div>
+</div>
+</div>
+<!-- Bottom: Player Status & Actions -->
+<div class="w-full max-w-md mx-auto mt-auto pb-safe">
+<!-- Player Health -->
+<div class="flex flex-col gap-1 sm:gap-2 w-full mb-4">
+<div class="flex justify-between items-end">
+<span class="font-headline-sm text-base sm:text-headline-sm text-primary-container uppercase tracking-wider">PLAYER_ONE</span>
+<span class="font-label-sm text-[10px] sm:text-label-sm text-on-surface-variant">HP 850/1000</span>
+</div>
+<div class="h-3 sm:h-4 w-full bg-surface-container-high border border-primary-container/30 relative overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-primary-container w-[85%] shadow-[0_0_10px_rgba(0,243,255,0.6)]"></div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="grid grid-cols-[1fr_1fr_auto] gap-2 sm:gap-4 w-full">
+<!-- Attack Button -->
+<button class="relative group overflow-hidden bg-primary-container/10 border border-primary-container py-3 sm:py-4 transform transition-all duration-150 active:bg-primary-container/30 active:scale-95 focus:outline-none flex justify-center items-center min-h-[48px]">
+<div class="absolute inset-0 bg-blue-500/20 w-0 group-active:w-full transition-all duration-300 ease-out"></div>
+<span class="font-headline-sm text-sm sm:text-headline-sm text-primary-container tracking-widest relative z-10 flex items-center gap-1 sm:gap-2">
+<span class="material-symbols-outlined text-[18px] sm:text-[24px]" style="font-variation-settings: 'FILL' 1;">swords</span>
+                УДАР
+            </span>
+</button>
+<!-- Dodge Button -->
+<button class="bg-surface-container-high/80 backdrop-blur-sm border border-secondary py-3 sm:py-4 text-secondary hover:bg-secondary/20 active:bg-secondary/30 transition-all duration-150 active:scale-95 focus:outline-none flex justify-center items-center min-h-[48px]">
+<span class="font-headline-sm text-sm sm:text-headline-sm tracking-wider flex items-center gap-1 sm:gap-2">
+<span class="material-symbols-outlined text-[18px] sm:text-[24px]">directions_run</span>
+                УВОРОТ
+            </span>
+</button>
+<!-- Heal Button -->
+<button class="bg-surface-container-high/80 backdrop-blur-sm border border-tertiary-fixed w-12 sm:w-16 text-tertiary-fixed hover:bg-tertiary-fixed/20 active:bg-tertiary-fixed/30 transition-all duration-150 active:scale-95 focus:outline-none flex items-center justify-center min-h-[48px]">
+<span class="font-headline-sm text-lg sm:text-headline-sm">💊</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>
