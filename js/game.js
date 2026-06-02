@@ -2,9 +2,12 @@ import { GameData } from './data.js';
 import { GameState } from './state.js';
 import { SoundManager } from './audio.js';
 import { PlaygamaSDK } from './playgama.js';
-import { EventEmitter as Events } from './events.js';
+import { EventEmitter as Events, GameEvents } from './events.js';
 import { translate as translate, loc, translateError } from './locales.js';
 import { GameUI } from './ui.js';
+import { awardOnDeath } from './meta/metaCurrency.js';
+import { applyMetaBonuses } from './meta/applyMetaBonuses.js';
+import { EARLY_GAME, earlyLootMult } from './config/earlyGame.js';
 
 const rng = () => Math.random();
 const pick = arr => arr[Math.floor(rng() * arr.length)];
@@ -56,6 +59,30 @@ const armorUnlock = id => {
   switchArmor(id);
 };
 
+// --- ПЕРЕНОС МЕЖДУ ЦИКЛАМИ ---
+// Восстанавливает купленные за реал предметы и применяет мета-бонусы к новому клону.
+// Вызывается ОДИН РАЗ на каждое созданное fresh-состояние (defeat / #newRun).
+const applyCarryOver = (fresh, carry) => {
+  fresh.permanentBonuses = { ...fresh.permanentBonuses, ...carry.bonuses };
+  if (carry.weapons.shotgun) fresh.weapons.shotgun = true;
+  if (carry.weapons.pickaxe) fresh.weapons.pickaxe = true;
+  if (carry.armors.heavy)    fresh.armors.heavy    = true;
+
+  applyMetaBonuses(fresh, GameState.getMeta());
+
+  // Экипируем стартовое оружие, открытое в Архиве (узел tech_starter_weapon).
+  if (fresh._equipStartWeapon && fresh.weapons[fresh._equipStartWeapon]) {
+    switchWeapon(fresh._equipStartWeapon);
+  }
+  return fresh;
+};
+
+const captureCarry = (st) => ({
+  bonuses: { ...st.permanentBonuses },
+  weapons: { shotgun: st.weapons.shotgun, pickaxe: st.weapons.pickaxe },
+  armors:  { heavy: st.armors.heavy }
+});
+
 // --- СМЕРТЬ ---
 const defeat = (reasonKey = 'defeat_reason_default') => {
   const st = GameState.get();
@@ -70,11 +97,29 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
   // Bug 4 fix: play death sound
   SoundManager.play('error');
 
+  // === МЕТАПРОГРЕССИЯ: начисляем валюту за забег ДО сброса состояния ===
+  const meta = GameState.getMeta();
+  meta.deaths = (meta.deaths || 0) + 1;
+  const stats = st.stats || { kills: 0, eliteKills: 0, storyChoices: 0 };
+  const runCtx = {
+    day: st.day,
+    kills: stats.kills, eliteKills: stats.eliteKills, storyChoices: stats.storyChoices,
+    humanity: st.player.humanity
+  };
+  const earned = awardOnDeath(runCtx, meta);
+
+  const runSummary = { ...runCtx, reason, earned };
+  Events.emit(GameEvents.RUN_ENDED, runSummary);
+  Events.emit(GameEvents.PLAYER_DIED, runSummary);
+  Events.emit(GameEvents.META_POINTS_EARNED, earned);
+
   Events.emit('ui:defeat', {
     reason: reason,
     day: st.day,
     reviveAvailable: reviveAvailable,
-    savedEnemy: savedEnemy
+    savedEnemy: savedEnemy,
+    earned: earned,
+    meta: { memoryPoints: meta.memoryPoints, dnaFragments: meta.dnaFragments }
   });
 
   if (PlaygamaSDK && !st.permanentBonuses.noAds) PlaygamaSDK.showInterstitial();
@@ -88,22 +133,16 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
       caps: Math.floor((st.resources.caps || 0) * 0.5)
     }
   };
-  GameState.getMeta().corpse = corpse;
-  GameState.getMeta().deaths = (GameState.getMeta().deaths || 0) + 1;
+  meta.corpse = corpse;
 
   // Сохраняем купленные покупки перед сбросом состояния
-  const savedBonuses = { ...st.permanentBonuses };
-  const savedPurchasedWeapons = { shotgun: st.weapons.shotgun, pickaxe: st.weapons.pickaxe };
-  const savedPurchasedArmors  = { heavy: st.armors.heavy };
+  const carry = captureCarry(st);
 
   GameState.set(GameState.fresh());
 
-  // Восстанавливаем купленные покупки и разблокированные предметы
+  // Восстанавливаем покупки + применяем мета-бонусы к новому клону
   const fresh = GameState.get();
-  fresh.permanentBonuses = { ...fresh.permanentBonuses, ...savedBonuses };
-  if (savedPurchasedWeapons.shotgun)  fresh.weapons.shotgun  = true;
-  if (savedPurchasedWeapons.pickaxe)  fresh.weapons.pickaxe  = true;
-  if (savedPurchasedArmors.heavy)     fresh.armors.heavy     = true;
+  applyCarryOver(fresh, carry);
 
   // Bug 3 fix: restore revival state into fresh state
   fresh.reviveAvailable = reviveAvailable;
@@ -128,8 +167,12 @@ const checkStoryEvents = () => {
   const speaker = loc(event, 'speaker');
   const text = loc(event, 'text');
 
+  // Учёт пройденного сюжетного узла для метапрогрессии (награда за глубину истории)
+  if (st.stats) st.stats.storyChoices = (st.stats.storyChoices || 0) + 1;
+
   if (event.isFlag) {
     st.flags[event.flagKey] = true;
+    Events.emit(GameEvents.STORY_FLAG_SET, { flag: event.flagKey });
     Events.emit('ui:showDialogue', { speaker, text, img: event.img });
     return true;
   }
@@ -584,6 +627,8 @@ const upkeep = () => {
   if (st.permanentBonuses.cyberStomach) {
     consumption *= 0.5;
   }
+  // Мета-бонус «Экономный метаболизм» (узел phys_metabolism)
+  if (st.meta_upkeepMult) consumption *= st.meta_upkeepMult;
 
   p.hunger = Math.max(0, p.hunger - consumption);
   p.thirst = Math.max(0, p.thirst - consumption);
@@ -606,7 +651,10 @@ const upkeep = () => {
 // --- СЛУЧАЙНЫЕ СОБЫТИЯ ---
 const encounterRoll = () => {
   const st = GameState.get();
-  const enemyChance = Math.min(.55, .20 + st.day * 0.005), roll = rng();
+  let enemyChance = Math.min(.55, .20 + st.day * 0.005);
+  // Ранняя игра: снижаем шанс боя в первые дни — первый бой должен быть читаемым, не случайным (§6.4)
+  if (st.day <= EARLY_GAME.enemyChanceDampDays) enemyChance *= EARLY_GAME.enemyChanceDampMult;
+  const roll = rng();
 
   if (roll < 0.15) {
     const corpse = GameState.getMeta().corpse;
@@ -882,6 +930,7 @@ const startDay = () => {
 
   st.day++; st.phase = translate('status_exploring'); upkeep();
   document.dispatchEvent(new CustomEvent('dayadvanced', { detail: { day: st.day } }));
+  Events.emit(GameEvents.DAY_PASSED, { day: st.day });
   SoundManager.play('click');
   if (st.player.hp <= 0) return;
 
@@ -902,6 +951,13 @@ const startDay = () => {
 
   // Сбрасываем активность перед новым днем (по умолчанию "ничего")
   st.player.lastActivity = 'none';
+
+  // Ранняя игра: гарантированный стартовый тайник — первая значимая награда (§2.1, §6.2)
+  if (!st.flags.firstCacheGiven && st.day >= EARLY_GAME.firstCache.day) {
+    st.flags.firstCacheGiven = true;
+    applyReward(EARLY_GAME.firstCache.reward);
+    Events.emit('ui:toast', translate('toast_first_cache'));
+  }
 
   if (checkAdEvents()) return;
   if (checkStoryEvents()) return;
@@ -943,7 +999,8 @@ const startDay = () => {
     GameUI.$('#encounterYes').textContent = translate('btn_search'); GameUI.$('#encounterNo').textContent = translate('btn_ignore');
     st.phase = translate('status_exploring'); Events.emit('ui:show', { id: '#encounterModal', on: true });
   } else {
-    applyReward({ materials: 2 + Math.floor(rng() * 3), caps: 1 + Math.floor(rng() * 2) });
+    const em = earlyLootMult(st.day);
+    applyReward({ materials: Math.round((2 + Math.floor(rng() * 3)) * em), caps: Math.round((1 + Math.floor(rng() * 2)) * em) });
     Events.emit('ui:toast', translate('day_calm'));
     Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
   }
@@ -982,15 +1039,26 @@ const finishFight = win => {
 
   if (win) {
     SoundManager.play('success');
+    // Учёт убийства для метапрогрессии (до раннего return по onWin — сюжетные боссы тоже считаются)
+    if (st.stats) {
+      st.stats.kills = (st.stats.kills || 0) + 1;
+      if (c.enemy && c.enemy.elite) st.stats.eliteKills = (st.stats.eliteKills || 0) + 1;
+    }
+    Events.emit(GameEvents.COMBAT_ENDED, { win: true, enemy: c.enemy });
     if (c.onWin) { const cb = c.onWin; delete c.onWin; cb(); return; }
   } else {
     SoundManager.play('error');
+    Events.emit(GameEvents.COMBAT_ENDED, { win: false, enemy: c.enemy });
   }
 
   let txt = win
     ? (() => {
+      const lootMult = (st.meta_lootMult || 1) * earlyLootMult(st.day);
       const baseCaps = Math.round(c.enemy.threat * 0.8) + Math.floor(rng() * 5);
-      const r = { materials: 3 + Math.floor(rng() * 5), caps: Math.max(10, baseCaps) };
+      const r = {
+        materials: Math.round((3 + Math.floor(rng() * 5)) * lootMult),
+        caps: Math.max(10, Math.round(baseCaps * lootMult))
+      };
       if (rng() < .15) r.food = 1;
       applyReward(r);
       c.lastReward = { ...r };
@@ -1083,6 +1151,8 @@ GameUI.$('#equipBtn').onclick = () => { Events.emit('ui:renderEquipment', { onSw
 GameUI.$('#equipClose').onclick = () => Events.emit('ui:show', { id: '#equipModal', on: false });
 GameUI.$('#craftBtn').onclick = () => { renderCraft(); Events.emit('ui:show', { id: '#craftModal', on: true }); };
 GameUI.$('#craftClose').onclick = () => Events.emit('ui:show', { id: '#craftModal', on: false });
+if (GameUI.$('#archiveBtn')) GameUI.$('#archiveBtn').onclick = () => Events.emit('ui:openArchive', { fromDefeat: false });
+if (GameUI.$('#defeatArchiveBtn')) GameUI.$('#defeatArchiveBtn').onclick = () => Events.emit('ui:openArchive', { fromDefeat: true });
 GameUI.$('#storyOk').onclick = () => Events.emit('ui:show', { id: '#storyModal', on: false });
 
 GameUI.$('#reviveBtn').onclick = () => {
@@ -1211,23 +1281,23 @@ const applyPurchase = (id) => {
   }
 };
 
-GameUI.$('#newRun').onclick = () => {
+const startNewCycle = () => {
   SoundManager.play('click');
-  const cur = GameState.get();
-  const savedBonuses  = { ...cur.permanentBonuses };
-  const savedWeapons  = { shotgun: cur.weapons.shotgun, pickaxe: cur.weapons.pickaxe };
-  const savedArmors   = { heavy: cur.armors.heavy };
+  // Пересобираем свежий клон с нуля и применяем мета-бонусы (учитывая то,
+  // что игрок мог купить в Архиве между смертью и стартом нового цикла).
+  const carry = captureCarry(GameState.get());
   GameState.set(GameState.fresh());
-  const nf = GameState.get();
-  nf.permanentBonuses = { ...nf.permanentBonuses, ...savedBonuses };
-  if (savedWeapons.shotgun) nf.weapons.shotgun = true;
-  if (savedWeapons.pickaxe) nf.weapons.pickaxe = true;
-  if (savedArmors.heavy)    nf.armors.heavy    = true;
+  applyCarryOver(GameState.get(), carry);
   Events.emit('ui:show', { id: '#defeatModal', on: false });
+  Events.emit('ui:show', { id: '#archiveModal', on: false });
   Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
   GameState.save();
   Events.emit('ui:toast', translate('sys_init'));
 };
+GameUI.$('#newRun').onclick = startNewCycle;
+Events.on('ui:startNewCycle', startNewCycle);
+// Слушатель наград из сюжетных choices (story.js эмитит это событие)
+Events.on('game:applyReward', r => { if (r) applyReward(r); });
 
 GameUI.$('#res').addEventListener('click', e => {
   const btn = e.target.closest('[data-use]'); if (!btn) return;

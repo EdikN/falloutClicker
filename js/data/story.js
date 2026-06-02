@@ -25,6 +25,31 @@ export const STORY_EVENTS = [
     ]
   },
 
+  // === ДЕНЬ 3: СБОЙ В ПАМЯТИ (ранний онбординг-лор) ===
+  {
+    day: 3, speaker: 'СБОЙ ПАМЯТИ', speaker_en: 'MEMORY GLITCH', img: 'img/portrait_sys.webp',
+    text_ru: 'ВСПЫШКА. ЧУЖОЕ ВОСПОМИНАНИЕ ПРОРЫВАЕТСЯ СКВОЗЬ ШУМ:\n\n«...я уже шёл этим коридором. Я уже умирал здесь. Лицо в зеркале — моё, но это не я...»\n\nВИДЕНИЕ ГАСНЕТ. ОСТАЁТСЯ ОЩУЩЕНИЕ: ТЫ — НЕ ПЕРВЫЙ.',
+    text_en: 'A FLASH. SOMEONE ELSE\'S MEMORY BREAKS THROUGH THE NOISE:\n\n"...I have walked this corridor before. I have died here before. The face in the mirror is mine, but it is not me..."\n\nTHE VISION FADES. A FEELING REMAINS: YOU ARE NOT THE FIRST.'
+  },
+
+  // === ДЕНЬ 5: ЗАПЕЧАТАННЫЙ ОТСЕК (тайна / прогрессия) ===
+  {
+    day: 5, speaker: 'СИСТЕМА', speaker_en: 'SYSTEM', img: 'img/portrait_sys.webp',
+    text_ru: 'ВЫ НАХОДИТЕ МАССИВНУЮ ГЕРМЕТИЧНУЮ ДВЕРЬ. ИНДИКАТОР КРАСНЫЙ.\n\n«ДОСТУП ЗАПРЕЩЁН. ТРЕБУЕТСЯ КОД АРХИВА. УРОВЕНЬ ДОПУСКА НЕДОСТАТОЧЕН».\n\nЧто-то ждёт за этой дверью. Но не сегодня.',
+    text_en: 'YOU FIND A MASSIVE SEALED DOOR. THE INDICATOR IS RED.\n\n"ACCESS DENIED. ARCHIVE CODE REQUIRED. CLEARANCE LEVEL INSUFFICIENT."\n\nSomething waits behind that door. But not today.'
+  },
+
+  // === ДЕНЬ 7: ПЕРВЫЙ МОРАЛЬНЫЙ ВЫБОР ===
+  {
+    day: 7, speaker: 'РАНЕНЫЙ СКИТАЛЕЦ', speaker_en: 'WOUNDED WANDERER', img: 'img/portrait_drifter.webp',
+    text_ru: 'У СТЕНЫ ЛЕЖИТ РАНЕНЫЙ ЧЕЛОВЕК. ОН ТЯНЕТ К ТЕБЕ РУКУ.\n\n«ПРОШУ... АПТЕЧКУ... ИЛИ ХОТЯ БЫ ВОДЫ... Я ОТДАМ ВСЁ, ЧТО У МЕНЯ ЕСТЬ...»',
+    text_en: 'A WOUNDED MAN LIES BY THE WALL. HE REACHES OUT TO YOU.\n\n"PLEASE... A MEDKIT... OR JUST WATER... I\'LL GIVE YOU EVERYTHING I HAVE..."',
+    choices: [
+      { text_ru: 'ПОМОЧЬ ЕМУ', text_en: 'HELP HIM', action: (Events, GameState, translate) => { const st = GameState.get(); st.player.humanity = Math.min(st.player.maxHumanity, st.player.humanity + 10); if (st.resources.medkits > 0) st.resources.medkits -= 1; Events.emit('ui:toast', translate('toast_humanity', '+10')); Events.emit('ui:showDialogue', { speaker: 'РАНЕНЫЙ СКИТАЛЕЦ', speaker_en: 'WOUNDED WANDERER', img: 'img/portrait_drifter.webp', text_ru: '«СПАСИБО... ТЫ НЕ ТАКОЙ, КАК ОСТАЛЬНЫЕ КЛОНЫ. ВОЗЬМИ ЭТО — МНЕ УЖЕ НЕ ПРИГОДИТСЯ». ВЫ ПОЛУЧИЛИ КРЕДИТЫ И ПАТРОНЫ.', text_en: '"THANK YOU... YOU ARE NOT LIKE THE OTHER CLONES. TAKE THIS — I WON\'T NEED IT ANYMORE." YOU RECEIVED CREDITS AND AMMO.', choices: [{ text_ru: 'ВЗЯТЬ', text_en: 'TAKE', action: (Events, GameState) => { const s = GameState.get(); s.resources.caps += 20; s.resources.ammo += 10; Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); } }] }); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); } },
+      { text_ru: 'ОБОБРАТЬ ЕГО', text_en: 'SCAVENGE HIM', action: (Events, GameState, translate) => { const st = GameState.get(); st.player.humanity = Math.max(0, st.player.humanity - 10); st.resources.caps += 35; st.resources.materials += 5; Events.emit('ui:toast', translate('toast_humanity', '-10')); Events.emit('ui:showDialogue', { speaker: 'СИСТЕМА', speaker_en: 'SYSTEM', img: 'img/portrait_sys.webp', text_ru: 'ВЫ ЗАБРАЛИ ВСЁ. ЕГО ГЛАЗА ГАСНУТ ЗА ВАШЕЙ СПИНОЙ. ВЫЖИВАНИЕ НЕ ЗНАЕТ ЖАЛОСТИ. РЕСУРСЫ ПОЛУЧЕНЫ.', text_en: 'YOU TOOK EVERYTHING. HIS EYES FADE BEHIND YOUR BACK. SURVIVAL KNOWS NO MERCY. RESOURCES OBTAINED.' }); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); } }
+    ]
+  },
+
   // === ДЕНЬ 15: ПЕРВЫЙ ПЕРЕХВАТ ===
   {
     day: 15, speaker: 'АРХИВ', speaker_en: 'ARCHIVE', img: 'img/portrait_archive.webp',

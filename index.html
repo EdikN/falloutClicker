@@ -40,6 +40,7 @@
           <button class="pill pill-btn" id="merchantBtn" data-i18n="btn_merchant">СЕТЬ ТОРГОВЛИ</button>
           <button class="pill pill-btn" id="equipBtn" data-i18n="btn_inventory">ИНВЕНТАРЬ</button>
           <button class="pill pill-btn" id="craftBtn" data-i18n="btn_synth">СИНТЕЗАТОР</button>
+          <button class="pill pill-btn" id="archiveBtn" data-i18n="btn_archive">АРХИВ ПАМЯТИ</button>
         </div>
       </section>
     </main>
@@ -156,13 +157,27 @@
           <div id="defeatDays" style="font-size: 1.2em; margin-top: 0.5rem; color:var(--warn)" data-i18n="cycles_lived">
             ПРОЖИТО ЦИКЛОВ: 0</div>
         </div>
+        <div class="defeat-earned" id="defeatEarned"></div>
         <div class="defeat-msg" id="defeatMsg" data-i18n="sys_cleaned">"СИСТЕМА ОЧИЩЕНА. ЗАГРУЗКА НОВОГО КЛОНА..."</div>
         <div class="row" style="flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
           <button class="btn warn" id="reviveBtn" style="padding: 1rem;" data-i18n="btn_revive">⚡ ЗАГРУЗИТЬ РЕЗЕРВ
             (REVIVE)</button>
+          <button class="btn" id="defeatArchiveBtn" style="padding: 1rem;" data-i18n="btn_open_archive">🧠 ВОЙТИ В
+            АРХИВ ПАМЯТИ</button>
           <button class="btn bad" id="newRun" style="padding: 1rem;" data-i18n="btn_new_cycle">ИНИЦИАЛИЗАЦИЯ НОВОГО
             ЦИКЛА</button>
         </div>
+      </div>
+    </div>
+
+    <!-- АРХИВ ПАМЯТИ (метапрогрессия) -->
+    <div class="overlay" id="archiveModal">
+      <div class="card modal archive-modal">
+        <h2 data-i18n="archive_title">АРХИВ ИЕРИХОНА</h2>
+        <div class="sub" data-i18n="archive_desc">ПАМЯТЬ ПРОШЛЫХ КЛОНОВ — В ПОСТОЯННЫЕ УЛУЧШЕНИЯ.</div>
+        <div class="archive-balances" id="archiveBalances"></div>
+        <div id="archiveTree" class="scrollable"></div>
+        <button class="btn good" id="archiveCycleBtn" data-i18n="btn_close">ЗАКРЫТЬ</button>
       </div>
     </div>
 

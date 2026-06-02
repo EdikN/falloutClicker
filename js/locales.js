@@ -213,7 +213,24 @@ export const TRANSLATIONS = {
         social_remind_30: '[ НАПОМНИТЬ ЧЕРЕЗ 30 ДНЕЙ ]',
         social_never: '[ НИКОГДА НЕ НАПОМИНАТЬ ]',
         for_viewing_ads: ' (за просмотр рекламы)',
-        vk_currency: 'голосов'
+        vk_currency: 'голосов',
+        // --- Метапрогрессия / Архив ---
+        btn_archive: 'АРХИВ ПАМЯТИ',
+        btn_open_archive: '🧠 ВОЙТИ В АРХИВ ПАМЯТИ',
+        archive_title: 'АРХИВ ИЕРИХОНА',
+        archive_desc: 'ПАМЯТЬ ПРОШЛЫХ КЛОНОВ — В ПОСТОЯННЫЕ УЛУЧШЕНИЯ.',
+        meta_memory_points: 'ОЧКИ ПАМЯТИ',
+        meta_dna_fragments: 'ДНК-ФРАГМЕНТЫ',
+        meta_cycles: 'ЦИКЛОВ',
+        meta_best_day: 'РЕКОРД (ДЕНЬ)',
+        meta_buy: 'УЛУЧШИТЬ',
+        meta_maxed: 'МАКСИМУМ',
+        meta_locked: '🔒 ЗАКРЫТО',
+        meta_purchased: 'УЛУЧШЕНИЕ: {0}',
+        meta_run_summary: 'ИТОГИ ЦИКЛА',
+        meta_total: 'всего',
+        toast_first_cache: '📦 НАЙДЕН ТАЙНИК С ПРИПАСАМИ!',
+        ob_next: 'ДАЛЕЕ ▶'
     },
     en: {
         days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -428,7 +445,24 @@ export const TRANSLATIONS = {
         social_remind_30: '[ REMIND IN 30 DAYS ]',
         social_never: '[ NEVER REMIND ]',
         for_viewing_ads: ' (for viewing ads)',
-        vk_currency: 'votes'
+        vk_currency: 'votes',
+        // --- Meta-progression / Archive ---
+        btn_archive: 'MEMORY ARCHIVE',
+        btn_open_archive: '🧠 ENTER MEMORY ARCHIVE',
+        archive_title: 'JERICHO ARCHIVE',
+        archive_desc: 'MEMORY OF PAST CLONES — INTO PERMANENT UPGRADES.',
+        meta_memory_points: 'MEMORY POINTS',
+        meta_dna_fragments: 'DNA FRAGMENTS',
+        meta_cycles: 'CYCLES',
+        meta_best_day: 'BEST DAY',
+        meta_buy: 'UPGRADE',
+        meta_maxed: 'MAXED',
+        meta_locked: '🔒 LOCKED',
+        meta_purchased: 'UPGRADED: {0}',
+        meta_run_summary: 'CYCLE SUMMARY',
+        meta_total: 'total',
+        toast_first_cache: '📦 SUPPLY CACHE FOUND!',
+        ob_next: 'NEXT ▶'
     }
 };
 

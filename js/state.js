@@ -1,4 +1,5 @@
 import { GameData } from './data.js';
+import { freshMeta } from './meta/metaCurrency.js';
 
 export const GameState = (() => {
   const fresh = () => ({
@@ -24,7 +25,8 @@ export const GameState = (() => {
       drifterMet: 0,            // Счётчик встреч с Бродягой
       cartographerMet: false,   // Встретил Картографа
       amazonImplant: false,     // Получил имплант Амазонки (убил её)
-      endingReached: false      // Финал достигнут
+      endingReached: false,     // Финал достигнут
+      firstCacheGiven: false    // Выдан гарантированный стартовый тайник (ранняя игра)
     },
 
     // === МОНЕТИЗАЦИЯ ===
@@ -79,6 +81,9 @@ export const GameState = (() => {
       light: false, medium: false, heavy: false
     },
 
+    // Статистика текущего забега (для начисления мета-валюты при смерти)
+    stats: { kills: 0, eliteKills: 0, storyChoices: 0 },
+
     encounter: null,
     combat: {
       active: false,
@@ -91,7 +96,7 @@ export const GameState = (() => {
   });
 
   let state = fresh();
-  let metaState = { deaths: 0, corpse: null };
+  let metaState = freshMeta();
 
   const deepMerge = (target, source) => {
     for (const key in source) {
@@ -106,9 +111,10 @@ export const GameState = (() => {
   };
 
   const normalize = () => {
-    const def = fresh();
-    state = deepMerge(state, def);
+    state = deepMerge(state, fresh());
     state.v = GameData.SAVE_VER;
+    // Добиваем недостающие мета-поля (миграция старых сейвов без метапрогрессии)
+    metaState = deepMerge(metaState || {}, freshMeta());
   };
 
   const save = () => {

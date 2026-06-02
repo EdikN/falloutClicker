@@ -15,3 +15,16 @@ export const EventEmitter = {
         this.events[event].forEach(listener => listener(data));
     }
 };
+
+// === ДОМЕННЫЕ СОБЫТИЯ ===
+// «Швы», вдоль которых ядро (game.js) развязывается с новыми системами
+// (метапрогрессия, онбординг, аналитика) без жёстких связей.
+export const GameEvents = {
+    DAY_PASSED: 'game:dayPassed',           // { day }
+    COMBAT_ENDED: 'game:combatEnded',       // { win, enemy, reward }
+    PLAYER_DIED: 'game:playerDied',         // payload итогов забега (см. RUN_ENDED)
+    RUN_ENDED: 'game:runEnded',             // { day, reason, kills, storyChoices, eliteKills, humanity, resources, earned }
+    META_POINTS_EARNED: 'meta:pointsEarned',// { memoryPoints, dnaFragments }
+    STORY_FLAG_SET: 'story:flagSet',        // { flag }
+    TUTORIAL_STEP_CHANGED: 'tutorial:stepChanged' // { step, target }
+};

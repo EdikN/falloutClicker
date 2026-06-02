@@ -6,6 +6,11 @@ import { SoundManager } from './audio.js';
 import { Game } from './game.js';
 import { PlaygamaSDK } from './playgama.js';
 import { translate } from './locales.js';
+import { ArchiveScreen } from './ui/archiveScreen.js';
+import { OnboardingFlow } from './onboarding/onboardingFlow.js';
+
+// Expose archive screen (self-initializing on import; referenced to avoid tree-shaking)
+window.ArchiveScreen = ArchiveScreen;
 
 // Expose modules to window for data.js actions
 window.GameState = GameState;
@@ -369,8 +374,14 @@ document.addEventListener('DOMContentLoaded', () => {
         initAuthBtn();
         SocialPrompt.initSettingsButtons();
 
-        // Tutorial first time check
-        if (!GameState.get().tutorialShown) {
+        // Обучение при первом запуске.
+        // Новые игроки проходят лор-онбординг с подсветкой UI (metaState.onboardingDone),
+        // а статичная справка остаётся доступной из «Настройки → Обучение».
+        if (!GameState.getMeta().onboardingDone) {
+            GameState.get().tutorialShown = true;
+            GameState.save();
+            OnboardingFlow.start();
+        } else if (!GameState.get().tutorialShown) {
             GameState.get().tutorialShown = true;
             GameState.save();
             GameUI.show('#tutorialModal', true);

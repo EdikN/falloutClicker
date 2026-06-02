@@ -398,6 +398,19 @@ export const GameUI = (() => {
     if (defeatDaysEl) defeatDaysEl.textContent = translate('cycles_lived', data.day);
     if (defeatReasonEl) defeatReasonEl.textContent = `${translate('obj_status')} ${data.reason}`;
 
+    // Итоги забега: сколько мета-валюты заработано (plan.md §5.4 этап B)
+    const earnedEl = $('#defeatEarned');
+    if (earnedEl) {
+      const e = data.earned || { memoryPoints: 0, dnaFragments: 0 };
+      const m = data.meta || {};
+      let html = `<div class="defeat-earned-title">${translate('meta_run_summary')}</div>`;
+      html += `<div class="defeat-earned-row">🧠 ${translate('meta_memory_points')}: <b>+${e.memoryPoints || 0}</b> <span class="sub">(${translate('meta_total')}: ${m.memoryPoints || 0})</span></div>`;
+      if (e.dnaFragments) {
+        html += `<div class="defeat-earned-row">🧬 ${translate('meta_dna_fragments')}: <b>+${e.dnaFragments}</b> <span class="sub">(${translate('meta_total')}: ${m.dnaFragments || 0})</span></div>`;
+      }
+      earnedEl.innerHTML = html;
+    }
+
     const msgs = [
       translate('defeat_msg_1'), translate('defeat_msg_2'), translate('defeat_msg_3'),
       translate('defeat_msg_4'), translate('defeat_msg_5')

@@ -1445,3 +1445,78 @@ h2 {
   .social-signal-icon { font-size: 1.4rem; }
   .social-action-card { padding: 0.4rem 0.6rem; }
 }
+
+/* === АРХИВ ПАМЯТИ (метапрогрессия) === */
+.archive-balances {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.6rem 0;
+}
+.archive-branch { margin-bottom: 1rem; }
+.archive-branch-title {
+  color: var(--warn);
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 0.2rem;
+  margin: 0.4rem 0;
+  text-shadow: 0 0 6px var(--warn);
+}
+.archive-node { align-items: center; }
+.archive-lvl { color: var(--warn); font-size: 0.85em; }
+.archive-node-maxed { opacity: 0.7; }
+.archive-node-maxed .archive-lvl { color: var(--ok); }
+.archive-node-locked { opacity: 0.55; }
+
+/* Итоги забега на экране смерти */
+.defeat-earned {
+  margin: 0.8rem 0;
+  padding: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgba(29, 242, 58, 0.06);
+  text-align: center;
+}
+.defeat-earned-title {
+  color: var(--warn);
+  text-shadow: 0 0 6px var(--warn);
+  margin-bottom: 0.3rem;
+}
+.defeat-earned-row { font-size: 1.05em; margin: 0.15rem 0; }
+.defeat-earned-row b { color: var(--ok); }
+
+/* === ОНБОРДИНГ: ПОДСВЕТКА UI (прожектор) === */
+#obOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  display: none;
+  pointer-events: none; /* клики проходят к игре */
+}
+#obOverlay.show { display: block; }
+#obHole {
+  position: absolute;
+  border: 2px solid var(--warn);
+  border-radius: 6px;
+  box-shadow: 0 0 0 9999px rgba(0, 8, 0, 0.78), 0 0 18px var(--warn);
+  pointer-events: none;
+  transition: all 0.25s ease;
+}
+#obCaption {
+  position: absolute;
+  max-width: min(92vw, 420px);
+  background: rgba(0, 12, 0, 0.96);
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  padding: 0.9rem 1rem;
+  box-shadow: 0 0 16px var(--line);
+  pointer-events: auto; /* подсказка кликабельна */
+  text-align: center;
+}
+#obText {
+  color: #d8ffe0;
+  line-height: 1.45;
+  text-shadow: 0 0 4px #000;
+  margin-bottom: 0.7rem;
+}
+#obText b { color: var(--warn); text-shadow: 0 0 6px var(--warn); }
+#obNext { width: 100%; }
