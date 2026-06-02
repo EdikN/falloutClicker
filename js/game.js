@@ -457,7 +457,17 @@ const newEnemy = elite => {
     ? (1 + Math.pow(st.day / 12, 1.25))
     : (1 + Math.pow(st.day / 15, 1.15));
   const maxHp = Math.round(base.hp * scale);
-  const dmg = Math.round(base.dmg * scale);
+  let dmg = Math.round(base.dmg * scale);
+
+  // Кап урона: одиночный удар не убивает с одного попадания даже без брони.
+  // Максимум 40% от maxHP игрока до учёта брони, но не менее базового урона.
+  const playerMaxHp = st.player.maxHp;
+  const playerArmor = st.player.armorClass || 0;
+  // Урон после брони не должен превышать 40% HP игрока
+  const maxAllowedAfterArmor = Math.round(playerMaxHp * 0.40);
+  const maxAllowedRaw = Math.round(maxAllowedAfterArmor / Math.max(0.1, 1 - playerArmor));
+  dmg = Math.min(dmg, Math.max(base.dmg, maxAllowedRaw));
+
   return { ...base, elite, maxHp, hp: maxHp, dmg, threat: Math.round(maxHp / 8 + dmg * 1.5) };
 };
 
@@ -983,7 +993,8 @@ const finishFight = win => {
       const r = { materials: 3 + Math.floor(rng() * 5), caps: Math.max(10, baseCaps) };
       if (rng() < .15) r.food = 1;
       applyReward(r);
-      c.lastReward = r;
+      c.lastReward = { ...r };
+      st._pendingDoubleReward = { ...r };
       GameUI.$('#doubleRewardBtn').style.display = 'block';
       return `${translate('btn_accept').toUpperCase()}. ${translate('materials')}: +${r.materials}, ${translate('credits').slice(0, 2).toUpperCase()}: +${r.caps}`;
     })()
@@ -1091,10 +1102,31 @@ GameUI.$('#reviveBtn').onclick = () => {
 };
 
 GameUI.$('#doubleRewardBtn').onclick = () => {
+  // Захватываем награду в замыкание ДО показа рекламы,
+  // чтобы она не потерялась если combat state перезапишется
+  const st = GameState.get();
+  const capturedReward = st._pendingDoubleReward ? { ...st._pendingDoubleReward } : null;
+  if (!capturedReward) {
+    console.warn('[x2 Reward] _pendingDoubleReward is null, trying combat.lastReward fallback');
+    const fallback = st.combat.lastReward;
+    if (!fallback) {
+      Events.emit('ui:toast', translate('toast_no_items'));
+      GameUI.$('#doubleRewardBtn').style.display = 'none';
+      return;
+    }
+  }
+  const rewardToApply = capturedReward || { ...st.combat.lastReward };
+
   if (window.PlaygamaSDK) {
     window.PlaygamaSDK.showRewarded('double_loot', () => {
-      const r = GameState.get().combat.lastReward;
-      if (r) { applyReward(r); Events.emit('ui:toast', translate('toast_loot_doubled')); GameUI.$('#doubleRewardBtn').style.display = 'none'; }
+      if (rewardToApply) {
+        applyReward(rewardToApply);
+        Events.emit('ui:toast', translate('toast_loot_doubled'));
+        // Очищаем чтобы нельзя было дублировать повторно
+        GameState.get()._pendingDoubleReward = null;
+        GameState.save();
+      }
+      GameUI.$('#doubleRewardBtn').style.display = 'none';
     });
   }
 };
@@ -1106,14 +1138,16 @@ GameUI.$('#encounterYes').onclick = () => {
   if (enc.type === 'enemy') { st.combat.enemy = enc.enemy; st.encounter = null; beginFight(); }
   else {
     applyReward(enc.location.reward);
-    st.combat.lastReward = enc.location.reward;
+    const locReward = { ...enc.location.reward };
+    st.combat.lastReward = locReward;
+    st._pendingDoubleReward = { ...locReward };
     st.encounter = null;
     Events.emit('ui:show', { id: '#encounterModal', on: false });
     GameState.save();
     Events.emit('ui:renderTop');
     Events.emit('ui:renderMain');
 
-    let r = enc.location.reward;
+    let r = locReward;
     let rewardParts = [];
     if (r.materials) rewardParts.push(`${translate('materials')}: +${r.materials}`);
     if (r.caps) rewardParts.push(`${translate('credits').slice(0, 2).toUpperCase()}: +${r.caps}`);
@@ -1136,7 +1170,12 @@ GameUI.$('#atk').onclick = actAttack;
 GameUI.$('#dodge').onclick = actDodge;
 GameUI.$('#med').onclick = actMed;
 GameUI.$('#retreat').onclick = () => finishFight(false);
-GameUI.$('#rewardOk').onclick = () => { Events.emit('ui:show', { id: '#rewardModal', on: false }); GameState.save(); Events.emit('ui:renderMain'); };
+GameUI.$('#rewardOk').onclick = () => {
+  // Не очищаем _pendingDoubleReward здесь — реклама может ещё играть
+  Events.emit('ui:show', { id: '#rewardModal', on: false });
+  GameState.save();
+  Events.emit('ui:renderMain');
+};
 
 const applyPurchase = (id) => {
   if (!id) return;
