@@ -7,14 +7,17 @@ import { META_TREE } from '../data/metaTree.js';
 export const applyMetaBonuses = (fresh, meta) => {
   if (!fresh || !meta || !meta.upgrades) return fresh;
 
-  // Множители-аккумуляторы (потребляются game.js: upkeep / награды).
+  // Множители-аккумуляторы (потребляются game.js: upkeep / награды / крафт / события).
   fresh.meta_upkeepMult = 1;
   fresh.meta_lootMult = 1;
+  fresh.meta_craftDiscount = 0;
+  fresh.meta_noteFreqBonus = 0;
+  fresh.meta_hiddenZone = false;
 
   META_TREE.forEach(node => {
     const level = meta.upgrades[node.id] || 0;
     if (level > 0 && typeof node.apply === 'function') {
-      node.apply(fresh, level);
+      node.apply(fresh, level, meta);
     }
   });
 

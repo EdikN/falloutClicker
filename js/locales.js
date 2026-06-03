@@ -230,7 +230,24 @@ export const TRANSLATIONS = {
         meta_run_summary: 'ИТОГИ ЦИКЛА',
         meta_total: 'всего',
         toast_first_cache: '📦 НАЙДЕН ТАЙНИК С ПРИПАСАМИ!',
-        ob_next: 'ДАЛЕЕ ▶'
+        ob_next: 'ДАЛЕЕ ▶',
+        // --- Метапрогрессия v2: ключи, вкладки, журнал, записи ---
+        meta_keys: 'КЛЮЧИ',
+        meta_new_record: 'НОВЫЙ РЕКОРД!',
+        meta_unlock: 'ОТКРЫТЬ',
+        meta_record_unlocked: '🔓 ЗАПИСЬ РАСШИФРОВАНА',
+        archive_tab_upgrades: 'АПГРЕЙДЫ',
+        archive_tab_log: 'ЖУРНАЛ',
+        archive_tab_records: 'ЗАПИСИ',
+        archive_log_empty: 'Журнал пуст. Прошлых клонов ещё нет.',
+        archive_clone_n: 'КЛОН №{0}',
+        archive_log_stats: 'Убийств: {0} | Человечность: {1}',
+        // Событие 4 «След прошлого клона»
+        clone_trace_intro: 'ВЫ НАХОДИТЕ ОСТАНКИ. ВАШЕ ЛИЦО. ТЕРМИНАЛ РЯДОМ ФИКСИРУЕТ: ПРОШЛЫЙ КЛОН ПОГИБ НА ДНЕ {0}.\n\nПРИЧИНА: {1}.\n\nЧТО ВЫ СДЕЛАЕТЕ?',
+        clone_trace_honor_choice: 'ПОЧТИТЬ ПАМЯТЬ',
+        clone_trace_scavenge_choice: 'ОБОБРАТЬ ОСТАНКИ',
+        clone_trace_honor: 'ВЫ ЗАКРЫВАЕТЕ ЕМУ ГЛАЗА. «СПИ. Я ДОЙДУ ДАЛЬШЕ, ЧЕМ ТЫ НА ДНЕ {0}». В ПАМЯТИ ЩЁЛКАЕТ — АРХИВ ВЫДАЁТ КЛЮЧ.',
+        clone_trace_scavenge: 'ВЫ ЗАБИРАЕТЕ ВСЁ ПОЛЕЗНОЕ. ОН БЫ ПОСТУПИЛ ТАК ЖЕ. ВЫЖИВАНИЕ ВЫШЕ СЕНТИМЕНТОВ.'
     },
     en: {
         days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -462,7 +479,24 @@ export const TRANSLATIONS = {
         meta_run_summary: 'CYCLE SUMMARY',
         meta_total: 'total',
         toast_first_cache: '📦 SUPPLY CACHE FOUND!',
-        ob_next: 'NEXT ▶'
+        ob_next: 'NEXT ▶',
+        // --- Meta-progression v2: keys, tabs, log, records ---
+        meta_keys: 'KEYS',
+        meta_new_record: 'NEW RECORD!',
+        meta_unlock: 'UNLOCK',
+        meta_record_unlocked: '🔓 RECORD DECRYPTED',
+        archive_tab_upgrades: 'UPGRADES',
+        archive_tab_log: 'LOG',
+        archive_tab_records: 'RECORDS',
+        archive_log_empty: 'Log is empty. No past clones yet.',
+        archive_clone_n: 'CLONE №{0}',
+        archive_log_stats: 'Kills: {0} | Humanity: {1}',
+        // Event 4 "Trace of the Past"
+        clone_trace_intro: 'YOU FIND REMAINS. YOUR FACE. A TERMINAL NEARBY LOGS: THE PREVIOUS CLONE DIED ON DAY {0}.\n\nCAUSE: {1}.\n\nWHAT WILL YOU DO?',
+        clone_trace_honor_choice: 'HONOR THE MEMORY',
+        clone_trace_scavenge_choice: 'SCAVENGE THE REMAINS',
+        clone_trace_honor: 'YOU CLOSE HIS EYES. "REST. I WILL GO FURTHER THAN YOU DID ON DAY {0}." SOMETHING CLICKS IN MEMORY — THE ARCHIVE GRANTS A KEY.',
+        clone_trace_scavenge: 'YOU TAKE EVERYTHING USEFUL. HE WOULD HAVE DONE THE SAME. SURVIVAL OVER SENTIMENT.'
     }
 };
 

@@ -33,7 +33,10 @@ export const Highlights = (() => {
     const textEl = root.querySelector('#obText');
     const nextBtn = root.querySelector('#obNext');
 
+    const margin = 12;
     const place = () => {
+      caption.style.bottom = '';
+      caption.style.left = '50%';
       if (el) {
         const r = el.getBoundingClientRect();
         const pad = 8;
@@ -42,16 +45,22 @@ export const Highlights = (() => {
         hole.style.top = `${r.top - pad}px`;
         hole.style.width = `${r.width + pad * 2}px`;
         hole.style.height = `${r.height + pad * 2}px`;
-        // Подпись под целью, либо над ней, если внизу экрана
-        const below = r.bottom + 12;
-        const fitsBelow = below + 120 < window.innerHeight;
-        caption.style.left = '50%';
+
+        // Реальная высота подсказки (после установки текста/кнопки)
+        const capH = caption.getBoundingClientRect().height;
+        // Цель в верхней половине → подсказка снизу, иначе сверху
+        const targetCenter = r.top + r.height / 2;
+        let top = targetCenter < window.innerHeight * 0.55
+          ? r.bottom + margin
+          : r.top - margin - capH;
+        // Зажимаем подсказку (вместе с кнопкой) внутри окна
+        const maxTop = window.innerHeight - capH - margin;
+        top = maxTop < margin ? margin : Math.min(Math.max(margin, top), maxTop);
+
         caption.style.transform = 'translateX(-50%)';
-        caption.style.top = fitsBelow ? `${below}px` : '';
-        caption.style.bottom = fitsBelow ? '' : `${window.innerHeight - r.top + 12}px`;
+        caption.style.top = `${top}px`;
       } else {
         hole.style.display = 'none';
-        caption.style.left = '50%';
         caption.style.top = '50%';
         caption.style.transform = 'translate(-50%, -50%)';
       }
@@ -63,7 +72,8 @@ export const Highlights = (() => {
     nextBtn.onclick = () => { if (onNext) onNext(); };
 
     root.classList.add('show');
-    place();
+    // rAF — чтобы layout успел посчитать реальную высоту подсказки до позиционирования
+    requestAnimationFrame(place);
     if (onResize) window.removeEventListener('resize', onResize);
     onResize = place;
     window.addEventListener('resize', onResize);

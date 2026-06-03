@@ -50,6 +50,12 @@ export const STORY_EVENTS = [
     ]
   },
 
+  // === ДЕНЬ 6: СЛЕД ПРОШЛОГО КЛОНА (только со 2-го цикла) ===
+  {
+    day: 6, id: 'clone_trace', isBranching: true, requiresPastClone: true,
+    speaker: 'СЛЕД ПРОШЛОГО', speaker_en: 'TRACE OF THE PAST', img: 'img/portrait_sys.webp'
+  },
+
   // === ДЕНЬ 15: ПЕРВЫЙ ПЕРЕХВАТ ===
   {
     day: 15, speaker: 'АРХИВ', speaker_en: 'ARCHIVE', img: 'img/portrait_archive.webp',

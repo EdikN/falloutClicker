@@ -39,6 +39,13 @@ export const META_TREE = [
     costType: 'memory', baseCost: 10, costGrowth: 1.8, maxLevel: 3, requires: ['phys_hp'],
     apply: (fresh, level) => { fresh.resources.medkits += level; }
   },
+  {
+    id: 'phys_survivor', branch: 'physiology', icon: '🥾',
+    name_ru: 'АРХЕТИП: ВЫЖИВШИЙ', name_en: 'ARCHETYPE: SURVIVOR',
+    desc_ru: 'Старт: +8 еды, +8 воды, +25 max HP и −15% к расходу.', desc_en: 'Start: +8 food, +8 water, +25 max HP and -15% upkeep.',
+    costType: 'dna', baseCost: 3, costGrowth: 1, maxLevel: 1, requires: ['phys_metabolism'],
+    apply: (fresh) => { fresh.resources.food += 8; fresh.resources.water += 8; fresh.player.maxHp += 25; fresh.player.hp += 25; fresh.meta_upkeepMult = (fresh.meta_upkeepMult ?? 1) * 0.85; }
+  },
 
   // ---------- ВЕТКА: ТЕХНОЛОГИИ (экономика и билд) ----------
   {
@@ -69,6 +76,20 @@ export const META_TREE = [
     costType: 'dna', baseCost: 2, costGrowth: 1, maxLevel: 1, requires: ['tech_loot'],
     apply: (fresh) => { fresh.weapons.knife = true; fresh.meta_startWeapon = 'knife'; }
   },
+  {
+    id: 'tech_craft_discount', branch: 'technology', icon: '🔧',
+    name_ru: 'ОПТИМИЗАЦИЯ СИНТЕЗА', name_en: 'SYNTHESIS OPTIMIZATION',
+    desc_ru: '−10% к стоимости крафта за уровень.', desc_en: '-10% craft cost per level.',
+    costType: 'memory', baseCost: 14, costGrowth: 1.7, maxLevel: 3, requires: ['tech_materials'],
+    apply: (fresh, level) => { fresh.meta_craftDiscount = 0.10 * level; }
+  },
+  {
+    id: 'arch_soldier', branch: 'technology', icon: '🎖️',
+    name_ru: 'АРХЕТИП: СОЛДАТ', name_en: 'ARCHETYPE: SOLDIER',
+    desc_ru: 'Новый клон стартует с пистолетом, +30 патронов и +2 к базовому урону.', desc_en: 'New clone starts with a pistol, +30 ammo and +2 base damage.',
+    costType: 'dna', baseCost: 3, costGrowth: 1, maxLevel: 1, requires: ['tech_starter_weapon'],
+    apply: (fresh) => { fresh.weapons.pistol = true; fresh.meta_startWeapon = 'pistol'; fresh.resources.ammo += 30; fresh.player.baseDmg += 2; }
+  },
 
   // ---------- ВЕТКА: ПАМЯТЬ (сюжет и знание) ----------
   {
@@ -85,6 +106,20 @@ export const META_TREE = [
     costType: 'memory', baseCost: 12, costGrowth: 1.8, maxLevel: 3, requires: ['mem_archive_access'],
     apply: (fresh, level) => { fresh.player.baseDmg += level; }
   },
+  {
+    id: 'mem_echoes', branch: 'memory', icon: '📻',
+    name_ru: 'ЭХО ПРОШЛОГО', name_en: 'ECHOES OF THE PAST',
+    desc_ru: 'Чаще встречаются фрагменты памяти (−4 дня к интервалу за уровень).', desc_en: 'Memory echoes appear more often (-4 days to interval per level).',
+    costType: 'memory', baseCost: 11, costGrowth: 1.7, maxLevel: 3, requires: ['mem_archive_access'],
+    apply: (fresh, level) => { fresh.meta_noteFreqBonus = 4 * level; }
+  },
+  {
+    id: 'mem_hidden_zone', branch: 'memory', icon: '🗝️',
+    name_ru: 'КАРТА СКРЫТЫХ ЗОН', name_en: 'HIDDEN ZONES MAP',
+    desc_ru: 'Открывает доступ к скрытой зоне с богатой добычей во время вылазок.', desc_en: 'Unlocks access to a hidden high-reward zone during expeditions.',
+    costType: 'dna', baseCost: 2, costGrowth: 1, maxLevel: 1, requires: ['mem_echoes'],
+    apply: (fresh) => { fresh.meta_hiddenZone = true; }
+  },
 
   // ---------- ВЕТКА: ЧЕЛОВЕЧНОСТЬ (моральный путь и концовки) ----------
   {
@@ -100,6 +135,13 @@ export const META_TREE = [
     desc_ru: '+10 к стартовому рассудку за уровень.', desc_en: '+10 starting sanity per level.',
     costType: 'memory', baseCost: 9, costGrowth: 1.6, maxLevel: 3, requires: ['hum_start'],
     apply: (fresh, level) => { const add = 10 * level; fresh.player.maxMood += add; fresh.player.mood += add; }
+  },
+  {
+    id: 'hum_carryover', branch: 'humanity', icon: '🔗',
+    name_ru: 'ЭХО СОВЕСТИ', name_en: 'ECHO OF CONSCIENCE',
+    desc_ru: 'Переносит 20% финальной человечности прошлого клона за уровень.', desc_en: 'Carries over 20% of the previous clone\'s final humanity per level.',
+    costType: 'memory', baseCost: 13, costGrowth: 1.7, maxLevel: 3, requires: ['hum_start'],
+    apply: (fresh, level, meta) => { const carry = Math.round((meta && meta.lastHumanity || 0) * 0.2 * level); fresh.player.humanity = Math.min(fresh.player.maxHumanity, fresh.player.humanity + carry); }
   }
 ];
 

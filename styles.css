@@ -1447,6 +1447,9 @@ h2 {
 }
 
 /* === АРХИВ ПАМЯТИ (метапрогрессия) === */
+/* Архив должен открываться поверх экрана смерти (.defeat-overlay z-index:100) */
+#archiveModal { z-index: 120; }
+
 .archive-balances {
   display: flex;
   flex-wrap: wrap;
@@ -1466,6 +1469,30 @@ h2 {
 .archive-node-maxed { opacity: 0.7; }
 .archive-node-maxed .archive-lvl { color: var(--ok); }
 .archive-node-locked { opacity: 0.55; }
+
+/* Вкладки Архива */
+.archive-tabs {
+  gap: 0.3rem;
+  margin: 0.4rem 0;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 0.4rem;
+}
+.archive-tabs .pill { cursor: pointer; }
+.archive-tabs .pill.active {
+  background: var(--line);
+  color: #001a00;
+  text-shadow: none;
+}
+/* Журнал клонов */
+.archive-log-entry { align-items: flex-start; }
+/* Секретные записи */
+.archive-record-open { display: block; }
+.archive-record-text {
+  display: block;
+  white-space: pre-wrap;
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
 
 /* Итоги забега на экране смерти */
 .defeat-earned {
@@ -1504,6 +1531,9 @@ h2 {
 #obCaption {
   position: absolute;
   max-width: min(92vw, 420px);
+  max-height: calc(100vh - 24px);
+  overflow-y: auto;
+  box-sizing: border-box;
   background: rgba(0, 12, 0, 0.96);
   border: 2px solid var(--line);
   border-radius: 6px;

@@ -47,7 +47,9 @@ export const OnboardingFlow = (() => {
       // Ждём первого прожитого дня — кнопку не показываем
       Highlights.show({ target: step.target, text: loc(step, 'text'), showButton: false });
       clearDayHandler();
-      dayHandler = () => { clearDayHandler(); next(); };
+      // Прячем подсказку сразу при наступлении дня — DAY_PASSED эмитится ДО
+      // checkStoryEvents(), поэтому подсветка исчезнет раньше, чем откроется диалог дня.
+      dayHandler = () => { clearDayHandler(); Highlights.hide(); next(); };
       Events.on(GameEvents.DAY_PASSED, dayHandler);
     } else {
       Highlights.show({
@@ -60,6 +62,8 @@ export const OnboardingFlow = (() => {
 
   const next = () => {
     if (!active) return;
+    // Прячем текущую подсказку сразу — вернётся только на чистом экране
+    Highlights.hide();
     if (idx + 1 >= TUTORIAL_STEPS.length) return finish();
     // Небольшая пауза + ожидание чистого экрана, чтобы не перекрывать диалоги/тосты дня
     setTimeout(() => whenClear(() => showStep(idx + 1)), 400);

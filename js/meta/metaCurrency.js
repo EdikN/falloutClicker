@@ -10,10 +10,13 @@ export const freshMeta = () => ({
   memoryPoints: 0,
   dnaFragments: 0,
   archiveKeys: 0,
-  upgrades: {},        // { nodeId: level }
+  upgrades: {},          // { nodeId: level }
   totalCycles: 0,
   bestDay: 0,
-  onboardingDone: false
+  onboardingDone: false,
+  cloneLog: [],          // журнал прошлых клонов (последние записи)
+  lastHumanity: 0,       // финальная человечность последнего клона (для hum_carryover)
+  unlockedRecords: {}    // { recordId: true } — открытые секретные записи
 });
 
 // Подсчёт награды за забег. runStats — это state.stats + контекст ({ day, humanity }).
@@ -40,12 +43,20 @@ export const computeReward = (ctx, meta) => {
   return { memoryPoints, dnaFragments };
 };
 
-// Начисляет награду в meta и обновляет статистику циклов. Возвращает начисленное.
+// Начисляет награду в meta и обновляет статистику циклов. Возвращает начисленное
+// (включая archiveKeys, если в этом забеге побит рекорд по дню).
 export const awardOnDeath = (ctx, meta) => {
   const earned = computeReward(ctx, meta);
+
+  // Архивный ключ за новый рекорд по прожитым дням (считаем ДО обновления bestDay)
+  const newRecord = (ctx.day || 0) > (meta.bestDay || 0);
+  earned.archiveKeys = newRecord ? META_BALANCE.keys.perRecord : 0;
+
   meta.memoryPoints = (meta.memoryPoints || 0) + earned.memoryPoints;
   meta.dnaFragments = (meta.dnaFragments || 0) + earned.dnaFragments;
+  meta.archiveKeys = (meta.archiveKeys || 0) + earned.archiveKeys;
   meta.totalCycles = (meta.totalCycles || 0) + 1;
   meta.bestDay = Math.max(meta.bestDay || 0, ctx.day || 0);
+  meta.lastHumanity = ctx.humanity || 0;
   return earned;
 };

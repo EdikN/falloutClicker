@@ -408,6 +408,9 @@ export const GameUI = (() => {
       if (e.dnaFragments) {
         html += `<div class="defeat-earned-row">🧬 ${translate('meta_dna_fragments')}: <b>+${e.dnaFragments}</b> <span class="sub">(${translate('meta_total')}: ${m.dnaFragments || 0})</span></div>`;
       }
+      if (e.archiveKeys) {
+        html += `<div class="defeat-earned-row">🔑 ${translate('meta_keys')}: <b>+${e.archiveKeys}</b> <span class="sub">${translate('meta_new_record')}</span></div>`;
+      }
       earnedEl.innerHTML = html;
     }
 

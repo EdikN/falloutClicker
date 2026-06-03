@@ -108,6 +108,11 @@ const defeat = (reasonKey = 'defeat_reason_default') => {
   };
   const earned = awardOnDeath(runCtx, meta);
 
+  // Журнал прошлых клонов (§5.4 этап A): свежие записи в конце, кап 12
+  if (!Array.isArray(meta.cloneLog)) meta.cloneLog = [];
+  meta.cloneLog.push({ cycle: meta.totalCycles, day: st.day, reason, kills: stats.kills, humanity: st.player.humanity });
+  if (meta.cloneLog.length > 12) meta.cloneLog.shift();
+
   const runSummary = { ...runCtx, reason, earned };
   Events.emit(GameEvents.RUN_ENDED, runSummary);
   Events.emit(GameEvents.PLAYER_DIED, runSummary);
@@ -158,11 +163,14 @@ const checkStoryEvents = () => {
     if (st.day >= st.nextNoteDay) {
       const note = pick(GameData.NOTES);
       Events.emit('ui:showDialogue', { speaker: translate('corpse_echo'), text: loc(note, 'text') });
-      st.nextNoteDay = st.day + 15 + Math.floor(rng() * 10);
+      st.nextNoteDay = st.day + Math.max(5, 15 + Math.floor(rng() * 10) - (st.meta_noteFreqBonus || 0));
       return true;
     }
     return false;
   }
+
+  // Событие требует прошлой жизни (Событие 4): на 1-м цикле пропускаем — день идёт обычным чередом
+  if (event.requiresPastClone && !((GameState.getMeta().cloneLog || []).length)) return false;
 
   const speaker = loc(event, 'speaker');
   const text = loc(event, 'text');
@@ -188,6 +196,8 @@ const checkStoryEvents = () => {
     handleDrifterRescue(event);
   } else if (event.isBranching && event.id === 'cartographer') {
     handleCartographer(event);
+  } else if (event.isBranching && event.id === 'clone_trace') {
+    handleCloneTrace(event);
   } else if (event.isCombat) {
     handleStoryCombat(event);
   } else {
@@ -197,6 +207,43 @@ const checkStoryEvents = () => {
 };
 
 // === ОБРАБОТЧИКИ СЮЖЕТНЫХ ВЕТВЛЕНИЙ ===
+
+// Событие 4 «След прошлого клона» (§7.3): диалог использует последнюю запись журнала клонов.
+const handleCloneTrace = (event) => {
+  const st = GameState.get();
+  const log = GameState.getMeta().cloneLog || [];
+  const prev = log[log.length - 1] || { day: st.day, reason: translate('defeat_reason_default') };
+  const speaker = loc(event, 'speaker');
+
+  const honor = () => {
+    st.player.humanity = Math.min(st.player.maxHumanity, st.player.humanity + 10);
+    GameState.getMeta().archiveKeys = (GameState.getMeta().archiveKeys || 0) + 1;
+    Events.emit('ui:toast', translate('toast_humanity', '+10'));
+    Events.emit('ui:showDialogue', {
+      speaker, img: event.img,
+      text: translate('clone_trace_honor', prev.day),
+      choices: [{ text: translate('btn_continue'), action: () => { GameState.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain'); } }]
+    });
+  };
+  const scavenge = () => {
+    st.player.humanity = Math.max(0, st.player.humanity - 10);
+    Events.emit('ui:toast', translate('toast_humanity', '-10'));
+    Events.emit('ui:showDialogue', {
+      speaker, img: event.img,
+      text: translate('clone_trace_scavenge'),
+      choices: [{ text: translate('btn_take_loot'), action: () => { applyReward({ materials: 6, caps: 20, ammo: 8 }); } }]
+    });
+  };
+
+  Events.emit('ui:showDialogue', {
+    speaker, img: event.img,
+    text: translate('clone_trace_intro', prev.day, prev.reason),
+    choices: [
+      { text: translate('clone_trace_honor_choice'), action: honor },
+      { text: translate('clone_trace_scavenge_choice'), action: scavenge }
+    ]
+  });
+};
 
 const handleBarWoman = (event) => {
   const st = GameState.get();
@@ -663,9 +710,22 @@ const encounterRoll = () => {
     }
   }
 
+  // Скрытая зона (мета-узел mem_hidden_zone): редкая локация с богатой добычей
+  if (st.meta_hiddenZone && roll >= enemyChance && roll < enemyChance + 0.06) {
+    return { type: 'location', location: HIDDEN_ZONE };
+  }
+
   if (roll < enemyChance) return { type: 'enemy', enemy: newEnemy(st.day > 10 && rng() < 0.2) };
   if (roll < enemyChance + 0.20) return { type: 'location', location: pick(GameData.LOCATIONS) };
   return { type: 'calm' };
+};
+
+// Скрытая зона — открывается мета-узлом «Карта скрытых зон».
+const HIDDEN_ZONE = {
+  name_ru: 'Скрытый тайник Архива', name_en: 'Hidden Archive Cache', icon: '🗝️',
+  desc_ru: 'Замаскированная ниша, о которой знают лишь те, кто помнит прошлые циклы. Внутри — щедрый запас.',
+  desc_en: 'A concealed niche known only to those who remember past cycles. A generous stash inside.',
+  reward: { materials: 18, caps: 30, ammo: 15, medkits: 1 }, danger: 0.2
 };
 
 const applyReward = r => {
@@ -867,6 +927,15 @@ const renderMerchant = async (defaultTab = 'items') => {
   if (defaultTab === 'director' && isPaymentsSupported) showDirector(); else showItems();
 };
 
+// Стоимость крафта с учётом мета-скидки (узел tech_craft_discount)
+const craftCost = (rec) => {
+  const disc = GameState.get().meta_craftDiscount || 0;
+  return {
+    materials: Math.ceil((rec.materials || 0) * (1 - disc)),
+    ammo: Math.ceil((rec.ammo || 0) * (1 - disc))
+  };
+};
+
 const renderCraft = () => {
   const st = GameState.get();
   const groups = { weapon: [], armor: [], upgrade: [], resource: [] };
@@ -882,7 +951,8 @@ const renderCraft = () => {
     if (!arr || arr.length === 0) return;
     html += `<h3 style="margin-top:0.5rem;">${title}</h3>`;
     html += arr.map(item => {
-      const costStr = item.ammo > 0 ? `${translate('materials')}: ${item.materials} | ${translate('ammo')}: ${item.ammo}` : `${translate('materials')}: ${item.materials}`;
+      const c = craftCost(item);
+      const costStr = c.ammo > 0 ? `${translate('materials')}: ${c.materials} | ${translate('ammo')}: ${c.ammo}` : `${translate('materials')}: ${c.materials}`;
       return `<div class='shopItem'>
       <div>${loc(item, 'label')}
         <div class='sub'>${loc(item, 'desc')}</div>
@@ -903,11 +973,12 @@ const renderCraft = () => {
   GameUI.$('#craftStock').querySelectorAll('[data-craft]').forEach(btn => {
     btn.onclick = () => {
       const rec = GameData.CRAFT_ITEMS[+btn.dataset.craft];
+      const cost = craftCost(rec);
       // Bug 1 fix: use correct toast key for materials shortage
-      if (st.resources.materials < rec.materials) return Events.emit('ui:toast', translate('toast_not_enough_mats', rec.materials));
-      if (rec.ammo > 0 && st.resources.ammo < rec.ammo) return Events.emit('ui:toast', translate('res_ammo_empty'));
-      st.resources.materials -= rec.materials;
-      if (rec.ammo) st.resources.ammo -= rec.ammo;
+      if (st.resources.materials < cost.materials) return Events.emit('ui:toast', translate('toast_not_enough_mats', cost.materials));
+      if (cost.ammo > 0 && st.resources.ammo < cost.ammo) return Events.emit('ui:toast', translate('res_ammo_empty'));
+      st.resources.materials -= cost.materials;
+      if (cost.ammo) st.resources.ammo -= cost.ammo;
       if (rec.unlock) weaponUnlock(rec.unlock);
       if (rec.armorId) armorUnlock(rec.armorId);
       if (rec.hpBoost) { st.player.maxHp += rec.hpBoost; st.player.hp = Math.min(st.player.maxHp, st.player.hp + rec.hpBoost); }

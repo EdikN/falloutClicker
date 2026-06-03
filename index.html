@@ -176,7 +176,12 @@
         <h2 data-i18n="archive_title">АРХИВ ИЕРИХОНА</h2>
         <div class="sub" data-i18n="archive_desc">ПАМЯТЬ ПРОШЛЫХ КЛОНОВ — В ПОСТОЯННЫЕ УЛУЧШЕНИЯ.</div>
         <div class="archive-balances" id="archiveBalances"></div>
-        <div id="archiveTree" class="scrollable"></div>
+        <div class="row archive-tabs" id="archiveTabs">
+          <button class="pill active" id="archiveTabUpgrades" data-archive-tab="upgrades" data-i18n="archive_tab_upgrades">АПГРЕЙДЫ</button>
+          <button class="pill" id="archiveTabLog" data-archive-tab="log" data-i18n="archive_tab_log">ЖУРНАЛ</button>
+          <button class="pill" id="archiveTabRecords" data-archive-tab="records" data-i18n="archive_tab_records">ЗАПИСИ</button>
+        </div>
+        <div id="archiveContent" class="scrollable"></div>
         <button class="btn good" id="archiveCycleBtn" data-i18n="btn_close">ЗАКРЫТЬ</button>
       </div>
     </div>

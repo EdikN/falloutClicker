@@ -1,5 +1,5 @@
 // === ЭКРАН АРХИВА (метапрогрессия) ===
-// Рендер дерева постоянных улучшений и обработка покупок (plan.md §5.4 этап C).
+// Вкладки: дерево улучшений, журнал прошлых клонов, секретные записи (plan.md §5.2.3, §5.4).
 // Самоинициализирующийся модуль: импортируется в main.js, привязывается к #archiveModal.
 import { GameState } from '../state.js';
 import { GameData } from '../data.js';
@@ -11,6 +11,7 @@ import { ArchiveTree } from '../meta/archiveTree.js';
 export const ArchiveScreen = (() => {
   const $ = sel => document.querySelector(sel);
   let openedFromDefeat = false;
+  let activeTab = 'upgrades';
 
   const renderBalances = () => {
     const m = GameState.getMeta();
@@ -19,15 +20,13 @@ export const ArchiveScreen = (() => {
     el.innerHTML = `
       <div class='pill'>🧠 ${translate('meta_memory_points')}: ${m.memoryPoints || 0}</div>
       <div class='pill'>🧬 ${translate('meta_dna_fragments')}: ${m.dnaFragments || 0}</div>
+      <div class='pill'>🔑 ${translate('meta_keys')}: ${m.archiveKeys || 0}</div>
       <div class='pill'>♻️ ${translate('meta_cycles')}: ${m.totalCycles || 0}</div>
       <div class='pill'>🏁 ${translate('meta_best_day')}: ${m.bestDay || 0}</div>`;
   };
 
-  const renderTree = () => {
-    const cont = $('#archiveTree');
-    if (!cont) return;
-    cont.innerHTML = '';
-
+  // --- Вкладка: дерево улучшений ---
+  const renderTree = (cont) => {
     GameData.META_BRANCHES.forEach(branch => {
       const section = document.createElement('div');
       section.className = 'archive-branch';
@@ -42,9 +41,7 @@ export const ArchiveScreen = (() => {
         const maxed = cost === null;
         const reqMet = ArchiveTree.requirementsMet(node);
         const affordable = ArchiveTree.canBuy(node.id);
-
-        const costLabel = node.costType === 'dna'
-          ? `🧬 ${cost}` : `🧠 ${cost}`;
+        const costLabel = node.costType === 'dna' ? `🧬 ${cost}` : `🧠 ${cost}`;
 
         let btnLabel, btnDisabled;
         if (maxed) { btnLabel = translate('meta_maxed'); btnDisabled = true; }
@@ -67,9 +64,7 @@ export const ArchiveScreen = (() => {
               SoundManager.play('success');
               Events.emit('ui:toast', translate('meta_purchased', loc(node, 'name')));
               render();
-            } else {
-              SoundManager.play('error');
-            }
+            } else { SoundManager.play('error'); }
           };
         }
         section.appendChild(row);
@@ -78,28 +73,112 @@ export const ArchiveScreen = (() => {
     });
   };
 
-  const render = () => { renderBalances(); renderTree(); };
+  // --- Вкладка: журнал клонов ---
+  const renderLog = (cont) => {
+    const log = GameState.getMeta().cloneLog || [];
+    if (!log.length) {
+      cont.innerHTML = `<div class='sub'>${translate('archive_log_empty')}</div>`;
+      return;
+    }
+    // Свежие сверху
+    [...log].reverse().forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'shopItem archive-log-entry';
+      row.innerHTML = `
+        <div>
+          <div>${translate('archive_clone_n', e.cycle)} <span class='archive-lvl'>${translate('day_label', e.day)}</span></div>
+          <div class='sub'>${e.reason || ''}</div>
+          <div class='sub'>${translate('archive_log_stats', e.kills || 0, e.humanity ?? 0)}</div>
+        </div>`;
+      cont.appendChild(row);
+    });
+  };
+
+  // --- Вкладка: секретные записи ---
+  const renderRecords = (cont) => {
+    const meta = GameState.getMeta();
+    const unlocked = meta.unlockedRecords || {};
+    (GameData.ARCHIVE_RECORDS || []).forEach(rec => {
+      const isOpen = !!unlocked[rec.id];
+      const canPay = (meta.archiveKeys || 0) >= (rec.cost || 1);
+      const row = document.createElement('div');
+      row.className = 'shopItem archive-record' + (isOpen ? ' archive-record-open' : '');
+      if (isOpen) {
+        row.innerHTML = `
+          <div>
+            <div>🔓 ${loc(rec, 'title')}</div>
+            <div class='sub archive-record-text'>${loc(rec, 'text')}</div>
+          </div>`;
+      } else {
+        row.innerHTML = `
+          <div><div>🔒 ${loc(rec, 'title')}</div></div>
+          <button class='btn ${canPay ? 'good' : ''}' data-unlock='${rec.id}' ${canPay ? '' : 'disabled'}>${translate('meta_unlock')} (🔑 ${rec.cost || 1})</button>`;
+        const btn = row.querySelector('[data-unlock]');
+        if (btn && canPay) {
+          btn.onclick = () => {
+            if (unlockRecord(rec.id)) {
+              SoundManager.play('success');
+              Events.emit('ui:toast', translate('meta_record_unlocked'));
+              render();
+            } else { SoundManager.play('error'); }
+          };
+        }
+      }
+      cont.appendChild(row);
+    });
+  };
+
+  const unlockRecord = (id) => {
+    const meta = GameState.getMeta();
+    const rec = (GameData.ARCHIVE_RECORDS || []).find(r => r.id === id);
+    if (!rec) return false;
+    const cost = rec.cost || 1;
+    if (!meta.unlockedRecords) meta.unlockedRecords = {};
+    if (meta.unlockedRecords[id]) return false;
+    if ((meta.archiveKeys || 0) < cost) return false;
+    meta.archiveKeys -= cost;
+    meta.unlockedRecords[id] = true;
+    GameState.save();
+    return true;
+  };
+
+  const renderContent = () => {
+    const cont = $('#archiveContent');
+    if (!cont) return;
+    cont.innerHTML = '';
+    if (activeTab === 'log') renderLog(cont);
+    else if (activeTab === 'records') renderRecords(cont);
+    else renderTree(cont);
+  };
+
+  const syncTabs = () => {
+    document.querySelectorAll('[data-archive-tab]').forEach(t => {
+      t.classList.toggle('active', t.dataset.archiveTab === activeTab);
+    });
+  };
+
+  const render = () => { renderBalances(); syncTabs(); renderContent(); };
 
   const open = (fromDefeat = false) => {
     openedFromDefeat = fromDefeat;
+    activeTab = 'upgrades';
     render();
     const cycleBtn = $('#archiveCycleBtn');
-    if (cycleBtn) {
-      cycleBtn.textContent = fromDefeat ? translate('btn_new_cycle') : translate('btn_close');
-    }
+    if (cycleBtn) cycleBtn.textContent = fromDefeat ? translate('btn_new_cycle') : translate('btn_close');
     Events.emit('ui:show', { id: '#archiveModal', on: true });
   };
 
-  // Привязка кнопок (DOM уже распаршен к моменту импорта модуля).
+  // --- Привязка кнопок (DOM уже распаршен к моменту импорта модуля) ---
+  document.querySelectorAll('[data-archive-tab]').forEach(tab => {
+    tab.onclick = () => { SoundManager.play('click'); activeTab = tab.dataset.archiveTab; render(); };
+  });
+
   const cycleBtn = $('#archiveCycleBtn');
   if (cycleBtn) {
     cycleBtn.onclick = () => {
       SoundManager.play('click');
-      if (openedFromDefeat) {
-        Events.emit('ui:startNewCycle');
-      } else {
-        Events.emit('ui:show', { id: '#archiveModal', on: false });
-      }
+      if (openedFromDefeat) Events.emit('ui:startNewCycle');
+      else Events.emit('ui:show', { id: '#archiveModal', on: false });
     };
   }
 
