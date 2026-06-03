@@ -247,7 +247,9 @@ export const TRANSLATIONS = {
         clone_trace_honor_choice: 'ПОЧТИТЬ ПАМЯТЬ',
         clone_trace_scavenge_choice: 'ОБОБРАТЬ ОСТАНКИ',
         clone_trace_honor: 'ВЫ ЗАКРЫВАЕТЕ ЕМУ ГЛАЗА. «СПИ. Я ДОЙДУ ДАЛЬШЕ, ЧЕМ ТЫ НА ДНЕ {0}». В ПАМЯТИ ЩЁЛКАЕТ — АРХИВ ВЫДАЁТ КЛЮЧ.',
-        clone_trace_scavenge: 'ВЫ ЗАБИРАЕТЕ ВСЁ ПОЛЕЗНОЕ. ОН БЫ ПОСТУПИЛ ТАК ЖЕ. ВЫЖИВАНИЕ ВЫШЕ СЕНТИМЕНТОВ.'
+        clone_trace_scavenge: 'ВЫ ЗАБИРАЕТЕ ВСЁ ПОЛЕЗНОЕ. ОН БЫ ПОСТУПИЛ ТАК ЖЕ. ВЫЖИВАНИЕ ВЫШЕ СЕНТИМЕНТОВ.',
+        archive_tab_store: 'ПОПОЛНИТЬ',
+        store_unavailable: 'Покупки недоступны на этой платформе.'
     },
     en: {
         days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -496,7 +498,9 @@ export const TRANSLATIONS = {
         clone_trace_honor_choice: 'HONOR THE MEMORY',
         clone_trace_scavenge_choice: 'SCAVENGE THE REMAINS',
         clone_trace_honor: 'YOU CLOSE HIS EYES. "REST. I WILL GO FURTHER THAN YOU DID ON DAY {0}." SOMETHING CLICKS IN MEMORY — THE ARCHIVE GRANTS A KEY.',
-        clone_trace_scavenge: 'YOU TAKE EVERYTHING USEFUL. HE WOULD HAVE DONE THE SAME. SURVIVAL OVER SENTIMENT.'
+        clone_trace_scavenge: 'YOU TAKE EVERYTHING USEFUL. HE WOULD HAVE DONE THE SAME. SURVIVAL OVER SENTIMENT.',
+        archive_tab_store: 'TOP UP',
+        store_unavailable: 'Purchases are not available on this platform.'
     }
 };
 

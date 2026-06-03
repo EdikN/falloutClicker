@@ -8,6 +8,7 @@ import { GameUI } from './ui.js';
 import { awardOnDeath } from './meta/metaCurrency.js';
 import { applyMetaBonuses } from './meta/applyMetaBonuses.js';
 import { EARLY_GAME, earlyLootMult } from './config/earlyGame.js';
+import { BALANCE } from './config/balance.js';
 
 const rng = () => Math.random();
 const pick = arr => arr[Math.floor(rng() * arr.length)];
@@ -543,18 +544,18 @@ const showEnding = ({ title, text, score }) => {
 // --- НОВЫЙ ПРОТИВНИК ---
 const newEnemy = elite => {
   const st = GameState.get(), base = pick(elite ? GameData.ELITE_ENEMIES : GameData.ENEMIES);
+  const E = BALANCE.enemy;
   const scale = elite
-    ? (1 + Math.pow(st.day / 12, 1.25))
-    : (1 + Math.pow(st.day / 15, 1.15));
+    ? (1 + Math.pow(st.day / E.eliteDivisor, E.eliteExp))
+    : (1 + Math.pow(st.day / E.normalDivisor, E.normalExp));
   const maxHp = Math.round(base.hp * scale);
   let dmg = Math.round(base.dmg * scale);
 
   // Кап урона: одиночный удар не убивает с одного попадания даже без брони.
-  // Максимум 40% от maxHP игрока до учёта брони, но не менее базового урона.
+  // Максимум dmgCapPct от maxHP игрока до учёта брони, но не менее базового урона.
   const playerMaxHp = st.player.maxHp;
   const playerArmor = st.player.armorClass || 0;
-  // Урон после брони не должен превышать 40% HP игрока
-  const maxAllowedAfterArmor = Math.round(playerMaxHp * 0.40);
+  const maxAllowedAfterArmor = Math.round(playerMaxHp * E.dmgCapPct);
   const maxAllowedRaw = Math.round(maxAllowedAfterArmor / Math.max(0.1, 1 - playerArmor));
   dmg = Math.min(dmg, Math.max(base.dmg, maxAllowedRaw));
 
@@ -661,15 +662,16 @@ const checkAdEvents = () => {
 // --- ЕЖЕДНЕВНЫЕ РАСХОДЫ ---
 const upkeep = () => {
   const st = GameState.get(), p = st.player;
-  
-  // Базовое значение от 10 до 20
-  const base = 10 + rng() * 10;
-  // Множитель от активности за прошлый день: Бой (3x), Обыск (2x), Ничего (1x)
+  const U = BALANCE.upkeep;
+
+  // Базовое значение от baseMin до baseMax
+  const base = U.baseMin + rng() * (U.baseMax - U.baseMin);
+  // Множитель от активности за прошлый день: Бой/Обыск/Ничего
   const act = p.lastActivity || 'none';
-  const multiplier = act === 'fight' ? 3 : (act === 'loot' ? 2 : 1);
-  
-  let consumption = Math.min(50, base * multiplier);
-  
+  const multiplier = U.actMult[act] || 1;
+
+  let consumption = Math.min(U.cap, base * multiplier);
+
   // Бонус кибер-желудка оставляет 50% расхода
   if (st.permanentBonuses.cyberStomach) {
     consumption *= 0.5;
@@ -681,14 +683,14 @@ const upkeep = () => {
   p.thirst = Math.max(0, p.thirst - consumption);
 
   if (p.hunger <= 0) {
-    p.hp -= 5; p.mood -= 5; 
-    Events.emit('ui:toast', translate('toast_starving')); 
+    p.hp -= U.starve.hp; p.mood -= U.starve.mood;
+    Events.emit('ui:toast', translate('toast_starving'));
     Events.emit('ui:triggerDamage');
     if (p.hp <= 0) { defeat(translate('defeat_starved')); return; }
   }
   if (p.thirst <= 0) {
-    p.hp -= 8; p.mood -= 8; 
-    Events.emit('ui:toast', translate('toast_dehydrated')); 
+    p.hp -= U.dehydrate.hp; p.mood -= U.dehydrate.mood;
+    Events.emit('ui:toast', translate('toast_dehydrated'));
     Events.emit('ui:triggerDamage');
     if (p.hp <= 0) { defeat(translate('defeat_dehydrated')); return; }
   }
@@ -715,7 +717,7 @@ const encounterRoll = () => {
     return { type: 'location', location: HIDDEN_ZONE };
   }
 
-  if (roll < enemyChance) return { type: 'enemy', enemy: newEnemy(st.day > 10 && rng() < 0.2) };
+  if (roll < enemyChance) return { type: 'enemy', enemy: newEnemy(st.day > BALANCE.enemy.eliteFromDay && rng() < BALANCE.enemy.eliteChance) };
   if (roll < enemyChance + 0.20) return { type: 'location', location: pick(GameData.LOCATIONS) };
   return { type: 'calm' };
 };
@@ -1071,7 +1073,10 @@ const startDay = () => {
     st.phase = translate('status_exploring'); Events.emit('ui:show', { id: '#encounterModal', on: true });
   } else {
     const em = earlyLootMult(st.day);
-    applyReward({ materials: Math.round((2 + Math.floor(rng() * 3)) * em), caps: Math.round((1 + Math.floor(rng() * 2)) * em) });
+    const CL = BALANCE.calmReward;
+    const mat = CL.matMin + Math.floor(rng() * (CL.matMax - CL.matMin + 1));
+    const caps = CL.capsMin + Math.floor(rng() * (CL.capsMax - CL.capsMin + 1));
+    applyReward({ materials: Math.round(mat * em), caps: Math.round(caps * em) });
     Events.emit('ui:toast', translate('day_calm'));
     Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
   }
@@ -1124,13 +1129,15 @@ const finishFight = win => {
 
   let txt = win
     ? (() => {
+      const CR = BALANCE.combatReward;
       const lootMult = (st.meta_lootMult || 1) * earlyLootMult(st.day);
-      const baseCaps = Math.round(c.enemy.threat * 0.8) + Math.floor(rng() * 5);
+      const baseCaps = Math.round(c.enemy.threat * CR.capsFromThreat) + Math.floor(rng() * CR.capsRand);
+      const mat = CR.matMin + Math.floor(rng() * (CR.matMax - CR.matMin + 1));
       const r = {
-        materials: Math.round((3 + Math.floor(rng() * 5)) * lootMult),
+        materials: Math.round(mat * lootMult),
         caps: Math.max(10, Math.round(baseCaps * lootMult))
       };
-      if (rng() < .15) r.food = 1;
+      if (rng() < CR.foodChance) r.food = 1;
       applyReward(r);
       c.lastReward = { ...r };
       st._pendingDoubleReward = { ...r };
@@ -1320,6 +1327,25 @@ GameUI.$('#rewardOk').onclick = () => {
 
 const applyPurchase = (id) => {
   if (!id) return;
+
+  // --- Донат-паки мета-валюты (v3): начисляем в metaState ---
+  const sku = (GameData.META_SHOP || []).find(s => s.id === id);
+  if (sku) {
+    const m = GameState.getMeta();
+    const g = sku.grants || {};
+    if (g.memoryPoints) m.memoryPoints = (m.memoryPoints || 0) + g.memoryPoints;
+    if (g.dnaFragments) m.dnaFragments = (m.dnaFragments || 0) + g.dnaFragments;
+    if (g.archiveKeys)  m.archiveKeys  = (m.archiveKeys  || 0) + g.archiveKeys;
+    Events.emit('ui:toast', `${translate('purchase_activated')}: ${loc(sku, 'name')}`);
+    GameState.save();
+    Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
+    // Обновляем экран Архива, если он открыт
+    if (GameUI.$('#archiveModal') && GameUI.$('#archiveModal').classList.contains('show') && window.ArchiveScreen) {
+      window.ArchiveScreen.render();
+    }
+    return;
+  }
+
   const PURCHASE_NAMES = {
     no_ads:       translate('item_no_ads_name'),
     cyber_stomach: translate('item_stomach_name'),
@@ -1352,6 +1378,38 @@ const applyPurchase = (id) => {
   }
 };
 
+// Переиспользуемый флоу покупки (авторизация-гейт + buy + apply + consume).
+// Используется вкладкой «ПОПОЛНИТЬ» Архива (v3); onDone вызывается после успешной покупки.
+const purchaseProduct = (id, onDone) => {
+  const sdk = window.PlaygamaSDK;
+  if (!sdk) return;
+  const doPurchase = () => {
+    sdk.buyProduct(id, () => {
+      applyPurchase(id);
+      sdk.consumePurchase(id);
+      if (onDone) onDone();
+    }, (err) => Events.emit('ui:toast', `${translate('purchase_error')}: ${translateError(err)}`));
+  };
+
+  if (sdk.isAuthorizationSupported && sdk.isAuthorizationSupported() && !sdk.isAuthorized()) {
+    const modal = document.getElementById('authModal');
+    if (!modal) { doPurchase(); return; }
+    modal.classList.add('show');
+    const loginBtn = document.getElementById('authLoginBtn');
+    const skipBtn = document.getElementById('authSkipBtn');
+    const close = () => modal.classList.remove('show');
+    loginBtn.onclick = () => {
+      close();
+      sdk.authorize()
+        .then(() => { const b = document.getElementById('authBtn'); if (b) b.style.display = 'none'; doPurchase(); })
+        .catch(() => Events.emit('ui:toast', translate('auth_required_purchase')));
+    };
+    skipBtn.onclick = () => { close(); Events.emit('ui:toast', translate('auth_required_purchase')); };
+  } else {
+    doPurchase();
+  }
+};
+
 const startNewCycle = () => {
   SoundManager.play('click');
   // Пересобираем свежий клон с нуля и применяем мета-бонусы (учитывая то,
@@ -1379,15 +1437,15 @@ GameUI.$('#res').addEventListener('click', e => {
   if (type === 'water' && p.thirst >= p.maxThirst) return Events.emit('ui:toast', translate('toast_not_thirsty'));
 
   st.resources[type]--; SoundManager.play('heal');
-  if (type === 'food') { 
-    p.hunger = Math.min(p.maxHunger, p.hunger + 35); 
-    p.hp = Math.min(p.maxHp, p.hp + 2); 
-    Events.emit('ui:toast', translate('toast_energy')); 
+  if (type === 'food') {
+    p.hunger = Math.min(p.maxHunger, p.hunger + BALANCE.restore.food.hunger);
+    p.hp = Math.min(p.maxHp, p.hp + BALANCE.restore.food.hp);
+    Events.emit('ui:toast', translate('toast_energy'));
   }
-  if (type === 'water') { 
-    p.thirst = Math.min(p.maxThirst, p.thirst + 45); 
-    p.mood = Math.min(p.maxMood, p.mood + 5); 
-    Events.emit('ui:toast', translate('toast_water')); 
+  if (type === 'water') {
+    p.thirst = Math.min(p.maxThirst, p.thirst + BALANCE.restore.water.thirst);
+    p.mood = Math.min(p.maxMood, p.mood + BALANCE.restore.water.mood);
+    Events.emit('ui:toast', translate('toast_water'));
   }
   if (type === 'medkits') { const h = p.healPower || 30; p.hp = Math.min(p.maxHp, p.hp + h); Events.emit('ui:toast', translate('toast_healed', h)); }
   GameState.save(); Events.emit('ui:renderTop'); Events.emit('ui:renderMain');
@@ -1438,4 +1496,4 @@ const initGame = () => {
   console.log('[Game] Инициализация завершена.');
 };
 
-export const Game = { init: initGame, applyReward, switchWeapon, switchArmor, weaponUnlock, armorUnlock };
+export const Game = { init: initGame, applyReward, switchWeapon, switchArmor, weaponUnlock, armorUnlock, purchaseProduct };

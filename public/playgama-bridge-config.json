@@ -60,6 +60,36 @@
             "vk": { "id": "heavy_armor", "price": 12, "title": "Тяжёлая броня" },
             "ok": { "id": "heavy_armor", "price": 12, "title": "Тяжёлая броня" },
             "playgama": { "amount": 399 }
+        },
+        {
+            "id": "meta_memory_small",
+            "vk": { "id": "meta_memory_small", "price": 4, "title": "Очки памяти ×60" },
+            "ok": { "id": "meta_memory_small", "price": 4, "title": "Очки памяти ×60" },
+            "playgama": { "amount": 99 }
+        },
+        {
+            "id": "meta_memory_large",
+            "vk": { "id": "meta_memory_large", "price": 7, "title": "Очки памяти ×180" },
+            "ok": { "id": "meta_memory_large", "price": 7, "title": "Очки памяти ×180" },
+            "playgama": { "amount": 199 }
+        },
+        {
+            "id": "meta_dna_pack",
+            "vk": { "id": "meta_dna_pack", "price": 7, "title": "ДНК-фрагменты ×6" },
+            "ok": { "id": "meta_dna_pack", "price": 7, "title": "ДНК-фрагменты ×6" },
+            "playgama": { "amount": 199 }
+        },
+        {
+            "id": "meta_keys_pack",
+            "vk": { "id": "meta_keys_pack", "price": 5, "title": "Архивные ключи ×4" },
+            "ok": { "id": "meta_keys_pack", "price": 5, "title": "Архивные ключи ×4" },
+            "playgama": { "amount": 149 }
+        },
+        {
+            "id": "meta_bundle",
+            "vk": { "id": "meta_bundle", "price": 12, "title": "Набор архивиста" },
+            "ok": { "id": "meta_bundle", "price": 12, "title": "Набор архивиста" },
+            "playgama": { "amount": 349 }
         }
     ]
 }

@@ -4,6 +4,7 @@ import { LOCATIONS } from './data/locations.js';
 import { MEMORY_FRAGMENTS, NOTES, STORY_EVENTS } from './data/story.js';
 import { META_TREE, META_BRANCHES } from './data/metaTree.js';
 import { ARCHIVE_RECORDS } from './data/archiveRecords.js';
+import { META_SHOP } from './data/metaShop.js';
 
 export const GameData = {
   SAVE_KEY: 'fallout_clicker_save',
@@ -12,5 +13,5 @@ export const GameData = {
   ENEMIES, ELITE_ENEMIES, STORY_ENEMIES,
   LOCATIONS,
   MEMORY_FRAGMENTS, NOTES, STORY_EVENTS,
-  META_TREE, META_BRANCHES, ARCHIVE_RECORDS
+  META_TREE, META_BRANCHES, ARCHIVE_RECORDS, META_SHOP
 };

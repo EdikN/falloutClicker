@@ -54,8 +54,13 @@ export const awardOnDeath = (ctx, meta) => {
 
   meta.memoryPoints = (meta.memoryPoints || 0) + earned.memoryPoints;
   meta.dnaFragments = (meta.dnaFragments || 0) + earned.dnaFragments;
-  meta.archiveKeys = (meta.archiveKeys || 0) + earned.archiveKeys;
   meta.totalCycles = (meta.totalCycles || 0) + 1;
+
+  // Бонусный ключ каждый N-й цикл (мягкая щедрость)
+  const milestone = META_BALANCE.keys.perCyclesMilestone;
+  if (milestone && meta.totalCycles % milestone === 0) earned.archiveKeys += 1;
+
+  meta.archiveKeys = (meta.archiveKeys || 0) + earned.archiveKeys;
   meta.bestDay = Math.max(meta.bestDay || 0, ctx.day || 0);
   meta.lastHumanity = ctx.humanity || 0;
   return earned;

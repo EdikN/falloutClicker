@@ -142,12 +142,54 @@ export const ArchiveScreen = (() => {
     return true;
   };
 
+  // --- Вкладка: донат-паки (IAP) ---
+  let catalogCache = null;
+  const renderStore = (cont) => {
+    const sdk = window.PlaygamaSDK;
+    if (!sdk || !sdk.isPaymentsSupported || !sdk.isPaymentsSupported()) {
+      cont.innerHTML = `<div class='sub'>${translate('store_unavailable')}</div>`;
+      return;
+    }
+    const platform = sdk.getPlatformId ? sdk.getPlatformId() : '';
+    const priceFor = (sku) => {
+      const c = catalogCache && catalogCache.find(x => x.id === sku.id);
+      if (!c) return sku.fallback;
+      if (c.price != null) return (platform === 'vk' || platform === 'ok') ? `${c.price} ${translate('vk_currency')}` : c.price;
+      if (c.priceValue) return `${c.priceValue} ${c.priceCurrencyCode || ''}`.trim();
+      return sku.fallback;
+    };
+
+    (GameData.META_SHOP || []).forEach(sku => {
+      const row = document.createElement('div');
+      row.className = 'shopItem';
+      row.innerHTML = `
+        <div style="display:flex; gap:0.4rem; align-items:center;">
+          <img src="img/payments/${sku.icon}" style="width:2.5em; height:2.5em; object-fit:contain;" alt="">
+          <div>${loc(sku, 'name')}<div class="sub">${loc(sku, 'desc')}</div></div>
+        </div>
+        <button class="btn good" data-store='${sku.id}' style="min-width:80px;">${priceFor(sku)}</button>`;
+      const btn = row.querySelector('[data-store]');
+      btn.onclick = () => {
+        if (window.Game && window.Game.purchaseProduct) {
+          window.Game.purchaseProduct(sku.id, () => render());
+        }
+      };
+      cont.appendChild(row);
+    });
+
+    // Подгружаем реальные цены каталога и перерисовываем (один раз)
+    if (!catalogCache && sdk.getCatalog) {
+      sdk.getCatalog().then(items => { catalogCache = items || []; if (activeTab === 'store') renderContent(); });
+    }
+  };
+
   const renderContent = () => {
     const cont = $('#archiveContent');
     if (!cont) return;
     cont.innerHTML = '';
     if (activeTab === 'log') renderLog(cont);
     else if (activeTab === 'records') renderRecords(cont);
+    else if (activeTab === 'store') renderStore(cont);
     else renderTree(cont);
   };
 
