@@ -16,7 +16,8 @@ export const freshMeta = () => ({
   onboardingDone: false,
   cloneLog: [],          // журнал прошлых клонов (последние записи)
   lastHumanity: 0,       // финальная человечность последнего клона (для hum_carryover)
-  unlockedRecords: {}    // { recordId: true } — открытые секретные записи
+  unlockedRecords: {},   // { recordId: true } — открытые секретные записи
+  whatsNewV26Shown: false
 });
 
 // Подсчёт награды за забег. runStats — это state.stats + контекст ({ day, humanity }).

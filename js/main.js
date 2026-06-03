@@ -46,8 +46,12 @@ const preloadImages = () => {
     const promises = Array.from(imagesToLoad).map(src => {
         return new Promise((resolve) => {
             const img = new Image();
-            img.onload = () => resolve();
-            img.onerror = () => resolve(); // continue even if error
+            const done = () => resolve();
+            img.onload = done;
+            img.onerror = done; // continue even if error
+            // Safety: на скрытой вкладке (сплеш Yandex) onload/onerror не срабатывают —
+            // резолвим по таймеру, чтобы Promise.all никогда не зависал.
+            setTimeout(done, 2000);
             img.src = src;
         });
     });
@@ -357,17 +361,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // --- Патч-ноты / бонус для вернувшихся игроков ---
+    const PATCH_FLAG = 'patch_v26_seen';
+    const WHATS_NEW_BONUS = { caps: 500, food: 20, water: 20, medkits: 5, materials: 40, ammo: 40 };
+
+    const showWhatsNew = () => {
+        if (localStorage.getItem(PATCH_FLAG) === '1') return;   // уже видел (надёжно)
+        const content = document.getElementById('whatsNewContent');
+        if (!content) return;
+
+        const makeList = (key) => translate(key).split('|')
+            .map(s => `<div style="margin:0.25rem 0">— ${s}</div>`).join('');
+
+        content.innerHTML =
+            `<div style="color:var(--warn);margin-bottom:0.5rem">${translate('whats_new_fixes_label')}</div>` +
+            makeList('whats_new_fixes') +
+            `<div style="color:var(--ok);margin:0.75rem 0 0.5rem">${translate('whats_new_content_label')}</div>` +
+            makeList('whats_new_content') +
+            `<div style="border:1px solid var(--line);padding:0.75rem;margin-top:0.75rem;background:rgba(29,242,58,0.04)">` +
+            `<div style="color:var(--text);margin-bottom:0.4rem">${translate('whats_new_bonus_label')}</div>` +
+            `<div style="color:var(--ok);font-size:1.05em">${translate('whats_new_bonus_items')}</div></div>`;
+
+        const res = GameState.get().resources;
+        Object.entries(WHATS_NEW_BONUS).forEach(([k, v]) => { res[k] = (res[k] || 0) + v; });
+
+        // Отмечаем показ: localStorage (на устройстве, синхронно) + meta (на аккаунте, в облако)
+        localStorage.setItem(PATCH_FLAG, '1');
+        GameState.getMeta().whatsNewV26Shown = true;
+        GameState.save();
+
+        GameUI.show('#whatsNewModal', true);
+        const okBtn = document.getElementById('whatsNewOk');
+        if (okBtn) okBtn.onclick = () => {
+            GameUI.show('#whatsNewModal', false);
+            GameUI.renderTop && GameUI.renderTop();
+            GameUI.renderMain && GameUI.renderMain();
+        };
+    };
+
     // Финальный запуск игры — после всех проверок авторизации и загрузки
-    const applyData = async () => {
+    const applyData = async (hasSave = false) => {
         GameUI.applyLanguage();
 
-        // Прогресс сплеша: загрузка изображений (если сплеш ещё виден)
-        if (window.Splash && !_gameReadySent) window.Splash.setProgress(92);
-        await preloadImages();
+        // Ветераны со старым сейвом: пропускаем онбординг (onboardingDone было false из deepMerge)
+        if (hasSave && !GameState.getMeta().onboardingDone) {
+            GameState.getMeta().onboardingDone = true;
+        }
 
         // Прогресс сплеша: инициализация игры
         if (window.Splash && !_gameReadySent) window.Splash.setProgress(96);
+
+        // Рендерим UI СРАЗУ — не блокируем первый кадр предзагрузкой картинок
+        // (на скрытой вкладке Yandex img.onload не срабатывает и await зависал).
         Game.init();
+
+        // Картинки грузим в фоне для устранения мерцания — без await.
+        preloadImages();
 
         // Обновляем кнопку авторизации в HUD
         updateAuthBtn();
@@ -405,6 +454,33 @@ document.addEventListener('DOMContentLoaded', () => {
                 sdk.showBanner('bottom');
             }
         }
+        // What's new: для вернувшихся игроков, один раз. Ждём, пока закроются стартовые
+        // модалки (story-модалка дня 1), затем показываем — иначе пропускалось до перезахода.
+        if (hasSave && localStorage.getItem(PATCH_FLAG) !== '1' && !GameState.getMeta().whatsNewV26Shown) {
+            const tryShowPatch = () => {
+                if (localStorage.getItem(PATCH_FLAG) === '1') return;
+                if (document.querySelector('.overlay.show')) { setTimeout(tryShowPatch, 500); return; }
+                showWhatsNew();
+            };
+            setTimeout(tryShowPatch, 150);
+        }
+
+        // Soft prompt для вернувшихся гостей (1500ms — после what's new)
+        if (sdk && sdk.isBridgeReady() && sdk.isAuthorizationSupported() && !sdk.isAuthorized()) {
+            setTimeout(() => {
+                if (!document.querySelector('.overlay.show')) {
+                    const modal = document.getElementById('authModal');
+                    if (!modal) return;
+                    GameUI.show('#authModal', true);
+                    const loginBtn = document.getElementById('authLoginBtn');
+                    const skipBtn  = document.getElementById('authSkipBtn');
+                    const close = () => GameUI.show('#authModal', false);
+                    loginBtn.onclick = () => { close(); sdk.authorize().then(onAuthSuccess).catch(() => {}); };
+                    skipBtn.onclick = () => close();
+                }
+            }, 1500);
+        }
+
         console.log('[App] applyData complete — game fully ready.');
     };
 
@@ -412,33 +488,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadAndStart = () => {
         GameState.load((success) => {
             if (!success) GameState.set(GameState.fresh());
-            applyData();
+            applyData(success);
         });
-    };
-
-    // Тихая авторизация (по localStorage.auth или уже залогинен) → затем load из облака
-    const silentAuthorizeAndLoad = () => {
-        const sdk = window.PlaygamaSDK;
-        if (!sdk || !sdk.isBridgeReady()) {
-            loadAndStart();
-            return;
-        }
-
-        if (sdk.isAuthorized()) {
-            console.log('[App] \u0423\u0436\u0435 \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u043e\u0432\u0430\u043d, \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043e\u0431\u043b\u0430\u043a\u0430...');
-            loadAndStart();
-            return;
-        }
-
-        if (localStorage.getItem('auth') === 'authorized' && sdk.isAuthorizationSupported()) {
-            console.log('[App] localStorage.auth \u043d\u0430\u0439\u0434\u0435\u043d, \u0442\u0438\u0445\u0430\u044f \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u044f...');
-            sdk.authorize()
-                .catch(() => {})
-                .finally(() => loadAndStart());
-            return;
-        }
-
-        loadAndStart();
     };
 
     // Показать AuthModal для новых игроков (нет сохранения, авторизация поддерживается)
@@ -485,20 +536,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const sdk = window.PlaygamaSDK;
 
-        // Если уже залогинен или был залогинен — тихая авторизация и загрузка
-        if (sdk && sdk.isBridgeReady() &&
-            (sdk.isAuthorized() || localStorage.getItem('auth') === 'authorized')) {
-            silentAuthorizeAndLoad();
+        if (!sdk || !sdk.isBridgeReady()) { loadAndStart(); return; }
+        if (sdk.isAuthorized()) { loadAndStart(); return; }
+
+        // Passive check: platform session → lightweight authorize() window
+        const playerData = window.bridge?.player;
+        if (sdk.isAuthorizationSupported() && playerData?.id && playerData?.name) {
+            sdk.authorize().catch(() => {}).finally(() => loadAndStart());
             return;
         }
 
-        // Первичная загрузка сохранения
+        // Guest: load local save, decide on auth modal
         GameState.load((hasSave) => {
-            if (hasSave) {
-                applyData();
-            } else {
+            if (!hasSave) {
                 GameState.set(GameState.fresh());
-                maybeShowAuthModal(() => applyData());
+                // Новым игрокам патч-ноты не показываем — помечаем сразу
+                GameState.getMeta().whatsNewV26Shown = true;
+                localStorage.setItem('patch_v26_seen', '1');
+                GameState.save();
+                maybeShowAuthModal(() => applyData(false));
+            } else {
+                // Returning guest — what's new + soft prompt fires from applyData()
+                applyData(true);
             }
         });
     };

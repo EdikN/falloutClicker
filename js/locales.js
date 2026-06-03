@@ -249,7 +249,16 @@ export const TRANSLATIONS = {
         clone_trace_honor: 'ВЫ ЗАКРЫВАЕТЕ ЕМУ ГЛАЗА. «СПИ. Я ДОЙДУ ДАЛЬШЕ, ЧЕМ ТЫ НА ДНЕ {0}». В ПАМЯТИ ЩЁЛКАЕТ — АРХИВ ВЫДАЁТ КЛЮЧ.',
         clone_trace_scavenge: 'ВЫ ЗАБИРАЕТЕ ВСЁ ПОЛЕЗНОЕ. ОН БЫ ПОСТУПИЛ ТАК ЖЕ. ВЫЖИВАНИЕ ВЫШЕ СЕНТИМЕНТОВ.',
         archive_tab_store: 'ПОПОЛНИТЬ',
-        store_unavailable: 'Покупки недоступны на этой платформе.'
+        store_unavailable: 'Покупки недоступны на этой платформе.',
+        whats_new_title: 'ПРОТОКОЛ ОБНОВЛЕНИЯ',
+        whats_new_sub: 'СИСТЕМА ИЕРИХОН — ПАТЧ 2.6',
+        whats_new_fixes_label: '► ИСПРАВЛЕНИЯ',
+        whats_new_fixes: 'Устранены критические ошибки предыдущей сборки|Исправлен баланс ресурсов ранней игры|Стабилизирована система сохранений',
+        whats_new_content_label: '► НОВОЕ СОДЕРЖИМОЕ',
+        whats_new_content: 'Расширен архив: добавлены секретные записи|Новые улучшения в дереве памяти|Переработан баланс метапрогрессии',
+        whats_new_bonus_label: '► КОМПЕНСАЦИЯ ЗА НЕСТАБИЛЬНОСТЬ',
+        whats_new_bonus_items: '+500 КРЕДИТОВ · +20 ЕДЫ · +20 ВОДЫ · +5 АПТЕЧЕК · +40 МАТЕРИАЛОВ · +40 ПАТРОНОВ',
+        whats_new_ok: 'ПРИНЯТЬ ПРОТОКОЛ'
     },
     en: {
         days: 'DAY', status: 'STATUS', credits: 'CREDITS', weapon: 'WEAPON',
@@ -500,7 +509,16 @@ export const TRANSLATIONS = {
         clone_trace_honor: 'YOU CLOSE HIS EYES. "REST. I WILL GO FURTHER THAN YOU DID ON DAY {0}." SOMETHING CLICKS IN MEMORY — THE ARCHIVE GRANTS A KEY.',
         clone_trace_scavenge: 'YOU TAKE EVERYTHING USEFUL. HE WOULD HAVE DONE THE SAME. SURVIVAL OVER SENTIMENT.',
         archive_tab_store: 'TOP UP',
-        store_unavailable: 'Purchases are not available on this platform.'
+        store_unavailable: 'Purchases are not available on this platform.',
+        whats_new_title: 'UPDATE PROTOCOL',
+        whats_new_sub: 'JERICHO SYSTEM — PATCH 2.6',
+        whats_new_fixes_label: '► FIXES',
+        whats_new_fixes: 'Critical bugs from previous build resolved|Early-game resource balance corrected|Save system stabilized',
+        whats_new_content_label: '► NEW CONTENT',
+        whats_new_content: 'Archive expanded: secret records added|New upgrades in the memory tree|Meta-progression balance reworked',
+        whats_new_bonus_label: '► INSTABILITY COMPENSATION',
+        whats_new_bonus_items: '+500 CREDITS · +20 FOOD · +20 WATER · +5 MEDKITS · +40 MATERIALS · +40 AMMO',
+        whats_new_ok: 'ACCEPT PROTOCOL'
     }
 };
 
