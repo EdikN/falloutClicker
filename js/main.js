@@ -430,10 +430,6 @@ document.addEventListener('DOMContentLoaded', () => {
             GameState.get().tutorialShown = true;
             GameState.save();
             OnboardingFlow.start();
-        } else if (!GameState.get().tutorialShown) {
-            GameState.get().tutorialShown = true;
-            GameState.save();
-            GameUI.show('#tutorialModal', true);
         }
 
         // Сценарий B: если gameReady ещё не отправлен (не было auth modal)
@@ -539,9 +535,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!sdk || !sdk.isBridgeReady()) { loadAndStart(); return; }
         if (sdk.isAuthorized()) { loadAndStart(); return; }
 
-        // Passive check: platform session → lightweight authorize() window
+        // Passive check: platform session → lightweight authorize() window.
+        // wasAuthorized — игрок уже авторизовался ранее (флаг пишет playgama.js при успехе).
+        // На повторных заходах player.id/name могут ещё не подтянуться, поэтому пере-инициируем
+        // тихую авторизацию по факту прошлой авторизации — иначе со второго раза не срабатывало.
+        const wasAuthorized = localStorage.getItem('auth') === 'authorized';
         const playerData = window.bridge?.player;
-        if (sdk.isAuthorizationSupported() && playerData?.id && playerData?.name) {
+        if (sdk.isAuthorizationSupported() && (wasAuthorized || (playerData?.id && playerData?.name))) {
             sdk.authorize().catch(() => {}).finally(() => loadAndStart());
             return;
         }
