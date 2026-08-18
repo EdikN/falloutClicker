@@ -327,6 +327,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return { show, checkOnDay, initSettingsButtons };
     })();
 
+    // Хендл для автотестов/драйвера: window.GameSocial.show(day)
+    window.GameSocial = SocialPrompt;
+
     // Слушаем смену дня из game.js
     document.addEventListener('dayadvanced', (e) => {
         SocialPrompt.checkOnDay(e.detail.day);
